@@ -1,0 +1,69 @@
+@import url("https://fonts.googleapis.com/css?family=Poppins");
+
+
+table
+{
+  width:50%;
+}
+.styled-table {
+  border-collapse: collapse;
+  /* margin: auto; */
+  font-size: 0.7em;
+  font-family: "Poppins";
+  width:100%;
+  table-layout: fixed; /* Ensures the table layout is fixed */
+  max-width: 100%;
+  box-shadow: 0 17px rgba(1, 119, 237, 0.805);
+}
+
+.styled-table thead tr {
+  background-color: #3386ff;
+  color: #ffffff;
+  text-align: left;
+}
+
+.styled-table th,
+.styled-table td {
+  padding: 8px 8px;
+  word-wrap: break-word; /* Ensures long words break and do not cause overflow */
+}
+
+
+.styled-table tbody tr {
+  border-bottom: 1px solid #4f8dd8;
+}
+.styled-table tbody tr:nth-of-type(even) {
+  background-color: #cddfe4;
+}
+.styled-table tbody tr:last-of-type {
+  border-bottom: 2px solid #058daf;
+}
+.btn {
+  font-family: "Poppins";
+  border: none;
+  color: rgb(255, 255, 255);
+  padding: 5px 4px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 5px;
+  font-size: 12px;
+  margin: 2px 4px;
+  cursor: pointer;
+}
+.btn-edit {
+  background-color: #3386ff;
+  opacity: 75;
+}
+.btn-delete {
+  background-color: #57a5e6;
+}
+.btn-view {
+  background-color: #4987f2;
+  color: black;
+}
+.btn-contact {
+  background-color: #3385ffdf;
+  margin-bottom: 10px;
+
+}
