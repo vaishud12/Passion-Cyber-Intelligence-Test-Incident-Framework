@@ -5,7 +5,6 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -13,29 +12,18 @@ function Login() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-        
       });
-  
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
-
-      }
-      
       const data = await response.json();
-      console.log("Response data:", data);
-
-      if (data.token) {
+      if (response.ok) {
         // Save token in local storage or context
         localStorage.setItem("token", data.token);
+        
         navigate("/chatbot");
       } else {
-        alert("Login failed: Token not provided");
+        alert("Login failed: " + data);
       }
     } catch (err) {
       console.error("Error:", err);
-      alert(`Login failed: ${err.message}`);
     }
   };
 
@@ -74,9 +62,14 @@ function Login() {
         <p className="mt-4 text-sm">
           Don't have an account? <Link to="/" className="text-blue-500">Sign up</Link>
         </p>
+        <p className="mt-4 text-sm">
+         <Link to="/forgetPassword" className="text-blue-500">ForgetPassword</Link>
+        </p>
+
       </div>
     </div>
   );
 }
 
 export default Login;
+

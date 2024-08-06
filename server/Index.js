@@ -60,26 +60,26 @@ app.post("/signup", async (req, res) => {
 });
 
 // Login route
-app.post("/login", async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const user = await User.findOne({ where: { email } });
-        if (!user) {
-            return res.status(400).send("User not found");
-        }
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).send("Invalid credentials");
-        }
-        const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
-            expiresIn: "1h",
-        });
-        res.json({ token, email: user.email }); // Include email in the response
-    } catch (err) {
-        console.error(err);
-        res.status(400).send("Error logging in");
-    }
-});
+// app.post("/login", async (req, res) => {
+//     const { email, password } = req.body;
+//     try {
+//         const user = await User.findOne({ where: { email } });
+//         if (!user) {
+//             return res.status(400).send("User not found");
+//         }
+//         const isMatch = await bcrypt.compare(password, user.password);
+//         if (!isMatch) {
+//             return res.status(400).send("Invalid credentials");
+//         }
+//         const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+//             expiresIn: "1h",
+//         });
+//         res.json({ token, email: user.email }); // Include email in the response
+//     } catch (err) {
+//         console.error(err);
+//         res.status(400).send("Error logging in");
+//     }
+// });
 
 // Protected route example
 app.get("/protected", (req, res) => {
@@ -94,20 +94,123 @@ app.get("/protected", (req, res) => {
         res.status(401).send("Invalid token");
     }
 });
+//Admin
 
+// Login route
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await User.findOne({ where: { email } });
+        if (!user) return res.status(400).send("User not found");
+        
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).send("Invalid credentials");
+        
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "1h" });
+        res.json({ token, email: user.email });
+    } catch (err) {
+        console.error(err);
+        res.status(400).send("Error logging in");
+    }
+});
+
+// Middleware to verify token
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    if (!token) return res.status(401).send('Access denied');
+    if (!token) return res.sendStatus(401);
 
-    jwt.verify(token, JWT_SECRET, (err, decoded) => {
-        if (err) return res.status(401).send('Invalid token');
-        req.userEmail = decoded.email; // Extract user email from the decoded token
-        
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.sendStatus(403);
+        req.user = user;
         next();
     });
 };
 
+// Route to check if the user is an admin
+app.get('/api/isAdmin', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const result = await db.query('SELECT isAdmin FROM users WHERE id = $1', [userId]);
+        if (result.rows.length > 0) {
+            res.json({ isAdmin: result.rows[0].isadmin });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// // Example protected route for admin users
+// app.get('/api/admin-only', authenticateToken, adminMiddleware, (req, res) => {
+//     res.send('This is an admin-only route');
+// });
+//foreget passowrd 
+// Nodemailer transporter setup
+const transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+      user: 'vaishnavisd23@gmail.com',
+      pass: 'pyxo oadt rfcu lcxg', // Replace with your actual email credentials
+    },
+  });
+  
+  // Function to send reset email
+  const sendResetEmail = (email, token) => {
+    const mailOptions = {
+      from: 'vaishnavisd23@gmail.com',
+      to: email,
+      subject: 'Password Reset',
+      text: `You requested a password reset. Please use the following link to reset your password: http://localhost:3000/api/reset-password/${token}`,
+    };
+  
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Email sent: ' + info.response);
+      }
+    });
+  };
+app.post('/api/forget-password', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const userResult = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+        const user = userResult.rows[0];
+
+        if (!user) {
+            return res.status(400).send('User not found');
+        }
+
+        const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1h' });
+        sendResetEmail(email, token);
+        res.send('Password reset link sent to your email');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+});
+
+app.post('/api/reset-password', async (req, res) => {
+    const { token, password } = req.body;
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const result = await db.query('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, decoded.id]);
+
+        if (result.rowCount === 0) {
+            return res.status(400).send('User not found or password not updated');
+        }
+        res.send('Password has been reset');
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Invalid or expired token');
+    }
+});
+
+  
 // Route to get user incidents
 app.get("/api/user-incidents/:userId", authenticateToken, (req, res) => {
     const userId = req.params.userId; // Correctly access userId from req.params
@@ -130,7 +233,7 @@ app.post("/api/send-emailfour/ids", async (req, res) => {
             service: "Gmail",
             auth: {
                 user: "vaishnavisd23@gmail.com",
-                pass: "hwoz eefp gpzv zwcd",
+                pass: "pyxo oadt rfcu lcxg",
             },
         });
         
@@ -199,14 +302,35 @@ app.post("/api/send-emailfour/ids", async (req, res) => {
 // ensureStatusColumnExists().catch(error => console.error('Error ensuring status column exists:', error));
 
 
-//get query
-  app.get("/api/incidentget", (req, res) => {
-    const sqlGet= "SELECT * from incident";
-    db.query(sqlGet,(error,result)=>{
+// //get query
+//   app.get("/api/incidentget", (req, res) => {
+//     const sqlGet= "SELECT * from incident";
+//     db.query(sqlGet,(error,result)=>{
+//         res.json(result.rows);
+//     }
+//     );
+// });
+app.get("/api/incidentget", (req, res) => {
+    const sqlGet = `
+        SELECT
+            incident.*,
+            users.email
+        FROM
+            incident
+        LEFT JOIN
+            users
+        ON
+            incident.user_id = users.id
+    `;
+    db.query(sqlGet, (error, result) => {
+        if (error) {
+            console.error("Error executing query:", error);
+            return res.status(500).json({ error: 'An error occurred while fetching incidents.' });
+        }
         res.json(result.rows);
-    }
-    );
+    });
 });
+
 //add a query
 app.post("/api/incidentpost", (req, res) => {
     const {incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser} = req.body;
@@ -344,7 +468,7 @@ app.post("/api/send-emailforresolved/ids", async (req, res) => {
             service: "Gmail",
             auth: {
                 user: "vaishnavisd23@gmail.com",
-                pass: "hwoz eefp gpzv zwcd",
+                pass: "pyxo oadt rfcu lcxg",
             },
         });
 
