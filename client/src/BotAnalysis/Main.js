@@ -202,13 +202,12 @@
 
 // export default Main;
 import React, { useState, useEffect } from 'react';
-import {jwtDecode} from 'jwt-decode'; // Correct import for jwt-decode
+import {jwtDecode} from 'jwt-decode'; // Correct named import for jwt-decode
 import axios from 'axios';
 import BotAinput from './BotAinput';
 import FTable from '../Incident/FTable'; // Import FTable component
 import UserIncidents from '../Incident/UserIncidents'; // Import UserIncidents component
 import ResolutionTable from '../Resolve/ResolutionTable';
-import Admin from '../Incident/Admin'; // Import Admin component
 
 const Main = () => {
     const [fTableVisible, setFTableVisible] = useState(false);
@@ -216,8 +215,7 @@ const Main = () => {
     const [rTableVisible, setRTableVisible] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
     const [userId, setUserId] = useState('');
-    const [isAdmin, setIsAdmin] = useState(false); // State to track admin status
-
+   
     useEffect(() => {
         const decodeToken = async () => {
             try {
@@ -233,15 +231,11 @@ const Main = () => {
 
                     // Fetch user data to check if the user is an admin
                     try {
-                        const response = await axios.get(`http://localhost:5000/api/check-admin`, {
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-                        setIsAdmin(response.data.isAdmin); // Set admin status
-                        console.log('User admin status:', response.data.isAdmin); // Debug admin status
+                        const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
+                        console.log('User data:', response.data); // Debug user data
+                       
                     } catch (error) {
-                        console.error('Error fetching admin status:', error);
+                        console.error('Error fetching user data:', error);
                     }
                 }
             } catch (error) {
@@ -299,10 +293,9 @@ const Main = () => {
             {rTableVisible && <ResolutionTable userId={userId}/>}
 
             {isLoggedIn && userId && (
-                isAdmin ? <Admin /> : <UserIncidents userId={userId} />
+                <UserIncidents userId={userId} />
             )}
         </div>
     );
 };
-
 export default Main;

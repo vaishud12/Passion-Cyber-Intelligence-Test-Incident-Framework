@@ -6,6 +6,7 @@ const nodemailer = require('nodemailer');
 const bcrypt = require("bcryptjs");
 const jwt = require('jsonwebtoken'); // Import jsonwebtoken
 const pg = require('pg');
+
 const { Sequelize, DataTypes } = require('sequelize'); // Import Sequelize and DataTypes
 
 const JWT_SECRET = "Hjkl2345Olkj0987Ooiuyhjnb0987Nbvcty12fgh675redf23"; // Define your JWT secret key
@@ -45,10 +46,11 @@ const User = sequelize.define("users", {
 
 // Signup route
 app.post("/signup", async (req, res) => {
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = await User.create({
+            name,
             email,
             password: hashedPassword,
         });
@@ -210,7 +212,19 @@ app.post('/api/reset-password', async (req, res) => {
     }
 });
 
-  
+  //get users data
+
+  // Route to get all users with their passwords
+app.get('/api/users', async (req, res) => {
+    try {
+        const result = await db.query('SELECT id, name, email, password, role FROM users');
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Route to get user incidents
 app.get("/api/user-incidents/:userId", authenticateToken, (req, res) => {
     const userId = req.params.userId; // Correctly access userId from req.params
@@ -224,6 +238,58 @@ app.get("/api/user-incidents/:userId", authenticateToken, (req, res) => {
         }
         res.json(result.rows);
     });
+});
+//Route for incident category
+app.get("/api/agroincidentcategoryget", (req, res) => {
+        const sqlGet = "SELECT * FROM agroincidentcategorym";
+        db.query(sqlGet, (error, result) => {
+            if (error) {
+                console.error("Error fetching resolutions:", error);
+                return res.status(500).json({ error: "Internal server error" });
+            }
+            res.json(result.rows);
+        });
+    });
+
+    //add a query
+app.post("/api/incidentcategorypost", (req, res) => {
+    const {incidentcategory,incidentname,incidentdescription} = req.body;
+    const sqlInsert = "INSERT INTO agroincidentcategorym (incidentcategory,incidentname,incidentdescription) VALUES ($1, $2, $3)";
+    const values=[incidentcategory,incidentname,incidentdescription];
+    db.query(sqlInsert ,values,(error,result)=>{
+        if (error) {
+            console.error("error intersting object type",error);
+            res.status(500).json({error:"internal server error"})
+        }else{
+            res.status(200).json({message:"object type inserted sucessfully"});
+        }
+    } );
+});
+/******delete *******/
+app.delete("/api/incidentcategorydelete/:incidencategoryid", (req, res) => {
+    const {incidentcategoryid} = req.params;
+    const sqlRemove="DELETE FROM agroincidentcategorym where incidentcategoryid=$1";
+    db.query(sqlRemove ,[incidentcategoryid],(error,result)=>{
+        if(error) {
+            console.log(error);
+            return res.status(500).send("an error occurred while deleting object type")
+        }
+        res.send("object type deleted successfully")
+    } );
+});
+app.get("/api/incidentcategoryget/:incidentcategoryid", async (req, res) => {
+    try {
+        const { incidentcategoryid } = req.params;
+        // Convert regid to a number
+        const incidentcidNumber = parseInt(incidentcategoryid);
+
+        const sqlGet = "SELECT * FROM agroincidentcategorym WHERE incidentcategoryid = $1";
+        const result = await db.query(sqlGet, [incidentcidNumber]);
+        res.send(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("An error occurred while fetching the object type");
+    }
 });
 
 // Nodemailer transporter setup
@@ -246,7 +312,8 @@ app.post("/api/send-emailfour/ids", async (req, res) => {
             date,
             currentaddress,
             gps,
-            raisedtouser
+            raisedtouser,
+            status
         } = req.body;
 
         const fromEmail = incidentowner; // Use incidentowner as the from email
@@ -265,7 +332,8 @@ app.post("/api/send-emailfour/ids", async (req, res) => {
                 Date: ${date},
                 Current address: ${currentaddress},
                 GPS: ${gps},
-                Raised to user: ${raisedtouser}
+                Raised to user: ${raisedtouser},
+                status: ${status},
             ` // Use backticks for multi-line template literals
         };
 
@@ -302,30 +370,116 @@ app.post("/api/send-emailfour/ids", async (req, res) => {
 // ensureStatusColumnExists().catch(error => console.error('Error ensuring status column exists:', error));
 
 
-// //get query
-//   app.get("/api/incidentget", (req, res) => {
-//     const sqlGet= "SELECT * from incident";
-//     db.query(sqlGet,(error,result)=>{
+// app.get("/api/incidentget", (req, res) => {
+//     const sqlGet = "SELECT * FROM incident";
+//     db.query(sqlGet, (error, result) => {
+//         if (error) {
+//             console.error("Error fetching resolutions:", error);
+//             return res.status(500).json({ error: "Internal server error" });
+//         }
 //         res.json(result.rows);
-//     }
-//     );
+//     });
 // });
+
+// app.get('/api/incidentget', authenticateToken, async (req, res) => {
+//     try {
+//         const userId = req.user.userId; // Get userId from token
+
+//         const result = await db.query(`
+//             SELECT 
+//                 incident.incidentcategory, 
+//                 incident.incidentname, 
+//                 incident.incidentowner, 
+//                 incident.description, 
+//                 incident.date, 
+//                 incident.currentaddress, 
+//                 incident.gps, 
+//                 incident.raisedtouser, 
+//                 users.email 
+//             FROM 
+//                 incident 
+//             INNER JOIN 
+//                 users 
+//             ON 
+//                 incident.userid = users.id 
+//             WHERE 
+//                 incident.userid = $1
+//         `, [userId]);
+
+//         if (result.rows.length > 0) {
+//             res.json(result.rows);
+//         } else {
+//             res.status(404).json({ message: 'No incidents found' });
+//         }
+//     } catch (error) {
+//         console.error('Error fetching incidents:', error);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// });
+// app.get("/api/incidentget", (req, res) => {
+//     const sqlGet = `
+//         SELECT 
+//             i.*,
+//             u.email AS user_email
+//         FROM 
+//             incident i
+//         JOIN 
+//             users u
+//         ON 
+//             i.userid = u.id
+//     `;
+    
+//     db.query(sqlGet, (error, result) => {
+//         if (error) {
+//             console.error("Error fetching incidents:", error);
+//             return res.status(500).json({ error: "Internal server error" });
+//         }
+        
+//         // Ensure result.rows is defined
+//         if (!result || !result.rows) {
+//             console.error("Invalid query result:", result);
+//             return res.status(500).json({ error: "Invalid query result" });
+//         }
+
+//         // Format the response to group incidents by user email
+//         const incidentsByUser = result.rows.reduce((acc, row) => {
+//             const { user_email, ...incidentData } = row;
+
+//             if (!acc[user_email]) {
+//                 acc[user_email] = [];
+//             }
+
+//             acc[user_email].push(incidentData);
+
+//             return acc;
+//         }, {});
+
+//         // Send the result as JSON
+//         res.json(incidentsByUser);
+//     });
+// });
+
 app.get("/api/incidentget", (req, res) => {
     const sqlGet = `
         SELECT
-            incident.*,
-            users.email
-        FROM
-            incident
-        LEFT JOIN
-            users
-        ON
-            incident.user_id = users.id
+            a.email,
+            b.incidentname,
+            b.incidentcategory,
+            b.description,
+            b.date,
+            b.gps,
+            b.currentaddress,
+            b.incidentowner,
+            b.raisedtouser,
+            b.status 
+        FROM users a
+        JOIN incident b ON a.id = b.userid
     `;
+
     db.query(sqlGet, (error, result) => {
         if (error) {
-            console.error("Error executing query:", error);
-            return res.status(500).json({ error: 'An error occurred while fetching incidents.' });
+            console.error("Error fetching incidents:", error);
+            return res.status(500).json({ error: "Internal server error" });
         }
         res.json(result.rows);
     });
@@ -333,9 +487,9 @@ app.get("/api/incidentget", (req, res) => {
 
 //add a query
 app.post("/api/incidentpost", (req, res) => {
-    const {incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser} = req.body;
-    const sqlInsert = "INSERT INTO incident (incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
-    const values=[incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser];
+    const {incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser, status} = req.body;
+    const sqlInsert = "INSERT INTO incident (incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+    const values=[incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser, status];
     db.query(sqlInsert ,values,(error,result)=>{
         if (error) {
             console.error("error intersting object type",error);
@@ -364,7 +518,7 @@ app.get("/api/incidentget/:incidentid", async (req, res) => {
         const incidentidNumber = parseInt(incidentid);
 
         const sqlGet = "SELECT * FROM incident WHERE incidentid = $1";
-        const result = await db.query(sqlGet, [regidNumber]);
+        const result = await db.query(sqlGet, [incidentidNumber]);
         res.send(result.rows);
     } catch (error) {
         console.error(error);
@@ -373,19 +527,19 @@ app.get("/api/incidentget/:incidentid", async (req, res) => {
 });
 
 
-app.put("/api/incidentupdate/:incidentid", (req, res) => {
-    const {incidentid} = req.params;
-    const {incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser} = req.body;
+// app.put("/api/incidentupdate/:incidentid", (req, res) => {
+//     const {incidentid} = req.params;
+//     const {incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser} = req.body;
      
-    const sqlUpdate="UPDATE incident SET incidentcategory=$1, incidentname=$2, incidentowner=$3, description=$4, date=$5, currentaddress=$6, gps=$7, raisedtouser=$8, WHERE incidentid=$9";
-    db.query(sqlUpdate,[incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser,incidentid],(error,result)=>{
-        if (error) {
-            console.error("error inserting object type",error);
-           return res.status(500).send("an error occurred while updating the object type");
-    }
-        res.send("object type updated sucessfully");
-});
-});
+//     const sqlUpdate="UPDATE incident SET incidentcategory=$1, incidentname=$2, incidentowner=$3, description=$4, date=$5, currentaddress=$6, gps=$7, raisedtouser=$8, WHERE incidentid=$9";
+//     db.query(sqlUpdate,[incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser,incidentid],(error,result)=>{
+//         if (error) {
+//             console.error("error inserting object type",error);
+//            return res.status(500).send("an error occurred while updating the object type");
+//     }
+//         res.send("object type updated sucessfully");
+// });
+// });
 
 // // Endpoint to send email
 // app.post("/api/send-email", async (req, res) => {
@@ -414,8 +568,8 @@ app.get("/api/resolutionget", (req, res) => {
 });
 app.post("/api/resolutionpost", (req, res) => {
     const { incidentid,incidentname,incidentowner,resolutiondate, resolutionremark, resolvedby } = req.body;
-    const sqlInsert = "INSERT INTO resolution (incidentid, incidentname,incidentowner, resolutiondate, resolutionremark, resolvedby) VALUES ($1, $2, $3, $4, $5,$6)";
-    const values = [incidentid, incidentname, incidentowner,resolutiondate, resolutionremark, resolvedby];
+    const sqlInsert = "INSERT INTO resolution (incidentid, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby) VALUES ($1, $2, $3, $4, $5, $6)";
+    const values = [incidentid, incidentname, incidentowner,resolutiondate, resolutionremark, resolvedby]
     db.query(sqlInsert, values, (error, result) => {
         if (error) {
             console.error("Error inserting resolution:", error);
@@ -437,17 +591,44 @@ app.delete("/api/resolutiondelete/:resolutionid", (req, res) => {
     });
 });
 
-app.get("/api/resolutionget/:resolutionid", (req, res) => {
-    const { resolutionid } = req.params;
-    const sqlGet = "SELECT * FROM resolution WHERE resolutionid = $1";
-    db.query(sqlGet, [resolutionid], (error, result) => {
+// app.get("/api/incidentget/:incidentid", (req, res) => {
+//     const {incidentid} = req.params;
+//     const sqlGet = "SELECT * FROM incident WHERE incidentid = $1";
+//     db.query(sqlGet, [incidentid], (error, result) => {
+//         if (error) {
+//             console.error("Error fetching resolution:", error);
+//             return res.status(500).json({ error: "Internal server error" });
+//         }
+//         res.json(result.rows);
+//     });
+// });
+app.get("/api/incidentget/:incidentid", (req, res) => {
+    const { incidentid } = req.params;
+
+    if (!incidentid) {
+        console.error("No Incident ID provided");
+        return res.status(400).json({ error: "Incident ID is required" });
+    }
+
+    const sqlGet = "SELECT * FROM incident WHERE incidentid = $1";
+    console.log(`Executing SQL: ${sqlGet} with params: ${incidentid}`);
+
+    db.query(sqlGet, [incidentid], (error, result) => {
         if (error) {
-            console.error("Error fetching resolution:", error);
+            console.error("Error fetching incident:", error);
             return res.status(500).json({ error: "Internal server error" });
         }
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Incident not found" });
+        }
+
         res.json(result.rows);
     });
 });
+
+
+
 
 // app.put("/api/resolutionupdate/:resolutionid", (req, res) => {
 //     const { resolutionid } = req.params;

@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import jwt_decode from 'jwt-decode'; // Correct named import for jwt-decode
 import './FTable.css';
 import FAddEdit from './FAddEdit';
+import ResolutionAddEdit from '../Resolve/ResolutionAddEdit';
 
 const FTable = ({ userId }) => {
   const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const [chatbotVisible, setChatbotVisible] = useState(false);
+  const [resolutionVisible, setResolutionVisible] = useState(false);
   const [editItem, setEditItem] = useState(null);
-console.log(userId)
+  const [resolutionItem, setResolutionItem] = useState(null);
+
   const loadData = async () => {
     try {
       const response = await axios.get(`http://localhost:5000/api/user-incidents/${userId}`, {
@@ -27,13 +29,13 @@ console.log(userId)
   useEffect(() => {
     loadData();
   }, []);
-console.log(userId)
+
   const deleteObject = async (incidentid) => {
     if (window.confirm("Are you sure you want to delete this object?")) {
       try {
         await axios.delete(`http://localhost:5000/api/incidentdelete/${incidentid}`, {
           headers: {
-            userId:userId, // Include authorization token
+            Authorization: `Bearer ${localStorage.getItem('token')}`, // Include authorization token
           },
         });
         console.log('Success: Object deleted successfully');
@@ -50,8 +52,15 @@ console.log(userId)
     document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
   };
 
+  const handleResolveClick = (item) => {
+    setResolutionItem(item);
+    setResolutionVisible(true);
+    document.body.style.overflow = 'hidden';
+  };
+
   const closeModal = () => {
     setChatbotVisible(false);
+    setResolutionVisible(false);
     document.body.style.overflow = 'auto'; // Restore scrolling when modal is closed
   };
 
@@ -101,6 +110,15 @@ console.log(userId)
         </div>
       )}
 
+      {resolutionVisible && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <span style={{ position: 'absolute', top: '10px', right: '10px', cursor: 'pointer' }} onClick={closeModal}>&times;</span>
+            <ResolutionAddEdit onClose={closeModal} editItem={resolutionItem} loadData={loadData} />
+          </div>
+        </div>
+      )}
+
       <table className="styled-table" style={{ width: '100%' }}>
         <thead>
           <tr>
@@ -113,11 +131,12 @@ console.log(userId)
             <th>Current Address</th>
             <th>GPS</th>
             <th>Raised to User</th>
+            <th>Status</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          {currentItems.map((item, index) => (
+          {currentItems.map((item) => (
             <tr key={item.incidentid}>
               <td>{item.incidentid}</td>
               <td>{item.incidentcategory}</td>
@@ -128,8 +147,10 @@ console.log(userId)
               <td>{item.currentaddress}</td>
               <td>{item.gps}</td>
               <td><b>{item.raisedtouser}</b></td>
+              <td><b>{item.status}</b></td>
               <td>
                 <button className="btn btn-edit" onClick={() => handleEditUserClick(item)}>Edit</button>
+                <button className="btn btn-edit" onClick={() => handleResolveClick(item)}>Resolve</button>
                 <button className="btn btn-delete" onClick={() => deleteObject(item.incidentid)}>Delete</button>
               </td>
             </tr>
