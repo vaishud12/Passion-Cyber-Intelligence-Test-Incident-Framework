@@ -206,7 +206,7 @@ import {jwtDecode} from 'jwt-decode'; // Correct named import for jwt-decode
 import axios from 'axios';
 import BotAinput from './BotAinput';
 import FTable from '../Incident/FTable'; // Import FTable component
-import UserIncidents from '../Incident/UserIncidents'; // Import UserIncidents component
+// import UserIncidents from '../Incident/UserIncidents'; // Import UserIncidents component
 import ResolutionTable from '../Resolve/ResolutionTable';
 
 const Main = () => {
@@ -230,13 +230,13 @@ const Main = () => {
                     console.log('User ID:', userId); // Debug user ID
 
                     // Fetch user data to check if the user is an admin
-                    try {
-                        const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
-                        console.log('User data:', response.data); // Debug user data
+                    // try {
+                    //     const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
+                    //     console.log('User data:', response.data); // Debug user data
                        
-                    } catch (error) {
-                        console.error('Error fetching user data:', error);
-                    }
+                    // } catch (error) {
+                    //     console.error('Error fetching user data:', error);
+                    // }
                 }
             } catch (error) {
                 console.error('Error decoding token:', error);
@@ -292,9 +292,9 @@ const Main = () => {
             {fTableVisible && <FTable userId={userId} />}
             {rTableVisible && <ResolutionTable userId={userId}/>}
 
-            {isLoggedIn && userId && (
+            {/* {isLoggedIn && userId && (
                 <UserIncidents userId={userId} />
-            )}
+            )} */}
         </div>
     );
 };

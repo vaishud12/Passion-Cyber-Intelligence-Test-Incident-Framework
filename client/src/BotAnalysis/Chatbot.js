@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import {jwtDecode} from 'jwt-decode';
 import { GoScreenNormal, GoScreenFull, GoX, GoSync } from 'react-icons/go';
 import { SiGooglemessages } from 'react-icons/si';
 import BotAinput from './BotAinput'; // Import the BotAinput component
@@ -11,7 +12,41 @@ const Chatbot = () => {
     const [inputText, setInputText] = useState('');
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+    const [userId, setUserId] = useState('');
     const messagesEndRef = useRef(null);
+    
+    useEffect(() => {
+        const decodeToken = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    const decoded = jwtDecode(token);
+                    const userId = parseInt(decoded.userId, 10);
+                    setUserId(userId);
+                    localStorage.setItem('user_id', userId);
+
+                    console.log('Decoded token:', decoded); // Debug decoded token
+                    console.log('User ID:', userId); // Debug user ID
+
+                    // Fetch user data to check if the user is an admin
+                    // try {
+                    //     const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
+                    //     console.log('User data:', response.data); // Debug user data
+                       
+                    // } catch (error) {
+                    //     console.error('Error fetching user data:', error);
+                    // }
+                }
+            } catch (error) {
+                console.error('Error decoding token:', error);
+            }
+        };
+
+        if (isLoggedIn) {
+            decodeToken();
+        }
+    }, [isLoggedIn]);
 
     const togglePopup = () => {
         setShowPopup(!showPopup);

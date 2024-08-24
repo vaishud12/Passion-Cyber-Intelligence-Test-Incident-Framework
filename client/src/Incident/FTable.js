@@ -45,7 +45,12 @@ const FTable = ({ userId }) => {
       }
     }
   };
-
+  const handleAddIncidentClick = () => {
+    setEditItem(null);  // Clear any previous edit item
+    setChatbotVisible(true);
+    document.body.style.overflow = 'hidden';
+  };
+  
   const handleEditUserClick = (item) => {
     setEditItem(item);
     setChatbotVisible(true);
@@ -99,7 +104,15 @@ const FTable = ({ userId }) => {
 
   return (
     <div style={{ marginTop: '30px', position: 'relative' }}>
-      <button className="btn btn-contact" onClick={() => setChatbotVisible(true)}>Add Incident</button>
+      <button
+  className="btn btn-contact"
+  onClick={() => {
+    setEditItem(null);  // Clear any previous edit item to ensure the form is in "Add" mode
+    setChatbotVisible(true);
+  }}
+>
+  Add Incident
+</button>
 
       {chatbotVisible && (
         <div style={modalOverlayStyle}>
@@ -126,7 +139,7 @@ const FTable = ({ userId }) => {
             <th>Incident Category</th>
             <th>Incident Name</th>
             <th>Incident Owner</th>
-            <th>Description</th>
+            <th>Incident Description</th>
             <th>Date</th>
             <th>Current Address</th>
             <th>GPS</th>
@@ -142,7 +155,7 @@ const FTable = ({ userId }) => {
               <td>{item.incidentcategory}</td>
               <td>{item.incidentname}</td>
               <td><b>{item.incidentowner}</b></td>
-              <td>{item.description}</td>
+              <td>{item.incidentdescription}</td>
               <td>{item.date}</td>
               <td>{item.currentaddress}</td>
               <td>{item.gps}</td>
