@@ -25,6 +25,9 @@ function Login() {
 
       if (response.ok) {
         localStorage.setItem("token", data.token);
+        localStorage.setItem('userEmail', data.email);
+        localStorage.setItem('isAdmin',data.isAdmin.toString())
+        console.log('Stored Email:', localStorage.getItem('userEmail'));
         setIsAdmin(data.isAdmin); // Set isAdmin based on response
       } else {
         setError(data.message || "Login failed. Please try again.");
@@ -41,9 +44,9 @@ function Login() {
   useEffect(() => {
     if (isAdmin !== null) {
       if (isAdmin) {
-        navigate("/adminmain"); // Navigate to admin route
+        navigate("/Adminmain"); // Navigate to admin route
       } else {
-        navigate("/chatbot"); // Navigate to user route
+        navigate("/Home"); // Navigate to user route
       }
     }
   }, [isAdmin, navigate]);

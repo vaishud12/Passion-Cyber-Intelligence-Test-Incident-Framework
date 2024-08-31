@@ -30,6 +30,11 @@ const sequelize = new Sequelize("BotGrm", "postgres", "India@5555", {
 });
 
 const User = sequelize.define("User", { // Model name should be singular and PascalCase
+    name: { 
+        type: DataTypes.STRING, // Add the name field
+        allowNull: false, // You can set this to true if the name is optional
+    },
+    
     email: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -251,6 +256,39 @@ app.get("/api/user-incidents/:userId", authenticateToken, (req, res) => {
         res.json(result.rows);
     });
 });
+app.get("/api/user-resolutions/:userId", authenticateToken, (req, res) => {
+    const userId = req.params.userId; // Correctly access userId from req.params
+  
+    const sqlGetResolutions = "SELECT * FROM resolution WHERE id = $1";
+  
+    db.query(sqlGetResolutions, [userId], (error, result) => {
+      if (error) {
+        console.error("Error fetching resolutions:", error);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+      res.json(result.rows);
+    });
+  });
+  app.get('/api/userid', async (req, res) => {
+    const { email } = req.query;
+  
+    if (!email) {
+      return res.status(400).json({ error: 'Email parameter is required' });
+    }
+  
+    try {
+      const result = await db.query('SELECT email, isAdmin, role, name FROM users WHERE email = $1', [email]);
+  
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
 //Route for incident category
 app.get("/api/agroincidentcategoryget", (req, res) => {
         const sqlGet = "SELECT * FROM agroincidentcategorym";
@@ -361,7 +399,7 @@ app.post("/api/send-emailfour/ids", async (req, res) => {
                 pass: "pyxo oadt rfcu lcxg",
             },
         });
-        
+
         const {
             email1,
             incidentcategory,
@@ -372,34 +410,63 @@ app.post("/api/send-emailfour/ids", async (req, res) => {
             currentaddress,
             gps,
             raisedtouser,
-            status
+            status,
+            timeFrame
         } = req.body;
 
-        const fromEmail = incidentowner; // Use incidentowner as the from email
+        // Check if the email exists in the database
+        const result = await db.query('SELECT id FROM users WHERE email = $1', [email1]);
 
-        const mailOptions = {
-            from: fromEmail,
-            to: [email1].filter((email) => email !== ""),
-            subject: `Incident Report: ${incidentname}`,  // Use backticks for template literals
-            text: ` Resolve this incident within 24hrs given time!!!!
+        if (result.rows.length === 0) {
+            // Email not found in the database
+            const inviteLink = `http://your-website.com/signup?invite=${encodeURIComponent(email1)}`;
 
-                Incident Report: ${incidentname},
-                
-                Incident Category: ${incidentcategory},
-                Incident name: ${incidentname},
-                Incident Owner: ${incidentowner},
-                Description: ${incidentdescription},
-                Date: ${date},
-                Current address: ${currentaddress},
-                GPS: ${gps},
-                Raised to user: ${raisedtouser},
-                status: ${status},
-            ` // Use backticks for multi-line template literals
-        };
+            // Send invitation email
+            const inviteMailOptions = {
+                from: 'vaishnavisd23@gmail.com',
+                to: email1,
+                subject: 'Invitation to Join Our Platform',
+                text: `Hello,
 
-        await transporter.sendMail(mailOptions);
-        res.status(200).json({ message: "Email sent successfully" });
-        console.log("Email sent successfully");
+                It appears that you are not registered with our system. Please use the following link to register and join our platform:
+
+                ${inviteLink}
+
+                Thank you!`
+            };
+
+            await transporter.sendMail(inviteMailOptions);
+
+            res.status(404).json({ message: "User not found. Invitation email sent." });
+            console.log("Invitation email sent.");
+        } else {
+            // Email found in the database, send incident email
+            const fromEmail = incidentowner; // Use incidentowner as the from email
+
+            const mailOptions = {
+                from: fromEmail,
+                to: [email1].filter((email) => email !== ""),
+                subject: `Incident Report: ${incidentname}`,  // Use backticks for template literals
+                text: `Resolve this incident within 24hrs given time ${timeFrame}!!!!!
+
+                    Incident Report: ${incidentname},
+                    
+                    Incident Category: ${incidentcategory},
+                    Incident name: ${incidentname},
+                    Incident Owner: ${incidentowner},
+                    Description: ${incidentdescription},
+                    Date: ${date},
+                    Current address: ${currentaddress},
+                    GPS: ${gps},
+                    Raised to user: ${raisedtouser},
+                    status: ${status},
+                ` // Use backticks for multi-line template literals
+            };
+
+            await transporter.sendMail(mailOptions);
+            res.status(200).json({ message: "Email sent successfully" });
+            console.log("Email sent successfully");
+        }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -547,11 +614,11 @@ app.get("/api/incidentget", (req, res) => {
 
 //add a query
 app.post("/api/incidentpost", (req, res) => {
-    const { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid,id} = req.body;
+    const { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid,id, tagss} = req.body;
     
     // Insert raisedtouserid into the userid column
-    const sqlInsert = "INSERT INTO incident (incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid,id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,$11)";
-    const values = [incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid, id];
+    const sqlInsert = "INSERT INTO incident (incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid,id, tagss) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,$11,$12)";
+    const values = [incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid, id, tagss];
 
     db.query(sqlInsert, values, (error, result) => {
         if (error) {
@@ -608,8 +675,39 @@ app.get("/api/getUserByEmail/:email", (req, res) => {
         }
     });
 });
+//fetch tags
+app.get('/api/tags', (req, res) => {
+    const sqlGet = "SELECT tagss FROM incident";
+    db.query(sqlGet, (error, result) => {
+        if (error) {
+            console.error("Error fetching tags:", error);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+        
+        // Check if result.rows is not null and has data
+        if (result.rows && result.rows.length > 0) {
+            res.json(result.rows);
+        } else {
+            res.json([]); // Return an empty array if no data
+        }
+    });
+});
 
+app.post('/api/transliterate', async (req, res) => {
+    const { text, languageCode } = req.body;
 
+    try {
+        const response = await axios.post(`https://translation.googleapis.com/language/translate/v2?key=YOUR_API_KEY`, {
+            q: text,
+            target: languageCode,
+            format: 'text'
+        });
+        res.json({ transliteratedText: response.data.data.translations[0].translatedText });
+    } catch (error) {
+        console.error('Error during transliteration:', error);
+        res.status(500).send('Error during transliteration');
+    }
+});
 // app.put("/api/incidentupdate/:incidentid", (req, res) => {
 //     const {incidentid} = req.params;
 //     const {incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser} = req.body;
@@ -673,10 +771,32 @@ app.get("/api/resolution/resolutionget", (req, res) => {
     });
 });
 
+// app.post("/api/resolutionpost", (req, res) => {
+//     const { incidentid,incidentcategory,incidentname,incidentowner,resolutiondate, resolutionremark, resolvedby } = req.body;
+//     const sqlInsert = "INSERT INTO resolution (incidentid,incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby) VALUES ($1, $2, $3, $4, $5, $6, $7)";
+//     const values = [incidentid,incidentcategory, incidentname, incidentowner,resolutiondate, resolutionremark, resolvedby]
+//     db.query(sqlInsert, values, (error, result) => {
+//         if (error) {
+//             console.error("Error inserting resolution:", error);
+//             return res.status(500).json({ error: "Internal server error" });
+//         }
+//         res.status(200).json({ message: "Resolution inserted successfully" });
+//     });
+// });
 app.post("/api/resolutionpost", (req, res) => {
-    const { incidentid,incidentcategory,incidentname,incidentowner,resolutiondate, resolutionremark, resolvedby } = req.body;
-    const sqlInsert = "INSERT INTO resolution (incidentid,incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby) VALUES ($1, $2, $3, $4, $5, $6, $6)";
-    const values = [incidentid,incidentcategory, incidentname, incidentowner,resolutiondate, resolutionremark, resolvedby]
+    // Destructure fields from the request body
+    const { incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby,id } = req.body;
+
+    // Basic validation
+    if (!incidentid || !incidentcategory || !incidentname || !incidentowner || !resolutiondate || !resolutionremark || !resolvedby) {
+        return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // SQL Insert query
+    const sqlInsert = "INSERT INTO resolution (incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby,id) VALUES ($1, $2, $3, $4, $5, $6, $7,$8)";
+    const values = [incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby,id];
+
+    // Execute the query
     db.query(sqlInsert, values, (error, result) => {
         if (error) {
             console.error("Error inserting resolution:", error);
@@ -777,6 +897,9 @@ app.post("/api/send-emailforresolved/ids", async (req, res) => {
             to: [email1].filter(email => email !== ""),
             subject: `The Incident Resolved Report: ${incidentname}`, // Use backticks for template literals
             text: `
+
+                This Query has been resolved by ${resolvedby}
+                
                 Incident id: ${incidentid},
                 Incident name: ${incidentname},
                 Incident Owner: ${incidentowner},

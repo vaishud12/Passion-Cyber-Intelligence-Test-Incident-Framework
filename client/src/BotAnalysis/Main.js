@@ -191,7 +191,7 @@
 
 //             {botAInputVisible && <BotAinput userId={userId}/>}
 //             {fTableVisible &&   <FTable userId={userId} />}
-//             {rTableVisible && <ResolutionTable userId={userId}/>}
+//             {rTableVisible && <ResolutionTableu userId={userId}/>}
 
 //             {isLoggedIn && userId && (
 //                 <UserIncidents userId={userId} />
@@ -207,7 +207,7 @@ import axios from 'axios';
 import BotAinput from './BotAinput';
 import FTable from '../Incident/FTable'; // Import FTable component
 // import UserIncidents from '../Incident/UserIncidents'; // Import UserIncidents component
-import ResolutionTable from '../Resolve/ResolutionTable';
+import ResolutionTableu from '../Resolve/ResolutionTableu';
 
 const Main = () => {
     const [fTableVisible, setFTableVisible] = useState(false);
@@ -253,10 +253,10 @@ const Main = () => {
             setFTableVisible(true);
             setBotAInputVisible(false);
             setRTableVisible(false);
-        } else if (component === 'botAInput') {
-            setBotAInputVisible(true);
-            setFTableVisible(false);
-            setRTableVisible(false);
+        // } else if (component === 'botAInput') {
+        //     setBotAInputVisible(true);
+        //     setFTableVisible(false);
+        //     setRTableVisible(false);
         } else if (component === 'rtable') {
             setRTableVisible(true);
             setFTableVisible(false);
@@ -266,12 +266,12 @@ const Main = () => {
 
     return (
         <div>
-            <button
+            {/* <button
                 className="w-full px-4 py-2 mt-4 text-white transition duration-300 bg-green-500 rounded-md hover:bg-green-600"
                 onClick={() => handleTable('botAInput')}
             >
                 Page Analyzer
-            </button>
+            </button> */}
             <div className="flex justify-between space-x-4 mt-4">
                 <button
                     className="w-full px-4 py-2 text-white transition duration-300 bg-green-500 rounded-md hover:bg-green-600"
@@ -290,7 +290,7 @@ const Main = () => {
 
             {botAInputVisible && <BotAinput userId={userId}/>}
             {fTableVisible && <FTable userId={userId} />}
-            {rTableVisible && <ResolutionTable userId={userId}/>}
+            {rTableVisible && <ResolutionTableu userId={userId}/>}
 
             {/* {isLoggedIn && userId && (
                 <UserIncidents userId={userId} />

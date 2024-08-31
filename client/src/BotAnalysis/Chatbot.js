@@ -61,6 +61,7 @@ const Chatbot = () => {
     };
 
     const handleClose = () => {
+        setShowPopup(false);
         // Handle close button action
     };
 

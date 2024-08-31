@@ -7,7 +7,9 @@ import ForgetPassword from './Signup-Login/ForgetPassword';
 import ResetPassword from './Signup-Login/ResetPassword';
 import Admin from './Incident/Admin'
 import AdminMain from './BotAnalysis/AdminMain';
+import Home from './Home';
 
+import Example from './components/Example';
 
 const App = () => {
   const isAuthenticated = !!localStorage.getItem('token'); // Check if token exists in localStorage
@@ -19,12 +21,13 @@ const App = () => {
           {/* Public Routes */}
           <Route path="/" element={<Signup />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/Home" element={<Home/>} />
           <Route path="/forgetPassword" element={<ForgetPassword />} />
           <Route path="api/reset-password/:token" element={<ResetPassword />} />
           <Route path="/Admin" element={<Admin/>} />
           <Route path="/Adminmain" element={<AdminMain/>} />
 
-          
+          <Route path="/test" element={<Example/>} />
 
 
           {/* Additional Routes */}

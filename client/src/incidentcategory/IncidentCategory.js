@@ -5,6 +5,9 @@ import IncidentCategoryedit from './IncidentCategoryedit';
 
 const IncidentCategory = () => {
     const [data, setData] = useState([]);
+    const [tags, setTags] = useState([]);
+    const [selectedTag, setSelectedTag] = useState('');
+    const [searchQuery, setSearchQuery] = useState(''); // New state for search query
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -17,6 +20,7 @@ const IncidentCategory = () => {
     const loadData = async () => {
         try {
             const response = await axios.get("http://localhost:5000/api/agroincidentcategoryget");
+            console.log("Fetched data:", response.data); // Debugging line
             setData(response.data);
             setLoading(false);
         } catch (error) {
@@ -25,8 +29,20 @@ const IncidentCategory = () => {
         }
     };
 
+    // Load tags from the server
+    const loadTags = async () => {
+        try {
+            const response = await axios.get("http://localhost:5000/api/tags");
+            console.log("Fetched tags:", response.data); // Debugging line
+            setTags(response.data.map(tagObj => tagObj.tagss)); // Ensure `tagss` is correct
+        } catch (error) {
+            console.error("Error fetching tags:", error);
+        }
+    };
+
     useEffect(() => {
         loadData();
+        loadTags();
     }, []);
 
     // Delete an item
@@ -36,7 +52,6 @@ const IncidentCategory = () => {
                 const response = await axios.delete(`http://localhost:5000/api/incidentcategorydelete/${incidentcategoryid}`);
                 if (response.status === 200) {
                     setSuccessMessage('Incident category deleted successfully');
-                    // Manually update the state by filtering out the deleted item
                     setData(prevData => prevData.filter(item => item.incidentcategoryid !== incidentcategoryid));
                 }
                 setTimeout(() => setSuccessMessage(''), 3000); // Clear success message after 3 seconds
@@ -48,7 +63,6 @@ const IncidentCategory = () => {
 
     // Group data by category
     const groupByCategory = (data) => {
-        console.log('Grouping Data:', data); // Debugging line
         return data.reduce((acc, item) => {
             if (!acc[item.incidentcategory]) {
                 acc[item.incidentcategory] = [];
@@ -58,8 +72,29 @@ const IncidentCategory = () => {
         }, {});
     };
 
-    const groupedData = groupByCategory(data);
+    // const filterData = (data) => {
+    //     if (selectedTag) {
+    //         return data.filter(item => {
+    //             // Ensure item.tags is an array before calling includes
+    //             return Array.isArray(item.tags) && item.tags.includes(selectedTag);
+    //         });
+    //     }
+    //     return data;
+    // };
+    
 
+     // Filter data based on selected tag and search query
+     const filterData = (data) => {
+        return data.filter(item => {
+            const matchesTag = selectedTag ? Array.isArray(item.tags) && item.tags.includes(selectedTag) : true;
+            const matchesSearch = searchQuery ? item.incidentname.toLowerCase().includes(searchQuery.toLowerCase()) || item.incidentdescription.toLowerCase().includes(searchQuery.toLowerCase()) : true;
+            return matchesTag && matchesSearch;
+        });
+    };
+
+    const filteredData = filterData(data);
+    const groupedData = groupByCategory(filteredData);
+    
     // Pagination logic
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -89,6 +124,14 @@ const IncidentCategory = () => {
     return (
         <>
             <div className="admin-container">
+
+            <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search..."
+                    className="search-input"
+                />
                 <button 
                     className="btn btn-add" 
                     style={{
@@ -106,6 +149,21 @@ const IncidentCategory = () => {
                 >
                     Add IncidentCategory
                 </button>
+                 
+                <select 
+                    value={selectedTag} 
+                    onChange={(e) => setSelectedTag(e.target.value)} 
+                    className="tag-select"
+                >
+                    <option value="">All Tags</option>
+                    {tags.length > 0 ? (
+                        tags.map((tag, index) => (
+                            <option key={index} value={tag}>{tag}</option>
+                        ))
+                    ) : (
+                        <option value="">Loading Tags...</option>
+                    )}
+                </select>
 
                 {chatbotVisible && (
                     <div className="modal-overlay">

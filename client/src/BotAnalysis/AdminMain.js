@@ -5,6 +5,7 @@ import UserTable from '../Signup-Login/UserList';
 import IncidentCategory from '../incidentcategory/IncidentCategory';
 import Admin from '../Incident/Admin'; // Import Admin component
 import UserList from '../Signup-Login/UserList';
+import Navbar from '../Navbar';
 
 const AdminMain = () => {
     const [fTableVisible, setFTableVisible] = useState(false);
@@ -38,6 +39,9 @@ const AdminMain = () => {
     };
 
     return (
+        <>
+        <div><Navbar/></div>
+        
         <div>
              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                 <h1 style={{
@@ -81,6 +85,7 @@ const AdminMain = () => {
             {rTableVisible && <ResolutionTable />}
             {userTableVisible && <UserList/>} 
         </div>
+        </>
     );
 };
 

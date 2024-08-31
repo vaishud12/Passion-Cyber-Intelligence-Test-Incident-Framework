@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-// import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import './ResolutionAddEdit.css';
 
 const initialState = {
     incidentid: '',
-    incidentcategory:'',
+    incidentcategory: '',
     incidentname: '',
     incidentowner: '',
     resolutiondate: '',
@@ -16,71 +15,72 @@ const initialState = {
 
 const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
     const [state, setState] = useState(initialState);
-    const {incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby } = state;
-   const incidentid=editItem.incidentid // Extract incident ID from URL params
+    const { incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby } = state;
     const [emailSent, setEmailSent] = useState(false);
-    
     const userId = localStorage.getItem("user_id");
-    
-console.log(editItem);
-    // Fetch incident data when component mounts or incidentid changes
+
     useEffect(() => {
         if (editItem) {
             setState(editItem);
         } else if (incidentid) {
             axios.get(`http://localhost:5000/api/incidentget/${incidentid}`)
                 .then(resp => {
-                    console.log("Response:", resp.data);
+                    console.log("Response from GET:", resp.data);
                     setState(resp.data[0]);
                 })
-                .catch(error => console.error(error));
+                .catch(error => {
+                    console.error("Error fetching incident:", error);
+                    toast.error("Failed to fetch incident details");
+                });
         }
     }, [editItem, incidentid]);
 
-
-    
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!resolutiondate || !incidentid) {
+        if (!resolutiondate || !incidentid || !incidentcategory || !incidentname || !incidentowner || !resolutionremark || !resolvedby) {
             toast.error("Please provide a value for each input field");
-        } else {
-            try {
-                const updatedData = { ...state, id: userId, };
-                // POST or PUT based on whether an ID is present
-                if (!incidentid) {
-                    await axios.post("http://localhost:5000/api/resolutionpost", { updatedData });
-                } else {
-                    await axios.put(`http://localhost:5000/api/resolutionupdate/${incidentid}`, { updatedData });
-                }
-                setState(initialState);
-                toast.success(`${incidentid ? 'Resolution updated' : 'Resolution Added'} successfully`);
+            return;
+        }
 
-                // Send email
-                const emailPayload = {
-                    email1: incidentowner,
-                    from: resolvedby,
-                    incidentid,
-                    incidentcategory,
-                    incidentname,
-                    incidentowner,
-                    resolutiondate,
-                    resolutionremark,
-                    resolvedby
-                };
-                await axios.post("http://localhost:5000/api/send-emailforresolved/ids", emailPayload);
-                toast.success('Email sent successfully');
-                setEmailSent(true);
+        const updatedData = { incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby, id:userId};
 
-                // Open WhatsApp
-                const message = `Incident id: ${incidentid}\nIncident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nResolution Date: ${resolutiondate}\nResolution Remark: ${resolutionremark}\nResolved by: ${resolvedby}`;
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                window.open(whatsappUrl, '_blank');
+        console.log("Data being sent to backend:", updatedData);
 
-                onClose();
-            } catch (error) {
-                toast.error(error.response?.data?.error || 'An error occurred');
+        try {
+            if (incidentid) {
+                await axios.post("http://localhost:5000/api/resolutionpost", updatedData);
+            } else {
+                await axios.put(`http://localhost:5000/api/resolutionupdate/${incidentid}`, updatedData);
             }
+
+            setState(initialState);
+            toast.success(`${incidentid ? 'Resolution updated' : 'Resolution added'} successfully`);
+
+            // Send email
+            const emailPayload = {
+                email1: incidentowner,
+                from: resolvedby,
+                incidentid,
+                incidentcategory,
+                incidentname,
+                incidentowner,
+                resolutiondate,
+                resolutionremark,
+                resolvedby
+            };
+            await axios.post("http://localhost:5000/api/send-emailforresolved/ids", emailPayload);
+            toast.success('Email sent successfully');
+            setEmailSent(true);
+
+            // Open WhatsApp
+            const message = `Incident id: ${incidentid}\nIncident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nResolution Date: ${resolutiondate}\nResolution Remark: ${resolutionremark}\nResolved by: ${resolvedby}`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+
+            onClose();
+        } catch (error) {
+            console.error("Error during submission:", error);
+            toast.error(error.response?.data?.error || 'An error occurred');
         }
     };
 
@@ -99,7 +99,7 @@ console.log(editItem);
     return (
         <div className={`modal ${visible ? 'show' : 'hide'}`} style={{ marginTop: "20px" }}>
             <div className="modal-content">
-                <center><h1>{incidentid ? 'Add Resolution' : 'Add Resolution'}</h1></center>
+                <center><h1>{incidentid ? 'Edit Resolution' : 'Add Resolution'}</h1></center>
                 <form
                     style={{
                         margin: "auto",
@@ -119,7 +119,7 @@ console.log(editItem);
                         onChange={handleInputChange}
                         readOnly
                     />
-                    <label htmlFor="incidentcategory">Incident category:</label>
+                    <label htmlFor="incidentcategory">Incident Category:</label>
                     <input
                         type="text"
                         id="incidentcategory"
@@ -178,7 +178,7 @@ console.log(editItem);
                     />
 
                     <input type="submit" value={incidentid ? "Submit" : "Save"} />
-                    {emailSent && <div style={{ color: 'green', marginTop: '10px' }}>Incident Email sent successfully to user!</div>}
+                    {emailSent && <div style={{ color: 'green', marginTop: '10px' }}>Incident email sent successfully to user!</div>}
                     <button type="button" onClick={handleGoBack}>Go back</button>
                 </form>
             </div>
@@ -187,6 +187,8 @@ console.log(editItem);
 };
 
 export default ResolutionAddEdit;
+
+
 
 // // import React, { useState, useEffect } from 'react';
 // // import axios from 'axios';

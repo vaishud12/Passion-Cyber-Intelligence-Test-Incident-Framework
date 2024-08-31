@@ -11,7 +11,9 @@ const Admin = () => {
     const itemsPerPage = 5;
     const [chatbotVisible, setChatbotVisible] = useState(false);
     const [editItem, setEditItem] = useState(null);
-    
+    const [searchQuery, setSearchQuery] = useState(''); // New state for search query
+    const [selectedTime, setSelectedTime] = useState('');
+
     useEffect(() => {
         const fetchIncidents = async () => {
             try {
@@ -44,7 +46,20 @@ const Admin = () => {
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = incidentsByUser.slice(indexOfFirstItem, indexOfLastItem);
+
+    // Filter incidents based on search query
+    const filterIncidents = (incidents) => {
+        return incidents.filter(user => 
+            user.incidents.some(incident =>
+                (incident.incidentname && incident.incidentname.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                (incident.description && incident.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()))
+            )
+        );
+    };
+
+    const filteredIncidents = filterIncidents(incidentsByUser);
+    const currentItems = filteredIncidents.slice(indexOfFirstItem, indexOfLastItem);
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -65,7 +80,7 @@ const Admin = () => {
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
-   
+
     return (
         <>
             <div className="admin-container">
@@ -86,12 +101,70 @@ const Admin = () => {
                 >
                     Add Incident
                 </button>
+               
+                <div 
+    style={{
+        display: 'flex',
+        flexDirection: 'column', // Stack items vertically
+        alignItems: 'center', // Center horizontally
+        justifyContent: 'center', // Center vertically if needed
+        padding: '20px' // Optional padding around the container
+    }}
+>
+    <label 
+        style={{
+            display: 'block',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            color: '#333', // Dark color for readability
+            fontFamily: 'Poppins',
+            marginBottom: '8px' // Space below the label
+        }}
+    >
+        Set The Time To Resolve Incident:
+    </label>
+    <input 
+        style={{
+            width: '10%',  // Adjust as needed
+            padding: '8px',
+            fontSize: '14px',
+            border: '1px solid #ccc', // Light border
+            borderRadius: '4px', // Rounded corners
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Slight shadow for depth
+            marginBottom: '12px', // Space below the input field
+            fontFamily: 'Poppins'
+        }}
+        type="time"
+        value={selectedTime}
+        onChange={(e) => setSelectedTime(e.target.value)}
+        placeholder="Set Time"
+        className="time-input"
+    />
+</div>
+
+<input
+    type="text"
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    placeholder="Search..."
+    style={{
+        width: '100%',  // Full width of the container
+        padding: '8px',
+        fontSize: '14px',
+        border: '1px solid #ccc', // Light border
+        borderRadius: '4px', // Rounded corners
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Slight shadow for depth
+        marginBottom: '12px', // Space below the input field
+        fontFamily: 'Poppins'
+    }}
+/>
 
                 {chatbotVisible && (
                     <div className="modal-overlay">
                         <div className="modal-content">
                             <span className="modal-close" onClick={closeModal}>&times;</span>
-                            <FAddEdit onClose={closeModal} editItem={editItem} loadData={() => {}} />
+                            <FAddEdit onClose={closeModal} editItem={editItem} loadData={() => {}} selectedTime={selectedTime} />
+                            
                         </div>
                     </div>
                 )}
@@ -112,7 +185,6 @@ const Admin = () => {
                                 <th>Incident Owner</th>
                                 <th>Raised To User</th>
                                 <th>Status</th>
-
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -123,16 +195,15 @@ const Admin = () => {
                                         {i === 0 && (
                                             <td rowSpan={user.incidents.length}><b>{user.email}</b></td>
                                         )}
-                                        <td>{incident.incidentname}</td>
-                                        <td>{incident.incidentcategory}</td>
-                                        <td>{incident.description}</td>
-                                        <td>{incident.date}</td>
-                                        <td>{incident.gps}</td>
-                                        <td>{incident.currentaddress}</td>
-                                        <td>{incident.incidentowner}</td>
-                                        <td>{incident.raisedtouser}</td>
-                                        <td>{incident.status}</td>
-
+                                        <td>{incident.incidentname || 'N/A'}</td>
+                                        <td>{incident.incidentcategory || 'N/A'}</td>
+                                        <td>{incident.description || 'N/A'}</td>
+                                        <td>{incident.date || 'N/A'}</td>
+                                        <td>{incident.gps || 'N/A'}</td>
+                                        <td>{incident.currentaddress || 'N/A'}</td>
+                                        <td>{incident.incidentowner || 'N/A'}</td>
+                                        <td>{incident.raisedtouser || 'N/A'}</td>
+                                        <td>{incident.status || 'N/A'}</td>
                                         <td>
                                             <button className="btn btn-edit" onClick={() => handleEditUserClick(incident)}>Edit</button>
                                             <button className="btn btn-delete" onClick={() => console.log(`Delete ${incident.incidentid}`)}>Delete</button>
@@ -145,7 +216,7 @@ const Admin = () => {
                 )}
                 <center>
                     <div className="pagination">
-                        {Array.from({ length: Math.ceil(incidentsByUser.length / itemsPerPage) }, (_, i) => (
+                        {Array.from({ length: Math.ceil(filteredIncidents.length / itemsPerPage) }, (_, i) => (
                             <button
                                 key={i + 1}
                                 onClick={() => paginate(i + 1)}

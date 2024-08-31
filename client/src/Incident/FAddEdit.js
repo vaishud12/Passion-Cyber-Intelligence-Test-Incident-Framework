@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback,  useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import './FAddEdit.css';
+
+
+
+// import AgroSuggestions from '../components/AgroSuggestions'
 
 const initialState = {
     incidentcategory: '',
@@ -16,7 +20,7 @@ const initialState = {
     status: ''
 };
 
-const FAddEdit = ({ visible, onClose, editItem, loadData }) => {
+const FAddEdit = ({ visible, onClose, editItem, loadData, selectedTime}) => {
     const [state, setState] = useState(initialState);
     const [emailSent, setEmailSent] = useState(false);
     const [incidentCategories, setIncidentCategories] = useState([]);
@@ -25,7 +29,51 @@ const FAddEdit = ({ visible, onClose, editItem, loadData }) => {
     const { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status} = state;
     const { incidentid } = useParams();
     const userId = localStorage.getItem("user_id");
+    const [tags, setTags] = useState([]);
+    const [query, setQuery] = useState('');
+  
+    // Constant variable for tag names
+    const tagNames = tags.map(tag => tag.name);
+  
+    // Handle tag addition
+    const onAddition = useCallback(
+      (newTag) => {
+        if (newTag && !tags.find((tag) => tag.name === newTag.name)) {
+          setTags((prevTags) => [...prevTags, newTag]);
+        }
+      },
+      [tags]
+    );
+  
+    // Handle tag deletion
+    const onDelete = useCallback((tagIndex) => {
+      setTags((prevTags) => prevTags.filter((_, i) => i !== tagIndex));
+    }, []);
+  
+    // Handle input changes
+    const onInput = useCallback((query) => {
+      setQuery(query);
+    }, []);
+  
+    // Handle input key press to add tag
+    const handleKeyDown = (e) => {
+      if (e.key === 'Enter' && query.trim()) {
+        e.preventDefault(); // Prevent default form submission or other behavior
+        onAddition({ id: tags.length + 1, name: query.trim() });
+        setQuery(''); // Clear input after adding
+      }
+    };
+  
+    // Handle input blur event to create tag if input is not empty
+    const handleBlur = () => {
+      if (query.trim()) {
+        onAddition({ id: tags.length + 1, name: query.trim() });
+        setQuery(''); // Clear input after adding
+      }
+    };
     
+
+
 
     useEffect(() => {
         if (editItem) {
@@ -86,9 +134,10 @@ const FAddEdit = ({ visible, onClose, editItem, loadData }) => {
                 // Fetch the user ID based on the raisedtouser email
                 const response = await axios.get(`http://localhost:5000/api/getUserByEmail/${raisedtouser}`);
                 const raisedToUserId = response.data.userid; // Assign response to the correct variable name
-    
+                const tagss = tagNames;
+  
                 // Combine the fetched raisedtouserid with the other form data and assign it to userid
-                const updatedData = { ...state, userid: raisedToUserId, raisedtouserid: raisedToUserId, id: userId, };
+                const updatedData = { ...state, userid: raisedToUserId, raisedtouserid: raisedToUserId, id: userId, tagss};
     
                 if (!incidentid) {
                     await axios.post("http://localhost:5000/api/incidentpost", updatedData);
@@ -109,12 +158,17 @@ const FAddEdit = ({ visible, onClose, editItem, loadData }) => {
                     date,
                     currentaddress,
                     gps,
+                    raisedtouser,
+                    status,
+                    tagss,
+                    timeFrame: selectedTime
                 };
                 await axios.post("http://localhost:5000/api/send-emailfour/ids", emailPayload);
                 toast.success('Email sent successfully');
                 setEmailSent(true);
     
-                const message = `Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nIncident Description: ${incidentdescription}\nDate: ${date}\nCurrent Address: ${currentaddress}\nGPS: ${gps}\nRaised to User: ${raisedtouser}\nStatus: ${status}`;
+                const message = ` This Incident ${incidentname} Should be Resolved within ${selectedTime} !!!
+                Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nIncident Description: ${incidentdescription}\nDate: ${date}\nCurrent Address: ${currentaddress}\nGPS: ${gps}\nRaised to User: ${raisedtouser}\nStatus: ${status}`;
                 const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
                 window.open(whatsappUrl, '_blank');
     
@@ -152,7 +206,7 @@ const FAddEdit = ({ visible, onClose, editItem, loadData }) => {
             }));
         }
     };
-
+  console.log(tags);
     return (
         <div className={`modal ${visible ? 'show' : 'hide'}`} style={{ marginTop: "20px" }}>
             <div className="modal-content">
@@ -268,6 +322,34 @@ const FAddEdit = ({ visible, onClose, editItem, loadData }) => {
                         onChange={handleInputChange}
                     />
 
+<div>
+      <p>Select or add tags below:</p>
+      <div className="tag-input-container">
+        {tags.map((tag, index) => (
+          <span key={index} className="tag">
+            {tag.name}
+            <button
+              type="button"
+              onClick={() => onDelete(index)}
+              className="tag-remove-button"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => onInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          placeholder="Add new tag"
+          className="tag-input"
+        />
+      </div>
+      <p><b>Tag Names:</b></p>
+      <pre><code>{JSON.stringify(tagNames, null, 2)}</code></pre>
+</div>             
                     <label htmlFor="status">Status</label>
                     <select
                         id="status"
