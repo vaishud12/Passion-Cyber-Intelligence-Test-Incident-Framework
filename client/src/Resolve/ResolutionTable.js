@@ -15,7 +15,7 @@ const ResolutionTable = () => {
   useEffect(() => {
     const fetchResolutions = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/resolution/resolutionget');
+        const response = await axios.get('http://localhost:5000/incident-api/resolution/resolutionget');
         const resolutions = response.data;
 
         // Group resolutions by user email

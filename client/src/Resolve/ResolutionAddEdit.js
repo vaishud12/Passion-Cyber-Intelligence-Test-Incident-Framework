@@ -23,7 +23,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
         if (editItem) {
             setState(editItem);
         } else if (incidentid) {
-            axios.get(`http://localhost:5000/api/incidentget/${incidentid}`)
+            axios.get(`http://localhost:5000/incident-api/incidentget/${incidentid}`)
                 .then(resp => {
                     console.log("Response from GET:", resp.data);
                     setState(resp.data[0]);
@@ -48,9 +48,9 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
 
         try {
             if (incidentid) {
-                await axios.post("http://localhost:5000/api/resolutionpost", updatedData);
+                await axios.post("http://localhost:5000/incident-api/resolutionpost", updatedData);
             } else {
-                await axios.put(`http://localhost:5000/api/resolutionupdate/${incidentid}`, updatedData);
+                await axios.put(`http://localhost:5000/incident-api/resolutionupdate/${incidentid}`, updatedData);
             }
 
             setState(initialState);
@@ -68,7 +68,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
                 resolutionremark,
                 resolvedby
             };
-            await axios.post("http://localhost:5000/api/send-emailforresolved/ids", emailPayload);
+            await axios.post("http://localhost:5000/incident-api/send-emailforresolved/ids", emailPayload);
             toast.success('Email sent successfully');
             setEmailSent(true);
 

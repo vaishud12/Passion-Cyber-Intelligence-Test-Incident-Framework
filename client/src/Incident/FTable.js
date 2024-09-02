@@ -20,7 +20,7 @@ const FTable = ({ userId }) => {
   // Fetch incidents data
   const loadData = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/user-incidents/${userId}`, {
+      const response = await axios.get(`http://localhost:5000/incident-api/user-incidents/${userId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
@@ -34,7 +34,7 @@ const FTable = ({ userId }) => {
   // Fetch tags data
   const loadTags = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/tags', {
+      const response = await axios.get('http://localhost:5000/incident-api/tags', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
@@ -69,7 +69,7 @@ const FTable = ({ userId }) => {
   const deleteObject = async (incidentid) => {
     if (window.confirm("Are you sure you want to delete this object?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/incidentdelete/${incidentid}`, {
+        await axios.delete(`http://localhost:5000/incident-api/incidentdelete/${incidentid}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },

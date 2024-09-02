@@ -20,18 +20,23 @@ const initialState = {
     status: ''
 };
 
-const FAddEdit = ({ visible, onClose, editItem, loadData, selectedTime}) => {
+const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
     const [state, setState] = useState(initialState);
     const [emailSent, setEmailSent] = useState(false);
     const [incidentCategories, setIncidentCategories] = useState([]);
     const [incidentNames, setIncidentNames] = useState([]);
+    const [priority, setPriority] = useState('');
+
     const [incidentDescriptions, setIncidentDescriptions] = useState([]);
     const { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status} = state;
     const { incidentid } = useParams();
     const userId = localStorage.getItem("user_id");
     const [tags, setTags] = useState([]);
     const [query, setQuery] = useState('');
-  
+   
+    const [emailValidation, setEmailValidation] = useState({ exists: true, message: '' });
+    const [showConfirmInvite, setShowConfirmInvite] = useState(false);
+    
     // Constant variable for tag names
     const tagNames = tags.map(tag => tag.name);
   
@@ -71,15 +76,48 @@ const FAddEdit = ({ visible, onClose, editItem, loadData, selectedTime}) => {
         setQuery(''); // Clear input after adding
       }
     };
-    
 
+    const checkEmailExists = async (email) => {
+        try {
+            const response = await axios.get(`http://localhost:5000/incident-api/check-email/${email}`);
+            setEmailValidation({
+                exists: response.data.exists,
+                message: response.data.exists ? '' : 'Email not found',
+            });
+    
+            // If the email is not found, trigger the popup
+            if (!response.data.exists) {
+                setShowConfirmInvite(true);
+            }
+        } catch (error) {
+            console.error('Error checking email:', error);
+            setEmailValidation({
+                exists: false,
+                message: 'Error checking email',
+            });
+    
+            // Optionally, you might want to show a popup if there's an error with the request
+            setShowConfirmInvite(true);
+        }
+    };
+    
+    
+    useEffect(() => {
+        if (raisedtouser) {
+            const debounceCheck = setTimeout(() => {
+                checkEmailExists(raisedtouser);
+            }, 500); // Debounce time to prevent excessive API calls
+    
+            return () => clearTimeout(debounceCheck);
+        }
+    }, [raisedtouser]);
 
 
     useEffect(() => {
         if (editItem) {
             setState(editItem);
         } else if (incidentid) {
-            axios.get(`http://localhost:5000/api/incidentget/${incidentid}`)
+            axios.get(`http://localhost:5000/incident-api/incidentget/${incidentid}`)
                 .then(resp => {
                     console.log("Response:", resp.data);
                     setState(resp.data[0]);
@@ -89,7 +127,7 @@ const FAddEdit = ({ visible, onClose, editItem, loadData, selectedTime}) => {
     }, [editItem, incidentid]);
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/agroincidentcategorygets')
+        axios.get('http://localhost:5000/incident-api/agroincidentcategorygets')
             .then((resp) => {
                 console.log("Incident category data:", resp.data);
                 setIncidentCategories(resp.data);
@@ -101,7 +139,7 @@ const FAddEdit = ({ visible, onClose, editItem, loadData, selectedTime}) => {
 
     useEffect(() => {
         if (incidentcategory) {
-            axios.get(`http://localhost:5000/api/agroincidentnamegets?incidentcategory=${incidentcategory}`)
+            axios.get(`http://localhost:5000/incident-api/agroincidentnamegets?incidentcategory=${incidentcategory}`)
                 .then((resp) => {
                     console.log("Incident names Data:", resp.data);
                     setIncidentNames(resp.data);
@@ -114,7 +152,7 @@ const FAddEdit = ({ visible, onClose, editItem, loadData, selectedTime}) => {
 
     useEffect(() => {
         if (incidentname) {
-            axios.get(`http://localhost:5000/api/agroincidentdescriptiongets?incidentname=${incidentname}`)
+            axios.get(`http://localhost:5000/incident-api/agroincidentdescriptiongets?incidentname=${incidentname}`)
                 .then((resp) => {
                     console.log("Incident descriptions Data:", resp.data);
                     setIncidentDescriptions(resp.data);
@@ -125,73 +163,143 @@ const FAddEdit = ({ visible, onClose, editItem, loadData, selectedTime}) => {
         }
     }, [incidentname]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!incidentcategory || !incidentname || !incidentowner || !incidentdescription || !date || !currentaddress || !gps || !raisedtouser) {
-            toast.error("Please provide a value for each input field");
-        } else {
-            try {
-                // Fetch the user ID based on the raisedtouser email
-                const response = await axios.get(`http://localhost:5000/api/getUserByEmail/${raisedtouser}`);
-                const raisedToUserId = response.data.userid; // Assign response to the correct variable name
-                const tagss = tagNames;
-  
-                // Combine the fetched raisedtouserid with the other form data and assign it to userid
-                const updatedData = { ...state, userid: raisedToUserId, raisedtouserid: raisedToUserId, id: userId, tagss};
-    
-                if (!incidentid) {
-                    await axios.post("http://localhost:5000/api/incidentpost", updatedData);
-                } else {
-                    await axios.put(`http://localhost:5000/api/incidentupdate/${incidentid}`, updatedData);
-                }
-                setState(initialState);
-                toast.success(`${incidentid ? 'Incident updated' : 'Incident added'} successfully`);
-    
-                // Sending email and opening WhatsApp link
-                const emailPayload = {
-                    email1: raisedtouser,
-                    from: incidentowner,
-                    incidentcategory,
-                    incidentname,
-                    incidentowner,
-                    incidentdescription,
-                    date,
-                    currentaddress,
-                    gps,
-                    raisedtouser,
-                    status,
-                    tagss,
-                    timeFrame: selectedTime
-                };
-                await axios.post("http://localhost:5000/api/send-emailfour/ids", emailPayload);
-                toast.success('Email sent successfully');
-                setEmailSent(true);
-    
-                const message = ` This Incident ${incidentname} Should be Resolved within ${selectedTime} !!!
-                Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nIncident Description: ${incidentdescription}\nDate: ${date}\nCurrent Address: ${currentaddress}\nGPS: ${gps}\nRaised to User: ${raisedtouser}\nStatus: ${status}`;
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                window.open(whatsappUrl, '_blank');
-    
-                loadData(); // Reload the data after adding or updating an incident
-            } catch (error) {
-                toast.error(error.response.data.error);
-            }
-        }
-    };
-    
+   
     
 
+const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    console.log("Form submitted");
+    console.log("Form data:", { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser });
+
+    if (!incidentcategory || !incidentname || !incidentowner || !incidentdescription || !date || !currentaddress || !gps || !raisedtouser) {
+        toast.error("Please provide a value for each input field");
+        return;
+    }
+
+    try {
+        // Fetch priority times from the server
+        const priorityResponse = await axios.get('http://localhost:5000/incident-api/get-priority-times');
+        const priorityTimes = priorityResponse.data;
+
+        // Determine the appropriate priority time
+        let timeFrame = '24 hours'; // Default value
+        switch (priority) {
+            case 'critical':
+                timeFrame = priorityTimes.critical;
+                break;
+            case 'veryhigh':
+                timeFrame = priorityTimes.veryhigh;
+                break;
+            case 'high':
+                timeFrame = priorityTimes.high;
+                break;
+            case 'medium':
+                timeFrame = priorityTimes.medium;
+                break;
+            case 'low':
+                timeFrame = priorityTimes.low;
+                break;
+            default:
+                break;
+        }
+
+        const userResponse = await axios.get(`http://localhost:5000/incident-api/getUserByEmail/${raisedtouser}`);
+        console.log("User response:", userResponse.data);
+
+        if (userResponse.data && userResponse.data.userid) {
+            const raisedToUserId = userResponse.data.userid;
+            const tagss = tagNames;
+            const updatedData = { ...state, userid: raisedToUserId, raisedtouserid: raisedToUserId, id: userId, tagss, priority };
+
+            console.log("Updated Data:", updatedData);
+
+            if (!incidentid) {
+                await axios.post("http://localhost:5000/incident-api/incidentpost", updatedData);
+            } else {
+                await axios.put(`http://localhost:5000/incident-api/incidentupdate/${incidentid}`, updatedData);
+            }
+
+            setState(initialState);
+            toast.success(`${incidentid ? 'Incident updated' : 'Incident added'} successfully`);
+
+            const emailPayload = {
+                email1: raisedtouser,
+                from: incidentowner,
+                incidentcategory,
+                incidentname,
+                incidentowner,
+                incidentdescription,
+                date,
+                currentaddress,
+                gps,
+                raisedtouser,
+                status,
+                tagss,
+                priority,
+            };
+
+            console.log("Email Payload:", emailPayload);
+
+            try {
+                const emailResponse = await axios.post("http://localhost:5000/incident-api/send-emailfour/ids", emailPayload);
+                console.log("Email response:", emailResponse);
+
+                if (emailResponse.status === 200) {
+                    toast.success('Email sent successfully');
+                    setEmailSent(true);
+                }
+            } catch (emailError) {
+                if (emailError.response && emailError.response.status === 404) {
+                    toast.warn(emailError.response.data.message || 'User not found.');
+                    setShowConfirmInvite(true);  // Show confirmation dialog
+                } else {
+                    toast.error("An error occurred while sending the email.");
+                }
+            }
+
+            const message = `This Incident ${incidentname} Should be Resolved within ${timeFrame}!!!!! ... Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nIncident Description: ${incidentdescription}\nDate: ${date}\nCurrent Address: ${currentaddress}\nGPS: ${gps}\nRaised to User: ${raisedtouser}\nStatus: ${status}\ntags:${tagss}, priority:${priority}`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+
+            loadData();
+        } else {
+            toast.error("User not found.");
+        }
+    } catch (error) {
+        console.error("Submit error:", error);
+        toast.error("An error occurred while processing the request.");
+    }
+};
+
+    
+    
     const handleGoBack = () => {
         onClose();
     };
 
     const handleInputChange = (e) => {
+        
         const { name, value } = e.target;
+
+        if (name === "priority") {
+            setPriority(value);
+        }
         setState(prevState => ({
             ...prevState,
             [name]: value
         }));
-
+        
+        const handleEmailChange = (e) => {
+            const email = e.target.value;
+            setState((prevState) => ({ ...prevState, raisedtouser: email }));
+        
+            // Trigger the email existence check
+            checkEmailExists(email);
+        };
+        
+        // Handle input change
+        
         // Fetch incident names and descriptions when category or name changes
         if (name === 'incidentcategory') {
             setState(prevState => ({
@@ -207,6 +315,24 @@ const FAddEdit = ({ visible, onClose, editItem, loadData, selectedTime}) => {
         }
     };
   console.log(tags);
+  const handleInviteConfirmation = async (confirm) => {
+    if (confirm) {
+        const invitePayload = {
+            email: raisedtouser,
+           
+        };
+        try {
+            await axios.post("http://localhost:5000/incident-api/send-invite", invitePayload);
+            toast.success('Invitation sent successfully');
+        } catch (error) {
+            toast.error("Failed to send invitation.");
+        }
+    } else {
+        toast.error("User was not found and invitation was not sent.");
+    }
+    setShowConfirmInvite(false);  // Close the confirmation dialog
+};
+
     return (
         <div className={`modal ${visible ? 'show' : 'hide'}`} style={{ marginTop: "20px" }}>
             <div className="modal-content">
@@ -312,16 +438,18 @@ const FAddEdit = ({ visible, onClose, editItem, loadData, selectedTime}) => {
                         onChange={handleInputChange}
                     />
 
-                    <label htmlFor="raisedtouser">Raised to User</label>
-                    <input
-                        type="text"
-                        id="raisedtouser"
-                        name="raisedtouser"
-                        value={raisedtouser || ""}
-                        placeholder="Enter User Email"
-                        onChange={handleInputChange}
-                    />
-
+<div>
+    <label htmlFor="raisedtouser">Raised to User</label>
+    <input
+        type="text"
+        id="raisedtouser"
+        name="raisedtouser"
+        value={raisedtouser || ""}
+        placeholder="Enter User Email"
+        onChange={handleInputChange}
+    />
+    {!emailValidation.exists && <div style={{ color: 'red' }}>{emailValidation.message}</div>}
+</div>
 <div>
       <p>Select or add tags below:</p>
       <div className="tag-input-container">
@@ -364,12 +492,75 @@ const FAddEdit = ({ visible, onClose, editItem, loadData, selectedTime}) => {
                         <option value="onhold">On Hold</option>
                     </select>
 
+                    <label htmlFor="priority">Priority</label>
+<div onChange={handleInputChange} style={{ margin: '10px 0' }}>
+    <label style={{ display: 'flex', alignItems: 'center', marginBottom: '5px', cursor: 'pointer', color: '#ff0000' }}>
+        <input
+            type="radio"
+            name="priority"
+            value="critical"
+            checked={priority === "critical"}
+            style={{ marginRight: '8px' }}
+        />
+        Critical  
+    </label> 
+    <label style={{ display: 'flex', alignItems: 'center', marginBottom: '5px', cursor: 'pointer', color: '#ff4500' }}>
+        <input
+            type="radio"
+            name="priority"
+            value="veryhigh"
+            checked={priority === "veryhigh"}
+            style={{ marginRight: '8px' }}
+        />
+        Very High
+    </label>
+    <label style={{ display: 'flex', alignItems: 'center', marginBottom: '5px', cursor: 'pointer', color: '#ff8c00' }}>
+        <input
+            type="radio"
+            name="priority"
+            value="high"
+            checked={priority === "high"}
+            style={{ marginRight: '8px' }}
+        />
+        High
+    </label>
+    <label style={{ display: 'flex', alignItems: 'center', marginBottom: '5px', cursor: 'pointer', color: '#ffd700' }}>
+        <input
+            type="radio"
+            name="priority"
+            value="medium"
+            checked={priority === "medium"}
+            style={{ marginRight: '8px' }}
+        />
+        Medium
+    </label>
+    <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#32cd32' }}>
+        <input
+            type="radio"
+            name="priority"
+            value="low"
+            checked={priority === "low"}
+            style={{ marginRight: '8px' }}
+        />
+        Low
+    </label>
+</div>
+
+
+
                     <input type="submit" value={incidentid ? "Update" : "Save"} />
                     {emailSent && <div style={{ color: 'green', marginTop: '10px' }}>Email sent successfully!</div>}
                 </form>
                 <button onClick={handleGoBack}>Go Back</button>
                 
             </div>
+            {showConfirmInvite && (
+            <div className="confirmation-dialog">
+                <p>The email address is not registered. Do you want to send an invitation?</p>
+                <button onClick={() => handleInviteConfirmation(true)}>Yes</button>
+                <button onClick={() => handleInviteConfirmation(false)}>No</button>
+            </div>
+        )}
         </div>
     );
 };

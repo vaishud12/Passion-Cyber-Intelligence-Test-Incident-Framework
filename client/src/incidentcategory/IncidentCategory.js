@@ -19,7 +19,7 @@ const IncidentCategory = () => {
     // Load data from the server
     const loadData = async () => {
         try {
-            const response = await axios.get("http://localhost:5000/api/agroincidentcategoryget");
+            const response = await axios.get("http://localhost:5000/incident-api/agroincidentcategoryget");
             console.log("Fetched data:", response.data); // Debugging line
             setData(response.data);
             setLoading(false);
@@ -32,7 +32,7 @@ const IncidentCategory = () => {
     // Load tags from the server
     const loadTags = async () => {
         try {
-            const response = await axios.get("http://localhost:5000/api/tags");
+            const response = await axios.get("http://localhost:5000/incident-api/tags");
             console.log("Fetched tags:", response.data); // Debugging line
             setTags(response.data.map(tagObj => tagObj.tagss)); // Ensure `tagss` is correct
         } catch (error) {
@@ -49,7 +49,7 @@ const IncidentCategory = () => {
     const deleteObject = async (incidentcategoryid) => {
         if (window.confirm("Are you sure you want to delete this object?")) {
             try {
-                const response = await axios.delete(`http://localhost:5000/api/incidentcategorydelete/${incidentcategoryid}`);
+                const response = await axios.delete(`http://localhost:5000/incident-api/incidentcategorydelete/${incidentcategoryid}`);
                 if (response.status === 200) {
                     setSuccessMessage('Incident category deleted successfully');
                     setData(prevData => prevData.filter(item => item.incidentcategoryid !== incidentcategoryid));

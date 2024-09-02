@@ -203,7 +203,7 @@ const IncidentCategoryedit = ({ visible, onClose, editItem, loadData }) => {
         if (editItem) {
             setState(editItem);
         } else if (incidentcategoryid) {
-            axios.get(`http://localhost:5000/api/incidentcategoryget/${incidentcategoryid}`)
+            axios.get(`http://localhost:5000/incident-api/incidentcategoryget/${incidentcategoryid}`)
                 .then(resp => {
                     console.log("Response:", resp.data);
                     setState(resp.data[0]);
@@ -223,9 +223,9 @@ const IncidentCategoryedit = ({ visible, onClose, editItem, loadData }) => {
             try {
                 const updatedData = { ...state, userid: userId }; // Remove status from updatedData
                 if (!incidentcategoryid) {
-                    await axios.post("http://localhost:5000/api/incidentcategorypost", updatedData);
+                    await axios.post("http://localhost:5000/incident-api/incidentcategorypost", updatedData);
                 } else {
-                    await axios.put(`http://localhost:5000/api/incidentcategoryupdate/${incidentcategoryid}`, updatedData);
+                    await axios.put(`http://localhost:5000/incident-api/incidentcategoryupdate/${incidentcategoryid}`, updatedData);
                 }
                 setState(initialState);
                 toast.success(`${incidentcategoryid ? 'Incident updated' : 'Incident Added'} successfully`);

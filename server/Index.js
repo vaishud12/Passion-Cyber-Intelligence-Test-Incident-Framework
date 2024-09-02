@@ -53,8 +53,9 @@ const User = sequelize.define("User", { // Model name should be singular and Pas
     timestamps: false, // Disable timestamps if they are not present in the existing table
 });
 
+
 // Signup route
-app.post("/signup", async (req, res) => {
+app.post("/incident-api/signup", async (req, res) => {
     const { name, email, password } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -108,7 +109,7 @@ app.get("/protected", (req, res) => {
 //Admin
 
 //Login route
-app.post("/login", async (req, res) => {
+app.post("/incident-api/login", async (req, res) => {
     const { email, password } = req.body;
     try {
         const user = await User.findOne({ where: { email } });
@@ -147,7 +148,7 @@ const authenticateToken = (req, res, next) => {
 
 // Route to check if the user is an admin
 // Route to check if the user is an admin
-app.get('/api/isAdmin', authenticateToken, async (req, res) => {
+app.get('/incident-api/isAdmin', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.userId;
         const result = await db.query('SELECT isadmin FROM users WHERE id = $1', [userId]); // Updated column name
@@ -192,7 +193,7 @@ const transporter = nodemailer.createTransport({
       }
     });
   };
-app.post('/api/forget-password', async (req, res) => {
+app.post('/incident-api/forget-password', async (req, res) => {
     const { email } = req.body;
     try {
         const userResult = await db.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -211,7 +212,7 @@ app.post('/api/forget-password', async (req, res) => {
     }
 });
 
-app.post('/api/reset-password', async (req, res) => {
+app.post('/incident-api/reset-password', async (req, res) => {
     const { token, password } = req.body;
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
@@ -232,7 +233,7 @@ app.post('/api/reset-password', async (req, res) => {
   //get users data
 
   // Route to get all users with their passwords
-app.get('/api/users', async (req, res) => {
+app.get('/incident-api/users', async (req, res) => {
     try {
         const result = await db.query('SELECT id, name, email, password, role FROM users');
         res.json(result.rows);
@@ -243,7 +244,7 @@ app.get('/api/users', async (req, res) => {
 });
 
 // Route to get user incidents
-app.get("/api/user-incidents/:userId", authenticateToken, (req, res) => {
+app.get("/incident-api/user-incidents/:userId", authenticateToken, (req, res) => {
     const userId = req.params.userId; // Correctly access userId from req.params
 
     const sqlGet = "SELECT * FROM incident WHERE userid = $1";
@@ -256,7 +257,7 @@ app.get("/api/user-incidents/:userId", authenticateToken, (req, res) => {
         res.json(result.rows);
     });
 });
-app.get("/api/user-resolutions/:userId", authenticateToken, (req, res) => {
+app.get("/incident-api/user-resolutions/:userId", authenticateToken, (req, res) => {
     const userId = req.params.userId; // Correctly access userId from req.params
   
     const sqlGetResolutions = "SELECT * FROM resolution WHERE id = $1";
@@ -269,7 +270,7 @@ app.get("/api/user-resolutions/:userId", authenticateToken, (req, res) => {
       res.json(result.rows);
     });
   });
-  app.get('/api/userid', async (req, res) => {
+  app.get('/incident-api/userid', async (req, res) => {
     const { email } = req.query;
   
     if (!email) {
@@ -290,7 +291,7 @@ app.get("/api/user-resolutions/:userId", authenticateToken, (req, res) => {
     }
   });
 //Route for incident category
-app.get("/api/agroincidentcategoryget", (req, res) => {
+app.get("/incident-api/agroincidentcategoryget", (req, res) => {
         const sqlGet = "SELECT * FROM agroincidentcategorym";
         db.query(sqlGet, (error, result) => {
             if (error) {
@@ -302,7 +303,7 @@ app.get("/api/agroincidentcategoryget", (req, res) => {
     });
 
     //add a query
-app.post("/api/incidentcategorypost", (req, res) => {
+app.post("/incident-api/incidentcategorypost", (req, res) => {
     const {incidentcategory,incidentname,incidentdescription} = req.body;
     const sqlInsert = "INSERT INTO agroincidentcategorym (incidentcategory,incidentname,incidentdescription) VALUES ($1, $2, $3)";
     const values=[incidentcategory,incidentname,incidentdescription];
@@ -316,7 +317,7 @@ app.post("/api/incidentcategorypost", (req, res) => {
     } );
 });
 /******delete *******/
-app.delete("/api/incidentcategorydelete/:incidencategoryid", (req, res) => {
+app.delete("/incident-api/incidentcategorydelete/:incidencategoryid", (req, res) => {
     const {incidentcategoryid} = req.params;
     const sqlRemove="DELETE FROM agroincidentcategorym where incidentcategoryid=$1";
     db.query(sqlRemove ,[incidentcategoryid],(error,result)=>{
@@ -327,7 +328,7 @@ app.delete("/api/incidentcategorydelete/:incidencategoryid", (req, res) => {
         res.send("object type deleted successfully")
     } );
 });
-app.get("/api/incidentcategoryget/:incidentcategoryid", async (req, res) => {
+app.get("/incident-api/incidentcategoryget/:incidentcategoryid", async (req, res) => {
     try {
         const { incidentcategoryid } = req.params;
         // Convert regid to a number
@@ -344,7 +345,7 @@ app.get("/api/incidentcategoryget/:incidentcategoryid", async (req, res) => {
 
 
 //incident category tagging
-app.get("/api/agroincidentcategorygets", (req, res) => {
+app.get("/incident-api/agroincidentcategorygets", (req, res) => {
     const sqlGet = "SELECT DISTINCT incidentcategory FROM agroincidentcategorym";
     db.query(sqlGet, (error, result) => {
         if (error) {
@@ -354,7 +355,7 @@ app.get("/api/agroincidentcategorygets", (req, res) => {
         res.json(result.rows);
     });
 });
-app.get("/api/agroincidentnamegets", (req, res) => {
+app.get("/incident-api/agroincidentnamegets", (req, res) => {
     const { incidentcategory } = req.query; // Extract incidentcategory from query parameters
 
     if (!incidentcategory) {
@@ -371,7 +372,7 @@ app.get("/api/agroincidentnamegets", (req, res) => {
         res.json(result.rows);
     });
 });
-app.get("/api/agroincidentdescriptiongets", (req, res) => {
+app.get("/incident-api/agroincidentdescriptiongets", (req, res) => {
     const { incidentname } = req.query; // Extract incidentname from query parameters
 
     if (!incidentname) {
@@ -390,7 +391,61 @@ app.get("/api/agroincidentdescriptiongets", (req, res) => {
 });
 
 // Nodemailer transporter setup
-app.post("/api/send-emailfour/ids", async (req, res) => {
+// app.post("/api/send-emailfour/ids", async (req, res) => {
+//     try {
+//         const transporter = nodemailer.createTransport({
+//             service: "Gmail",
+//             auth: {
+//                 user: "vaishnavisd23@gmail.com",
+//                 pass: "pyxo oadt rfcu lcxg",
+//             },
+//         });
+        
+//         const {
+//             email1,
+//             incidentcategory,
+//             incidentname,
+//             incidentowner,
+//             incidentdescription,
+//             date,
+//             currentaddress,
+//             gps,
+//             raisedtouser,
+//             status,
+//             timeFrame
+//         } = req.body;
+
+//         const fromEmail = incidentowner; // Use incidentowner as the from email
+
+//         const mailOptions = {
+//             from: fromEmail,
+//             to: [email1].filter((email) => email !== ""),
+//             subject: `Incident Report: ${incidentname}`,  // Use backticks for template literals
+//             text: ` Resolve this incident within 24hrs given time ${timeFrame}timeFrame!!!!
+
+//                 Incident Report: ${incidentname},
+                
+//                 Incident Category: ${incidentcategory},
+//                 Incident name: ${incidentname},
+//                 Incident Owner: ${incidentowner},
+//                 Description: ${incidentdescription},
+//                 Date: ${date},
+//                 Current address: ${currentaddress},
+//                 GPS: ${gps},
+//                 Raised to user: ${raisedtouser},
+//                 status: ${status},
+//             ` // Use backticks for multi-line template literals
+//         };
+
+//         await transporter.sendMail(mailOptions);
+//         res.status(200).json({ message: "Email sent successfully" });
+//         console.log("Email sent successfully");
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// });
+
+app.post("/incident-api/send-incident-email", async (req, res) => {
     try {
         const transporter = nodemailer.createTransport({
             service: "Gmail",
@@ -411,68 +466,141 @@ app.post("/api/send-emailfour/ids", async (req, res) => {
             gps,
             raisedtouser,
             status,
-            timeFrame
+            priority
         } = req.body;
 
-        // Check if the email exists in the database
-        const result = await db.query('SELECT id FROM users WHERE email = $1', [email1]);
+        // Fetch priority times from the database
+        const priorityResult = await pool.query('SELECT * FROM priority_times WHERE id = 1');
+        const priorityTimes = priorityResult.rows[0];
+        const timeFrame = priorityTimes[priority] || "24 hours"; // Default to "24 hours" if priority is not found
+
+        // Check if the user exists
+        const result = await pool.query('SELECT id FROM users WHERE email = $1', [email1]);
 
         if (result.rows.length === 0) {
-            // Email not found in the database
-            const inviteLink = `http://your-website.com/signup?invite=${encodeURIComponent(email1)}`;
-
-            // Send invitation email
-            const inviteMailOptions = {
-                from: 'vaishnavisd23@gmail.com',
-                to: email1,
-                subject: 'Invitation to Join Our Platform',
-                text: `Hello,
-
-                It appears that you are not registered with our system. Please use the following link to register and join our platform:
-
-                ${inviteLink}
-
-                Thank you!`
-            };
-
-            await transporter.sendMail(inviteMailOptions);
-
-            res.status(404).json({ message: "User not found. Invitation email sent." });
-            console.log("Invitation email sent.");
+            res.status(404).json({ message: "User not found. Please send an invitation email using the /api/send-invite endpoint." });
         } else {
-            // Email found in the database, send incident email
-            const fromEmail = incidentowner; // Use incidentowner as the from email
-
+            // Send the incident report email if user exists
             const mailOptions = {
-                from: fromEmail,
-                to: [email1].filter((email) => email !== ""),
-                subject: `Incident Report: ${incidentname}`,  // Use backticks for template literals
-                text: `Resolve this incident within 24hrs given time ${timeFrame}!!!!!
+                from: incidentowner,
+                to: email1,
+                subject: `Incident Report: ${incidentname}`,
+                text: `Resolve this incident within the given time frame: ${timeFrame}.
 
-                    Incident Report: ${incidentname},
-                    
-                    Incident Category: ${incidentcategory},
-                    Incident name: ${incidentname},
-                    Incident Owner: ${incidentowner},
-                    Description: ${incidentdescription},
-                    Date: ${date},
-                    Current address: ${currentaddress},
-                    GPS: ${gps},
-                    Raised to user: ${raisedtouser},
-                    status: ${status},
-                ` // Use backticks for multi-line template literals
+Incident Report: ${incidentname}
+
+Incident Category: ${incidentcategory}
+Incident Name: ${incidentname}
+Incident Owner: ${incidentowner}
+Description: ${incidentdescription}
+Date: ${date}
+Current Address: ${currentaddress}
+GPS: ${gps}
+Raised to User: ${raisedtouser}
+Status: ${status}`
             };
 
             await transporter.sendMail(mailOptions);
-            res.status(200).json({ message: "Email sent successfully" });
-            console.log("Email sent successfully");
+            res.status(200).json({ message: "Incident email sent successfully." });
         }
     } catch (error) {
+        console.error("Error in /api/send-incident-email:", error);
         res.status(500).json({ error: error.message });
     }
 });
 
+app.post("/incident-api/send-invite", async (req, res) => {
+    try {
+        const { email} = req.body;
 
+        const transporter = nodemailer.createTransport({
+            service: "Gmail",
+            auth: {
+                user: "vaishnavisd23@gmail.com",
+                pass: "pyxo oadt rfcu lcxg",
+            },
+        });
+
+        // Create an invite link
+        const inviteLink = `http://your-website.com/signup?invite=${encodeURIComponent(email)}`;
+
+        const inviteMailOptions = {
+            from: "vaishnavisd23@gmail.com",
+            to: email,
+            subject: 'Invitation to Join Our Platform',
+            text: `Hello,
+
+It appears that you are not registered with our system. Please use the following link to register and join our platform:
+
+${inviteLink}
+
+Thank you!`
+        };
+
+        // Send the invitation email
+        await transporter.sendMail(inviteMailOptions);
+
+        res.status(200).json({ message: "Invitation email sent successfully." });
+    } catch (error) {
+        console.error("Error in /api/send-invite:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Check if email exists
+app.get('/incident-api/check-email/:email', async (req, res) => {
+    const { email } = req.params;
+
+    try {
+        const result = await db.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [email.toLowerCase()]);
+        if (result.rows.length > 0) {
+            res.json({ exists: true });
+        } else {
+            res.json({ exists: false });
+        }
+    } catch (error) {
+        console.error('Error checking email:', error);
+        res.status(500).json({ exists: false, message: 'Server error' });
+    }
+});
+// for Admin sert priority
+app.post('/incident-api/set-priority-times', async (req, res) => {
+    const { critical, veryhigh, high, medium, low } = req.body;
+
+    // Input validation (optional)
+    if (typeof critical !== 'string' || typeof veryhigh !== 'string' ||
+        typeof high !== 'string' || typeof medium !== 'string' ||
+        typeof low !== 'string') {
+        return res.status(400).json({ message: 'Invalid input.' });
+    }
+
+    try {
+        await db.query(
+            `UPDATE priority_times
+             SET critical = $1, veryhigh = $2, high = $3, medium = $4, low = $5
+             WHERE id = 1`,
+            [critical, veryhigh, high, medium, low]
+        );
+        res.json({ message: 'Priority times updated successfully.' });
+    } catch (err) {
+        console.error('Error updating priority times:', err);
+        res.status(500).json({ message: 'Failed to update priority times.' });
+    }
+});
+app.get('/incident-api/get-priority-times', async (req, res) => {
+    try {
+        // Query to fetch priority times
+        const result = await db.query('SELECT * FROM priority_times WHERE id = 1');
+        if (result.rows.length > 0) {
+            res.json(result.rows[0]);
+        } else {
+            res.status(404).json({ message: 'Priority times not found' });
+        }
+    } catch (err) {
+        console.error('Error fetching priority times:', err);
+        res.status(500).json({ message: 'Failed to fetch priority times' });
+    }
+});
 // // Ensure 'status' column exists
 // const ensureStatusColumnExists = async () => {
 //     const checkColumnQuery = 
@@ -586,7 +714,7 @@ app.post("/api/send-emailfour/ids", async (req, res) => {
 //     });
 // });
 
-app.get("/api/incidentget", (req, res) => {
+app.get("/incident-api/incidentget", (req, res) => {
     const sqlGet = `
         SELECT
             a.email,
@@ -613,12 +741,12 @@ app.get("/api/incidentget", (req, res) => {
 });
 
 //add a query
-app.post("/api/incidentpost", (req, res) => {
-    const { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid,id, tagss} = req.body;
+app.post("/incident-api/incidentpost", (req, res) => {
+    const { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid,id, tagss, priority} = req.body;
     
     // Insert raisedtouserid into the userid column
-    const sqlInsert = "INSERT INTO incident (incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid,id, tagss) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,$11,$12)";
-    const values = [incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid, id, tagss];
+    const sqlInsert = "INSERT INTO incident (incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid,id, tagss, priority) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,$11,$12,$13)";
+    const values = [incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid, id, tagss, priority];
 
     db.query(sqlInsert, values, (error, result) => {
         if (error) {
@@ -632,7 +760,7 @@ app.post("/api/incidentpost", (req, res) => {
 
 
 /******delete *******/
-app.delete("/api/incidentdelete/:incidentid", (req, res) => {
+app.delete("/incident-api/incidentdelete/:incidentid", (req, res) => {
     const {incidentid} = req.params;
     const sqlRemove="DELETE FROM incident where incidentid=$1";
     db.query(sqlRemove ,[incidentid],(error,result)=>{
@@ -643,7 +771,7 @@ app.delete("/api/incidentdelete/:incidentid", (req, res) => {
         res.send("object type deleted successfully")
     } );
 });
-app.get("/api/incidentget/:incidentid", async (req, res) => {
+app.get("/incident-api/incidentget/:incidentid", async (req, res) => {
     try {
         const { incidentid } = req.params;
         // Convert regid to a number
@@ -658,7 +786,7 @@ app.get("/api/incidentget/:incidentid", async (req, res) => {
     }
 });
 // Assume you have a `users` table with a `userid` and `email` column
-app.get("/api/getUserByEmail/:email", (req, res) => {
+app.get("/incident-api/getUserByEmail/:email", (req, res) => {
     const email = req.params.email;
     const sqlSelect = "SELECT id FROM users WHERE email = $1";
 
@@ -676,7 +804,7 @@ app.get("/api/getUserByEmail/:email", (req, res) => {
     });
 });
 //fetch tags
-app.get('/api/tags', (req, res) => {
+app.get('/incident-api/tags', (req, res) => {
     const sqlGet = "SELECT tagss FROM incident";
     db.query(sqlGet, (error, result) => {
         if (error) {
@@ -693,7 +821,31 @@ app.get('/api/tags', (req, res) => {
     });
 });
 
-app.post('/api/transliterate', async (req, res) => {
+app.post('/incident-api/set-priority-times', async (req, res) => {
+    const { critical, veryhigh, high, medium, low } = req.body;
+
+    // Input validation (optional)
+    if (typeof critical !== 'string' || typeof veryhigh !== 'string' ||
+        typeof high !== 'string' || typeof medium !== 'string' ||
+        typeof low !== 'string') {
+        return res.status(400).json({ message: 'Invalid input.' });
+    }
+
+    try {
+        await db.query(
+            `UPDATE priority_times
+             SET critical = $1, veryhigh = $2, high = $3, medium = $4, low = $5
+             WHERE id = 1`,
+            [critical, veryhigh, high, medium, low]
+        );
+        res.json({ message: 'Priority times updated successfully.' });
+    } catch (err) {
+        console.error('Error updating priority times:', err);
+        res.status(500).json({ message: 'Failed to update priority times.' });
+    }
+});
+
+app.post('/incident-api/transliterate', async (req, res) => {
     const { text, languageCode } = req.body;
 
     try {
@@ -737,7 +889,7 @@ app.post('/api/transliterate', async (req, res) => {
 
 //--------Resolution---------------
 // Resolution Routes
-app.get("/api/resolutionget", (req, res) => {
+app.get("/incident-api/resolutionget", (req, res) => {
     const sqlGet = "SELECT * FROM resolution";
     db.query(sqlGet, (error, result) => {
         if (error) {
@@ -747,7 +899,7 @@ app.get("/api/resolutionget", (req, res) => {
         res.json(result.rows);
     });
 });
-app.get("/api/resolution/resolutionget", (req, res) => {
+app.get("/incident-api/resolution/resolutionget", (req, res) => {
     const sqlGet = `
         SELECT 
             r.incidentid,
@@ -771,6 +923,8 @@ app.get("/api/resolution/resolutionget", (req, res) => {
     });
 });
 
+
+
 // app.post("/api/resolutionpost", (req, res) => {
 //     const { incidentid,incidentcategory,incidentname,incidentowner,resolutiondate, resolutionremark, resolvedby } = req.body;
 //     const sqlInsert = "INSERT INTO resolution (incidentid,incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby) VALUES ($1, $2, $3, $4, $5, $6, $7)";
@@ -783,7 +937,7 @@ app.get("/api/resolution/resolutionget", (req, res) => {
 //         res.status(200).json({ message: "Resolution inserted successfully" });
 //     });
 // });
-app.post("/api/resolutionpost", (req, res) => {
+app.post("/incident-api/resolutionpost", (req, res) => {
     // Destructure fields from the request body
     const { incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby,id } = req.body;
 
@@ -806,7 +960,7 @@ app.post("/api/resolutionpost", (req, res) => {
     });
 });
 
-app.delete("/api/resolutiondelete/:resolutionid", (req, res) => {
+app.delete("/incident-api/resolutiondelete/:resolutionid", (req, res) => {
     const { resolutionid } = req.params;
     const sqlRemove = "DELETE FROM resolution WHERE resolutionid = $1";
     db.query(sqlRemove, [resolutionid], (error, result) => {
@@ -829,7 +983,7 @@ app.delete("/api/resolutiondelete/:resolutionid", (req, res) => {
 //         res.json(result.rows);
 //     });
 // });
-app.get("/api/incidentget/:incidentid", (req, res) => {
+app.get("/incident-api/incidentget/:incidentid", (req, res) => {
     const { incidentid } = req.params;
 
     if (!incidentid) {
@@ -870,7 +1024,7 @@ app.get("/api/incidentget/:incidentid", (req, res) => {
 //         res.status(200).json({ message: "Resolution updated successfully" });
 //     });
 // });
-app.post("/api/send-emailforresolved/ids", async (req, res) => {
+app.post("/incident-api/send-emailforresolved/ids", async (req, res) => {
     try {
         const transporter = nodemailer.createTransport({
             service: "Gmail",

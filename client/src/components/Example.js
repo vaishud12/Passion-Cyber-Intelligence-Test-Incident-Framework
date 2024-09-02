@@ -102,3 +102,56 @@ const Example = () => {
 };
 
 export default Example;
+ // const handleSubmit = async (e) => {
+    //     e.preventDefault();
+    //     if (!incidentcategory || !incidentname || !incidentowner || !incidentdescription || !date || !currentaddress || !gps || !raisedtouser) {
+    //         toast.error("Please provide a value for each input field");
+    //     } else {
+    //         try {
+    //             // Fetch the user ID based on the raisedtouser email
+    //             const response = await axios.get(`http://localhost:5000/api/getUserByEmail/${raisedtouser}`);
+    //             const raisedToUserId = response.data.userid; // Assign response to the correct variable name
+    //             const tagss = tagNames;
+  
+    //             // Combine the fetched raisedtouserid with the other form data and assign it to userid
+    //             const updatedData = { ...state, userid: raisedToUserId, raisedtouserid: raisedToUserId, id: userId, tagss};
+    
+    //             if (!incidentid) {
+    //                 await axios.post("http://localhost:5000/api/incidentpost", updatedData);
+    //             } else {
+    //                 await axios.put(`http://localhost:5000/api/incidentupdate/${incidentid}`, updatedData);
+    //             }
+    //             setState(initialState);
+    //             toast.success(`${incidentid ? 'Incident updated' : 'Incident added'} successfully`);
+    
+    //             // Sending email and opening WhatsApp link
+    //             const emailPayload = {
+    //                 email1: raisedtouser,
+    //                 from: incidentowner,
+    //                 incidentcategory,
+    //                 incidentname,
+    //                 incidentowner,
+    //                 incidentdescription,
+    //                 date,
+    //                 currentaddress,
+    //                 gps,
+    //                 raisedtouser,
+    //                 status,
+    //                 tagss,
+    //                 timeFrame: selectedTime
+    //             };
+    //             await axios.post("http://localhost:5000/api/send-emailfour/ids", emailPayload);
+    //             toast.success('Email sent successfully');
+    //             setEmailSent(true);
+    
+    //             const message = ` This Incident ${incidentname} Should be Resolved within ${selectedTime} !!!
+    //             Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nIncident Description: ${incidentdescription}\nDate: ${date}\nCurrent Address: ${currentaddress}\nGPS: ${gps}\nRaised to User: ${raisedtouser}\nStatus: ${status}`;
+    //             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    //             window.open(whatsappUrl, '_blank');
+    
+    //             loadData(); // Reload the data after adding or updating an incident
+    //         } catch (error) {
+    //             toast.error(error.response.data.error);
+    //         }
+    //     }
+    // };

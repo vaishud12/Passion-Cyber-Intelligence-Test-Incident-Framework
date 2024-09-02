@@ -85,3 +85,18 @@ input[type="submit"]:hover {
 .react-tags-container .react-tags__suggestions .react-tags__suggestion:hover {
   background-color: #f1f1f1;
 }
+.confirmation-dialog {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 20px;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.confirmation-dialog button {
+  margin: 5px;
+}

@@ -11,7 +11,7 @@ const FView = () => {
   const {incidentid} = useParams();
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/incident/incidentget/${incidentid}`)
+    axios.get(`http://localhost:5000/incident-api/incident/incidentget/${incidentid}`)
       .then((resp)=>setUser({...resp.data[0]}));
 
   },[incidentid])

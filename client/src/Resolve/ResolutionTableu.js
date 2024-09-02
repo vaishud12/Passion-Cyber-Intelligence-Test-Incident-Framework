@@ -12,7 +12,7 @@ const ResolutionTableu = ({ userId }) => {
 
   const loadResolutions = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/user-resolutions/${userId}`, {
+      const response = await axios.get(`http://localhost:5000/incident-api/user-resolutions/${userId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`, // Include authorization token
         },
@@ -30,7 +30,7 @@ const ResolutionTableu = ({ userId }) => {
   const deleteResolution = async (resolutionid) => {
     if (window.confirm("Are you sure you want to delete this resolution?")) {
       try {
-        await axios.delete(`http://localhost:5000/api/resolutiondelete/${resolutionid}`, {
+        await axios.delete(`http://localhost:5000/incident-api/resolutiondelete/${resolutionid}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`, // Include authorization token
           },

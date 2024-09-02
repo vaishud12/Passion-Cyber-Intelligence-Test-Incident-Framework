@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
+import * as API from "../Endpoint/Endpoint";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -8,13 +8,13 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false); // Add loading state
   const navigate = useNavigate(); // Define navigate
-
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); // Start loading
 
     try {
-      const response = await fetch("http://localhost:5000/login", {
+      const response = await fetch(API.LOGIN, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

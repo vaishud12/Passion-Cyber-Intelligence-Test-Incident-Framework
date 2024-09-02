@@ -19,7 +19,7 @@ const Navbar = () => {
     const fetchUserDetails = async () => {
       if (email) {
         try {
-          const response = await axios.get('http://localhost:5000/api/userid', {
+          const response = await axios.get('http://localhost:5000/incident-api/userid', {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
             params: { email }
           });

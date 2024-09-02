@@ -12,12 +12,19 @@ const Admin = () => {
     const [chatbotVisible, setChatbotVisible] = useState(false);
     const [editItem, setEditItem] = useState(null);
     const [searchQuery, setSearchQuery] = useState(''); // New state for search query
-    const [selectedTime, setSelectedTime] = useState('');
+   
+    const [priorityTimes, setPriorityTimes] = useState({
+        critical: '',
+        veryhigh: '',
+        high: '',
+        medium: '',
+        low: ''
+    });
 
     useEffect(() => {
         const fetchIncidents = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/incidentget');
+                const response = await axios.get('http://localhost:5000/incident-api/incidentget');
                 const incidents = response.data;
 
                 // Group incidents by user email
@@ -56,6 +63,25 @@ const Admin = () => {
                 (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()))
             )
         );
+    };
+
+    const handlePriorityTimesSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post('http://localhost:5000/incident-api/set-priority-times', priorityTimes);
+            alert('Priority times updated successfully.');
+        } catch (err) {
+            console.error('Error updating priority times:', err);
+            alert('Failed to update priority times.');
+        }
+    };
+
+    const handlePriorityTimeChange = (e) => {
+        const { name, value } = e.target;
+        setPriorityTimes(prevTimes => ({
+            ...prevTimes,
+            [name]: value
+        }));
     };
 
     const filteredIncidents = filterIncidents(incidentsByUser);
@@ -101,46 +127,92 @@ const Admin = () => {
                 >
                     Add Incident
                 </button>
-               
                 <div 
     style={{
         display: 'flex',
         flexDirection: 'column', // Stack items vertically
         alignItems: 'center', // Center horizontally
-        justifyContent: 'center', // Center vertically if needed
-        padding: '20px' // Optional padding around the container
+        justifyContent: 'center', // Center vertically
+        padding: '10px',
+        height: '50vh', // Full viewport height for vertical centering
     }}
 >
-    <label 
-        style={{
-            display: 'block',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            color: '#333', // Dark color for readability
-            fontFamily: 'Poppins',
-            marginBottom: '8px' // Space below the label
-        }}
-    >
-        Set The Time To Resolve Incident:
-    </label>
-    <input 
-        style={{
-            width: '10%',  // Adjust as needed
-            padding: '8px',
-            fontSize: '14px',
-            border: '1px solid #ccc', // Light border
-            borderRadius: '4px', // Rounded corners
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Slight shadow for depth
-            marginBottom: '12px', // Space below the input field
-            fontFamily: 'Poppins'
-        }}
-        type="time"
-        value={selectedTime}
-        onChange={(e) => setSelectedTime(e.target.value)}
-        placeholder="Set Time"
-        className="time-input"
-    />
+    <form onSubmit={handlePriorityTimesSubmit} style={{ width: '100%', maxWidth: '1000px' }}>
+    <h3 style={{
+            textAlign: 'center', // Center the heading text
+            fontWeight: 'bold', // Make the heading bold
+            marginBottom: '20px' // Space below the heading
+        }}>
+            Set Priority Times
+        </h3>
+        
+        <div 
+            style={{
+                display: 'flex',
+                flexWrap: 'wrap', // Allows wrapping of items if they overflow
+                gap: '15px', // Space between the input fields
+                justifyContent: 'center', // Center horizontally
+                marginBottom: '20px' // Space below the priority inputs
+            }}
+        >
+            {Object.keys(priorityTimes).map(priority => (
+                <div key={priority} style={{ flex: '1 1 auto' }}>
+                    <label style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        color: '#333',
+                        fontFamily: 'Poppins',
+                        marginBottom: '8px'
+                    }}>
+                        {priority.charAt(0).toUpperCase() + priority.slice(1)}:
+                        <input
+                            type="text"
+                            name={priority}
+                            value={priorityTimes[priority]}
+                            onChange={handlePriorityTimeChange}
+                            placeholder="Time in hours"
+                            min="0"
+                            style={{
+                                width: '100%', // Full width of the container
+                                padding: '8px',
+                                fontSize: '14px',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                marginBottom: '12px'
+                            }}
+                        />
+                    </label>
+                </div>
+            ))}
+        </div>
+
+        <button
+            type="submit"
+            style={{
+                textAlign:'cenetr',
+                padding: '10px 15px',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                color: '#fff',
+                backgroundColor: '#007bff',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                width: '80%', // Full width of the container
+                maxWidth: '150px', // Limit button width
+                marginTop: '20px' // Space above the button
+            }}
+        >
+            Save Priority Times
+        </button>
+    </form>
+
+   
 </div>
+
+
 
 <input
     type="text"
@@ -163,7 +235,7 @@ const Admin = () => {
                     <div className="modal-overlay">
                         <div className="modal-content">
                             <span className="modal-close" onClick={closeModal}>&times;</span>
-                            <FAddEdit onClose={closeModal} editItem={editItem} loadData={() => {}} selectedTime={selectedTime} />
+                            <FAddEdit onClose={closeModal} editItem={editItem} loadData={() => {}}  />
                             
                         </div>
                     </div>
@@ -197,7 +269,7 @@ const Admin = () => {
                                         )}
                                         <td>{incident.incidentname || 'N/A'}</td>
                                         <td>{incident.incidentcategory || 'N/A'}</td>
-                                        <td>{incident.description || 'N/A'}</td>
+                                        <td>{incident.incidentdescription|| 'N/A'}</td>
                                         <td>{incident.date || 'N/A'}</td>
                                         <td>{incident.gps || 'N/A'}</td>
                                         <td>{incident.currentaddress || 'N/A'}</td>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
+import * as API from "../Endpoint/Endpoint";
 function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -15,8 +15,9 @@ const handleSubmit = async (e) => {
       alert("Passwords do not match");
       return;
     }
+    console.log(API.SIGNUP);
     try {
-      const response = await fetch("http://localhost:5000/signup", {
+      const response = await fetch(API.SIGNUP, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, name}),
