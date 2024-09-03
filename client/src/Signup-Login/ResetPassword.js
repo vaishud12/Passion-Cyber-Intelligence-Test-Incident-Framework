@@ -21,7 +21,7 @@ const ResetPassword = () => {
       setAlertMessage("Passwords do not match");
     } else {
       try {
-        await axios.post('http://localhost:5000/incident-api/reset-password', { password, token });
+        await axios.post('http://localhost:5014/incident-api/reset-password', { password, token });
         setSuccessMessage("Password has been reset successfully");
         setTimeout(() => navigate('/'), 3000); // Redirect after 3 seconds
       } catch (error) {

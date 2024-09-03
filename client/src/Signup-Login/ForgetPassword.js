@@ -13,7 +13,7 @@ const ForgetPassword = () => {
     if (!email) {
       setAlertMessage("Please enter your email");
     } else {
-      axios.post('http://localhost:5000/incident-api/forget-password', { email })
+      axios.post('http://localhost:5014/incident-api/forget-password', { email })
         .then((res) => {
           setSuccessMessage("Password reset link has been sent to your email");
           setAlertMessage(null); // Clear any previous error messages

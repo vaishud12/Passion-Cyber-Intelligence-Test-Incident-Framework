@@ -11,7 +11,7 @@ const UserList = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/incident-api/users', {
+                const response = await axios.get('http://localhost:5014/incident-api/users', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }

@@ -10,7 +10,7 @@ const UserIncidents = () => {
         const fetchUserIncidents = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get('http://localhost:5000/incident-api/user-incidents', {
+                const response = await axios.get('http://localhost:5014/incident-api/user-incidents', {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
