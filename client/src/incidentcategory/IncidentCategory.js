@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../Incident/Admin.css'; // Ensure this CSS file is created for styling
 import IncidentCategoryedit from './IncidentCategoryedit';
+import * as API from "../Endpoint/Endpoint";
 
 const IncidentCategory = () => {
     const [data, setData] = useState([]);
     const [tags, setTags] = useState([]);
     const [selectedTag, setSelectedTag] = useState('');
-    const [searchQuery, setSearchQuery] = useState(''); // New state for search query
+    const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -15,11 +16,11 @@ const IncidentCategory = () => {
     const itemsPerPage = 5;
     const [chatbotVisible, setChatbotVisible] = useState(false);
     const [editItem, setEditItem] = useState(null);
+    const [isAdding, setIsAdding] = useState(true); // Track if we are adding or editing
 
-    // Load data from the server
     const loadData = async () => {
         try {
-            const response = await axios.get("http://localhost:5000/incident-api/agroincidentcategoryget");
+            const response = await axios.get(API.GET_INCIDENT_CATEGORY);
             console.log("Fetched data:", response.data); // Debugging line
             setData(response.data);
             setLoading(false);
@@ -29,10 +30,9 @@ const IncidentCategory = () => {
         }
     };
 
-    // Load tags from the server
     const loadTags = async () => {
         try {
-            const response = await axios.get("http://localhost:5000/incident-api/tags");
+            const response = await axios.get(API.GET_TAGS);
             console.log("Fetched tags:", response.data); // Debugging line
             setTags(response.data.map(tagObj => tagObj.tagss)); // Ensure `tagss` is correct
         } catch (error) {
@@ -45,23 +45,21 @@ const IncidentCategory = () => {
         loadTags();
     }, []);
 
-    // Delete an item
     const deleteObject = async (incidentcategoryid) => {
         if (window.confirm("Are you sure you want to delete this object?")) {
             try {
-                const response = await axios.delete(`http://localhost:5000/incident-api/incidentcategorydelete/${incidentcategoryid}`);
+                const response = await axios.delete(API.DELETE_INCIDENT_CATEGORY(incidentcategoryid));
                 if (response.status === 200) {
                     setSuccessMessage('Incident category deleted successfully');
                     setData(prevData => prevData.filter(item => item.incidentcategoryid !== incidentcategoryid));
                 }
-                setTimeout(() => setSuccessMessage(''), 3000); // Clear success message after 3 seconds
+                setTimeout(() => setSuccessMessage(''), 3000);
             } catch (error) {
                 console.error("Error deleting object:", error);
             }
         }
     };
 
-    // Group data by category
     const groupByCategory = (data) => {
         return data.reduce((acc, item) => {
             if (!acc[item.incidentcategory]) {
@@ -72,19 +70,7 @@ const IncidentCategory = () => {
         }, {});
     };
 
-    // const filterData = (data) => {
-    //     if (selectedTag) {
-    //         return data.filter(item => {
-    //             // Ensure item.tags is an array before calling includes
-    //             return Array.isArray(item.tags) && item.tags.includes(selectedTag);
-    //         });
-    //     }
-    //     return data;
-    // };
-    
-
-     // Filter data based on selected tag and search query
-     const filterData = (data) => {
+    const filterData = (data) => {
         return data.filter(item => {
             const matchesTag = selectedTag ? Array.isArray(item.tags) && item.tags.includes(selectedTag) : true;
             const matchesSearch = searchQuery ? item.incidentname.toLowerCase().includes(searchQuery.toLowerCase()) || item.incidentdescription.toLowerCase().includes(searchQuery.toLowerCase()) : true;
@@ -94,28 +80,33 @@ const IncidentCategory = () => {
 
     const filteredData = filterData(data);
     const groupedData = groupByCategory(filteredData);
-    
-    // Pagination logic
+
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = Object.entries(groupedData).slice(indexOfFirstItem, indexOfLastItem);
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-    // Handle editing item
     const handleEditUserClick = (item) => {
         setEditItem(item);
+        setIsAdding(false); // Set to false to indicate editing
+        openModal();
+    };
+
+    const handleAddClick = () => {
+        setEditItem(null);
+        setIsAdding(true); // Set to true to indicate adding
         openModal();
     };
 
     const openModal = () => {
         setChatbotVisible(true);
-        document.body.style.overflow = 'hidden'; // Prevent scrolling on the body
+        document.body.style.overflow = 'hidden';
     };
 
     const closeModal = () => {
         setChatbotVisible(false);
-        document.body.style.overflow = 'auto'; // Restore scrolling when modal is closed
+        document.body.style.overflow = 'auto';
     };
 
     if (loading) return <p>Loading...</p>;
@@ -124,8 +115,7 @@ const IncidentCategory = () => {
     return (
         <>
             <div className="admin-container">
-
-            <input
+                <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -145,11 +135,11 @@ const IncidentCategory = () => {
                         transition: 'background-color 0.3s',
                         boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)'
                     }} 
-                    onClick={openModal}
+                    onClick={handleAddClick}
                 >
-                    Add IncidentCategory
+                    Add Incident Category
                 </button>
-                 
+
                 <select 
                     value={selectedTag} 
                     onChange={(e) => setSelectedTag(e.target.value)} 
@@ -169,7 +159,12 @@ const IncidentCategory = () => {
                     <div className="modal-overlay">
                         <div className="modal-content">
                             <span className="modal-close" onClick={closeModal}>&times;</span>
-                            <IncidentCategoryedit onClose={closeModal} editItem={editItem} loadData={loadData} />
+                            <IncidentCategoryedit 
+                                onClose={closeModal} 
+                                editItem={editItem} 
+                                isAdding={isAdding} 
+                                loadData={loadData} 
+                            />
                         </div>
                     </div>
                 )}

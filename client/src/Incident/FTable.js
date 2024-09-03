@@ -3,6 +3,7 @@ import axios from 'axios';
 import './FTable.css';
 import FAddEdit from './FAddEdit';
 import ResolutionAddEdit from '../Resolve/ResolutionAddEdit';
+import * as API from "../Endpoint/Endpoint";
 
 const FTable = ({ userId }) => {
   const [data, setData] = useState([]);
@@ -20,7 +21,7 @@ const FTable = ({ userId }) => {
   // Fetch incidents data
   const loadData = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/incident-api/user-incidents/${userId}`, {
+      const response = await axios.get(API.GET_USER_INCIDENTS(userId), {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
@@ -34,7 +35,7 @@ const FTable = ({ userId }) => {
   // Fetch tags data
   const loadTags = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/incident-api/tags', {
+      const response = await axios.get(API.GET_TAGS, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
@@ -69,7 +70,7 @@ const FTable = ({ userId }) => {
   const deleteObject = async (incidentid) => {
     if (window.confirm("Are you sure you want to delete this object?")) {
       try {
-        await axios.delete(`http://localhost:5000/incident-api/incidentdelete/${incidentid}`, {
+        await axios.delete(API.DELETE_INCIDENT(incidentid), {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -199,6 +200,8 @@ const FTable = ({ userId }) => {
             <th>GPS</th>
             <th>Raised to User</th>
             <th>Status</th>
+            <th>Tags</th>
+            <th>Priority</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -214,6 +217,8 @@ const FTable = ({ userId }) => {
               <td>{item.currentaddress}</td>
               <td>{item.gps}</td>
               <td><b>{item.raisedtouser}</b></td>
+              <td><b>{item.tagss}</b></td>
+              <td><b>{item.priority}</b></td>
               <td><b>{item.status}</b></td>
               <td>
                 <button className="btn btn-edit" onClick={() => handleEditUserClick(item)}>Edit</button>

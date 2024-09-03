@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ResolutionTable.css'; // Make sure to style the table appropriately
 import ResolutionAddEdit from './ResolutionAddEdit'; // Adjust the path if necessary
-
+import * as API from "../Endpoint/Endpoint";
 const ResolutionTableu = ({ userId }) => {
   const [resolutions, setResolutions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -12,7 +12,7 @@ const ResolutionTableu = ({ userId }) => {
 
   const loadResolutions = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/incident-api/user-resolutions/${userId}`, {
+      const response = await axios.get(API.GET_USER_RESOLUTION(userId), {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`, // Include authorization token
         },
@@ -30,7 +30,7 @@ const ResolutionTableu = ({ userId }) => {
   const deleteResolution = async (resolutionid) => {
     if (window.confirm("Are you sure you want to delete this resolution?")) {
       try {
-        await axios.delete(`http://localhost:5000/incident-api/resolutiondelete/${resolutionid}`, {
+        await axios.delete(API.DELETE_RESOLUTION(resolutionid), {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`, // Include authorization token
           },

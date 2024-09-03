@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Admin.css'; // Ensure this CSS file is created for styling
 import FAddEdit from './FAddEdit';
-
+import * as API from "../Endpoint/Endpoint";
 const Admin = () => {
     const [incidentsByUser, setIncidentsByUser] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -24,7 +24,7 @@ const Admin = () => {
     useEffect(() => {
         const fetchIncidents = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/incident-api/incidentget');
+                const response = await axios.get(API.GET_INCIDENT);
                 const incidents = response.data;
 
                 // Group incidents by user email
@@ -51,6 +51,38 @@ const Admin = () => {
         fetchIncidents();
     }, []);
 
+    const loadData = async () => {
+        try {
+            const response = await axios.get(API.GET_INCIDENT);
+            const incidents = response.data;
+    
+            // Group incidents by user email
+            const groupedIncidents = incidents.reduce((acc, incident) => {
+                if (!acc[incident.email]) {
+                    acc[incident.email] = [];
+                }
+                acc[incident.email].push(incident);
+                return acc;
+            }, {});
+    
+            setIncidentsByUser(Object.entries(groupedIncidents).map(([email, incidents]) => ({
+                email,
+                incidents,
+            })));
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching incidents:', err);
+            setError('Failed to fetch incidents.');
+            setLoading(false);
+        }
+    };
+    
+    // Fetch data on component mount
+    useEffect(() => {
+        loadData();
+    }, []);
+    
+
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
@@ -68,7 +100,7 @@ const Admin = () => {
     const handlePriorityTimesSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/incident-api/set-priority-times', priorityTimes);
+            await axios.post(API.SET_PRIORITY_TIMES, priorityTimes);
             alert('Priority times updated successfully.');
         } catch (err) {
             console.error('Error updating priority times:', err);
@@ -103,6 +135,23 @@ const Admin = () => {
         setChatbotVisible(false);
         document.body.style.overflow = 'auto'; // Restore scrolling when modal is closed
     };
+
+    const deleteObject = async (incidentid) => {
+        if (window.confirm("Are you sure you want to delete this object?")) {
+          try {
+            await axios.delete(API.DELETE_INCIDENT(incidentid), {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+              },
+            });
+            console.log('Success: Object deleted successfully');
+            loadData(); 
+          } catch (error) {
+            console.error("Error deleting object:", error);
+          }
+        }
+      };
+    
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
@@ -235,7 +284,7 @@ const Admin = () => {
                     <div className="modal-overlay">
                         <div className="modal-content">
                             <span className="modal-close" onClick={closeModal}>&times;</span>
-                            <FAddEdit onClose={closeModal} editItem={editItem} loadData={() => {}}  />
+                            <FAddEdit onClose={closeModal} editItem={editItem} loadData={loadData} />
                             
                         </div>
                     </div>
@@ -248,6 +297,7 @@ const Admin = () => {
                         <thead>
                             <tr>
                                 <th>User Email</th>
+                                <th>Incident id</th>
                                 <th>Incident Name</th>
                                 <th>Category</th>
                                 <th>Description</th>
@@ -256,6 +306,8 @@ const Admin = () => {
                                 <th>Current Address</th>
                                 <th>Incident Owner</th>
                                 <th>Raised To User</th>
+                                <th>Tags</th>
+                                <th>Priority</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -267,6 +319,7 @@ const Admin = () => {
                                         {i === 0 && (
                                             <td rowSpan={user.incidents.length}><b>{user.email}</b></td>
                                         )}
+                                        <td>{incident.incidentid || 'N/A'}</td>
                                         <td>{incident.incidentname || 'N/A'}</td>
                                         <td>{incident.incidentcategory || 'N/A'}</td>
                                         <td>{incident.incidentdescription|| 'N/A'}</td>
@@ -275,10 +328,12 @@ const Admin = () => {
                                         <td>{incident.currentaddress || 'N/A'}</td>
                                         <td>{incident.incidentowner || 'N/A'}</td>
                                         <td>{incident.raisedtouser || 'N/A'}</td>
+                                        <td>{incident.tagss || 'N/A'}</td>
+                                        <td>{incident.priority || 'N/A'}</td>
                                         <td>{incident.status || 'N/A'}</td>
                                         <td>
                                             <button className="btn btn-edit" onClick={() => handleEditUserClick(incident)}>Edit</button>
-                                            <button className="btn btn-delete" onClick={() => console.log(`Delete ${incident.incidentid}`)}>Delete</button>
+                                            <button className="btn btn-delete" onClick={() => deleteObject(incident.incidentid)}>Delete</button>
                                         </td>
                                     </tr>
                                 ))

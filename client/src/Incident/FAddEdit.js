@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import './FAddEdit.css';
 
-
+import * as API from "../Endpoint/Endpoint";
 
 // import AgroSuggestions from '../components/AgroSuggestions'
 
@@ -17,6 +17,7 @@ const initialState = {
     currentaddress: '',
     gps: '',
     raisedtouser: '',
+    
     status: ''
 };
 
@@ -36,7 +37,7 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
    
     const [emailValidation, setEmailValidation] = useState({ exists: true, message: '' });
     const [showConfirmInvite, setShowConfirmInvite] = useState(false);
-    
+    console.log(editItem.incidentid)
     // Constant variable for tag names
     const tagNames = tags.map(tag => tag.name);
   
@@ -79,7 +80,7 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
 
     const checkEmailExists = async (email) => {
         try {
-            const response = await axios.get(`http://localhost:5000/incident-api/check-email/${email}`);
+            const response = await axios.get(API.CHECK_EMAIL(email));
             setEmailValidation({
                 exists: response.data.exists,
                 message: response.data.exists ? '' : 'Email not found',
@@ -116,8 +117,8 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
     useEffect(() => {
         if (editItem) {
             setState(editItem);
-        } else if (incidentid) {
-            axios.get(`http://localhost:5000/incident-api/incidentget/${incidentid}`)
+        } else if (editItem.incidentid) {
+            axios.get(API.GET_SPECIFIC_INCIDENT(editItem.incidentid))
                 .then(resp => {
                     console.log("Response:", resp.data);
                     setState(resp.data[0]);
@@ -127,7 +128,7 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
     }, [editItem, incidentid]);
 
     useEffect(() => {
-        axios.get('http://localhost:5000/incident-api/agroincidentcategorygets')
+        axios.get(API.GET_DISTINCT_INCIDENT_CATEGORY)
             .then((resp) => {
                 console.log("Incident category data:", resp.data);
                 setIncidentCategories(resp.data);
@@ -139,7 +140,7 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
 
     useEffect(() => {
         if (incidentcategory) {
-            axios.get(`http://localhost:5000/incident-api/agroincidentnamegets?incidentcategory=${incidentcategory}`)
+            axios.get(`${API.GET_INCIDENT_NAME_BASEDON_INCIDENTCATEGORY}?incidentcategory=${incidentcategory}`)
                 .then((resp) => {
                     console.log("Incident names Data:", resp.data);
                     setIncidentNames(resp.data);
@@ -149,10 +150,10 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
                 });
         }
     }, [incidentcategory]);
-
+    
     useEffect(() => {
         if (incidentname) {
-            axios.get(`http://localhost:5000/incident-api/agroincidentdescriptiongets?incidentname=${incidentname}`)
+            axios.get(`${API.GET_INCIDENT_DESCRIPTION_BASEDON_INCIDENTNAME}?incidentname=${incidentname}`)
                 .then((resp) => {
                     console.log("Incident descriptions Data:", resp.data);
                     setIncidentDescriptions(resp.data);
@@ -162,6 +163,7 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
                 });
         }
     }, [incidentname]);
+    
 
    
     
@@ -179,7 +181,7 @@ const handleSubmit = async (e) => {
 
     try {
         // Fetch priority times from the server
-        const priorityResponse = await axios.get('http://localhost:5000/incident-api/get-priority-times');
+        const priorityResponse = await axios.get(API.GET_PRIORITY_TIME);
         const priorityTimes = priorityResponse.data;
 
         // Determine the appropriate priority time
@@ -215,13 +217,13 @@ const handleSubmit = async (e) => {
             console.log("Updated Data:", updatedData);
 
             if (!incidentid) {
-                await axios.post("http://localhost:5000/incident-api/incidentpost", updatedData);
-            } else {
-                await axios.put(`http://localhost:5000/incident-api/incidentupdate/${incidentid}`, updatedData);
+                await axios.post(API.POST_INCIDENT, updatedData);
+            } else if(editItem.incidentid) {
+                await axios.put(API.UPDATE_SPECIFIC_INCIDENT(editItem.incidentid), updatedData);
             }
 
             setState(initialState);
-            toast.success(`${incidentid ? 'Incident updated' : 'Incident added'} successfully`);
+            toast.success(`${editItem.incidentid  ? 'Incident updated' : 'Incident added'} successfully`);
 
             const emailPayload = {
                 email1: raisedtouser,
@@ -242,7 +244,7 @@ const handleSubmit = async (e) => {
             console.log("Email Payload:", emailPayload);
 
             try {
-                const emailResponse = await axios.post("http://localhost:5000/incident-api/send-emailfour/ids", emailPayload);
+                const emailResponse = await axios.post(API.SEND_INCIDENT_EMAIL, emailPayload);
                 console.log("Email response:", emailResponse);
 
                 if (emailResponse.status === 200) {
@@ -322,7 +324,7 @@ const handleSubmit = async (e) => {
            
         };
         try {
-            await axios.post("http://localhost:5000/incident-api/send-invite", invitePayload);
+            await axios.post(API.SEND_INVITE_EMAIL, invitePayload);
             toast.success('Invitation sent successfully');
         } catch (error) {
             toast.error("Failed to send invitation.");
@@ -548,7 +550,7 @@ const handleSubmit = async (e) => {
 
 
 
-                    <input type="submit" value={incidentid ? "Update" : "Save"} />
+                    <input type="submit" value={editItem.incidentid ? "Update" : "Save"} />
                     {emailSent && <div style={{ color: 'green', marginTop: '10px' }}>Email sent successfully!</div>}
                 </form>
                 <button onClick={handleGoBack}>Go Back</button>

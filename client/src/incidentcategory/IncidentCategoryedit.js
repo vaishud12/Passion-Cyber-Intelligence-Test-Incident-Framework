@@ -180,74 +180,71 @@
 // };
 
 // export default FAddEdit;
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import '../Incident/FAddEdit.css';
+import '../Incident/FAddEdit.css'; // Ensure the path is correct
+import * as API from "../Endpoint/Endpoint";
 
 const initialState = {
     incidentcategory: '',
     incidentname: '',
-    incidentdescription:'',
+    incidentdescription: '',
 };
 
 const IncidentCategoryedit = ({ visible, onClose, editItem, loadData }) => {
     const [state, setState] = useState(initialState);
-    // const [emailSent, setEmailSent] = useState(false);
-    const { incidentcategory, incidentname, incidentdescription} = state;
+    const { incidentcategory, incidentname, incidentdescription } = state;
     const { incidentcategoryid } = useParams();
-    const userId=localStorage.getItem("user_id")
+    console.log(editItem.incidentcategoryid)
+    const userId = localStorage.getItem("user_id");
+
     useEffect(() => {
         if (editItem) {
             setState(editItem);
-        } else if (incidentcategoryid) {
-            axios.get(`http://localhost:5000/incident-api/incidentcategoryget/${incidentcategoryid}`)
+        } else if (editItem.incidentcategoryid) {
+            axios.get(API.GET_SPECIFIC_INCIDENT_CATEGORY(editItem.incidentcategoryid))
                 .then(resp => {
                     console.log("Response:", resp.data);
                     setState(resp.data[0]);
                 })
-                .catch(error => console.error(error));
+                .catch(error => {
+                    console.error("Error fetching data:", error);
+                    toast.error("Failed to fetch incident category data.");
+                });
         }
     }, [editItem, incidentcategoryid]);
 
-
-
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!incidentcategory) {
+        if (!incidentcategory || !incidentname || !incidentdescription) {
             toast.error("Please provide a value for each input field");
-        } else {
-            try {
-                const updatedData = { ...state, userid: userId }; // Remove status from updatedData
-                if (!incidentcategoryid) {
-                    await axios.post("http://localhost:5000/incident-api/incidentcategorypost", updatedData);
-                } else {
-                    await axios.put(`http://localhost:5000/incident-api/incidentcategoryupdate/${incidentcategoryid}`, updatedData);
-                }
-                setState(initialState);
-                toast.success(`${incidentcategoryid ? 'Incident updated' : 'Incident Added'} successfully`);
+            return;
+        }
+        
+        try {
+            const updatedData = { ...state, userid: userId };
 
-                // const emailPayload = {
-                //     email1: raisedtouser,
-                //     from: incidentowner,
-                //     incidentcategory,
-                //     incidentname,
-                //     incidentdescription
-                // };
-                // await axios.post("http://localhost:5000/api/send-emailfour/ids", emailPayload);
-                // toast.success('Email sent successfully');
-                // setEmailSent(true);
-
-                const message = `Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nDescription: ${incidentdescription}`;
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                window.open(whatsappUrl, '_blank');
-                loadData(); // Reload the data after adding or updating an incident
-            } catch (error) {
-                toast.error(error.response.data.error);
+            if (editItem.incidentcategoryid) {
+                // For updating an existing record
+                await axios.put(API.UPDATE_SPECIFIC_INCIDENT_CATEGORY(editItem.incidentcategoryid), updatedData);
+            } else {
+                // For creating a new record
+                await axios.post(API.POST_INCIDENT_CATEGORY, updatedData);
             }
+            setState(initialState);
+            toast.success(`${editItem.incidentcategoryid ? 'Incident updated' : 'Incident added'} successfully`);
+            
+            const message = `Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nDescription: ${incidentdescription}`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+            
+            loadData(); // Reload the data after adding or updating an incident
+            onClose(); // Close the modal after successful submit
+        } catch (error) {
+            console.error("Error in handleSubmit:", error);
+            toast.error(error.response ? error.response.data.error : "An unexpected error occurred");
         }
     };
 
@@ -286,7 +283,6 @@ const IncidentCategoryedit = ({ visible, onClose, editItem, loadData }) => {
                         placeholder="Enter Incident Name"
                         onChange={handleInputChange}
                     />
-                   
                     <label htmlFor="incidentdescription">Incident Description</label>
                     <input
                         type="text"
@@ -297,13 +293,7 @@ const IncidentCategoryedit = ({ visible, onClose, editItem, loadData }) => {
                         onChange={handleInputChange}
                     />
                     
-                 
-                 
-                
-                
-
-                    <input type="submit" value={incidentcategoryid ? "Update" : "Save"} />
-                    {/* {emailSent && <div style={{ color: 'green', marginTop: '10px' }}>Incident Email sent successfully to user!</div>} */}
+                    <input type="submit" value={editItem.incidentcategoryid ? "Update" : "Save"} />
                 </form>
                 <button onClick={handleGoBack}>Go Back</button>
             </div>

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useParams } from 'react-router-dom';
 import './ResolutionAddEdit.css';
-
+import * as API from "../Endpoint/Endpoint";
 const initialState = {
     incidentid: '',
     incidentcategory: '',
+    incidentdescription:'',
     incidentname: '',
     incidentowner: '',
     resolutiondate: '',
@@ -15,15 +17,18 @@ const initialState = {
 
 const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
     const [state, setState] = useState(initialState);
-    const { incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby } = state;
+    const { incidentid, incidentcategory, incidentname, incidentdescription, incidentowner, resolutiondate, resolutionremark, resolvedby } = state;
     const [emailSent, setEmailSent] = useState(false);
+    const [incidentDescriptions, setIncidentDescriptions] = useState([]);
+    const [incidentCategories, setIncidentCategories] = useState([]);
+    const [incidentNames, setIncidentNames] = useState([]);
     const userId = localStorage.getItem("user_id");
-
+    const { resolutionid } = useParams();
     useEffect(() => {
         if (editItem) {
             setState(editItem);
         } else if (incidentid) {
-            axios.get(`http://localhost:5000/incident-api/incidentget/${incidentid}`)
+            axios.get(API.GET_SPECIFIC_INCIDENT(incidentid))
                 .then(resp => {
                     console.log("Response from GET:", resp.data);
                     setState(resp.data[0]);
@@ -35,55 +40,118 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
         }
     }, [editItem, incidentid]);
 
+    useEffect(() => {
+        axios.get(API.GET_DISTINCT_INCIDENT_CATEGORY)
+            .then((resp) => {
+                console.log("Incident category data:", resp.data);
+                setIncidentCategories(resp.data);
+            })
+            .catch(error => {
+                console.error("Error fetching incident categories:", error);
+            });
+    }, []);
+
+    useEffect(() => {
+        if (incidentcategory) {
+            axios.get(`${API.GET_INCIDENT_NAME_BASEDON_INCIDENTCATEGORY}?incidentcategory=${incidentcategory}`)
+                .then((resp) => {
+                    console.log("Incident names Data:", resp.data);
+                    setIncidentNames(resp.data);
+                })
+                .catch(error => {
+                    console.error("Error fetching incident names:", error);
+                });
+        }
+    }, [incidentcategory]);
+    
+    useEffect(() => {
+        if (incidentname) {
+            axios.get(`${API.GET_INCIDENT_DESCRIPTION_BASEDON_INCIDENTNAME}?incidentname=${incidentname}`)
+                .then((resp) => {
+                    console.log("Incident descriptions Data:", resp.data);
+                    setIncidentDescriptions(resp.data);
+                })
+                .catch(error => {
+                    console.error("Error fetching incident descriptions:", error);
+                });
+        }
+    }, [incidentname]);
+    
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!resolutiondate || !incidentid || !incidentcategory || !incidentname || !incidentowner || !resolutionremark || !resolvedby) {
+    
+        // Check if all required fields are provided
+        if (!resolutiondate || !incidentid || !incidentcategory || !incidentname || !incidentdescription || !incidentowner || !resolutionremark || !resolvedby) {
             toast.error("Please provide a value for each input field");
             return;
         }
-
-        const updatedData = { incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby, id:userId};
-
+    
+        // Prepare data to be sent to the backend
+        const updatedData = { 
+            incidentid, 
+            incidentcategory, 
+            incidentname,
+            incidentdescription, 
+            incidentowner, 
+            resolutiondate, 
+            resolutionremark, 
+            resolvedby, 
+            id: userId 
+        };
+    
         console.log("Data being sent to backend:", updatedData);
-
+    
         try {
-            if (incidentid) {
-                await axios.post("http://localhost:5000/incident-api/resolutionpost", updatedData);
+            // Conditional API call based on the presence of resolutionid
+            if (resolutionid) {
+                // If resolutionid is present, update the existing resolution
+                await axios.put(API.UPDATE_SPECIFIC_RESOLUTION(resolutionid), updatedData);
+                toast.success('Resolution updated successfully');
+            } else if (incidentid) {
+                // If incidentid is present but resolutionid is not, create a new resolution
+                await axios.post(API.POST_RESOLUTION, updatedData);
+                toast.success('Resolution added successfully');
             } else {
-                await axios.put(`http://localhost:5000/incident-api/resolutionupdate/${incidentid}`, updatedData);
+                // Handle case where neither resolutionid nor incidentid is present
+                toast.error('Cannot determine if this is a new resolution or update');
+                return;
             }
-
+    
+            // Clear the form state
             setState(initialState);
-            toast.success(`${incidentid ? 'Resolution updated' : 'Resolution added'} successfully`);
-
-            // Send email
+    
+            // Send email notification
             const emailPayload = {
-                email1: incidentowner,
+                email1: incidentowner, // Ensure this is a valid email
                 from: resolvedby,
                 incidentid,
                 incidentcategory,
                 incidentname,
+                incidentdescription,
                 incidentowner,
                 resolutiondate,
                 resolutionremark,
                 resolvedby
             };
-            await axios.post("http://localhost:5000/incident-api/send-emailforresolved/ids", emailPayload);
+            await axios.post(API.POST_SEND_RESOLVED_EMAIL, emailPayload);
             toast.success('Email sent successfully');
             setEmailSent(true);
-
-            // Open WhatsApp
+    
+            // Open WhatsApp with the message
             const message = `Incident id: ${incidentid}\nIncident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nResolution Date: ${resolutiondate}\nResolution Remark: ${resolutionremark}\nResolved by: ${resolvedby}`;
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
-
+    
+            // Close the form/modal
             onClose();
         } catch (error) {
             console.error("Error during submission:", error);
             toast.error(error.response?.data?.error || 'An error occurred');
         }
     };
-
+  
     const handleGoBack = () => {
         onClose();
     };
@@ -119,26 +187,68 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
                         onChange={handleInputChange}
                         readOnly
                     />
-                    <label htmlFor="incidentcategory">Incident Category:</label>
-                    <input
-                        type="text"
-                        id="incidentcategory"
-                        name="incidentcategory"
-                        placeholder="Enter Incident Category"
-                        value={incidentcategory}
-                        onChange={handleInputChange}
-                        readOnly
-                    />
-                    <label htmlFor="incidentname">Incident Name:</label>
-                    <input
-                        type="text"
-                        id="incidentname"
-                        name="incidentname"
-                        placeholder="Enter Incident Name"
-                        value={incidentname}
-                        onChange={handleInputChange}
-                        readOnly
-                    />
+                   
+                    <div>
+                        <label>Incident Category:</label>
+                        <select
+                            style={{ fontFamily: "Poppins" }}
+                            id="incidentcategory"
+                            name="incidentcategory"
+                            value={incidentcategory || ""}
+                            onChange={handleInputChange}
+                        >
+                            <option value="">Select Incident Category</option>
+                            {incidentCategories.map((category, index) => (
+                                <option
+                                    key={category.incidentcategoryid}
+                                    value={category.incidentcategory}
+                                >
+                                    {category.incidentcategory}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label>Incident Name:</label>
+                        <select
+                            style={{ fontFamily: "Poppins" }}
+                            id="incidentname"
+                            name="incidentname"
+                            value={incidentname || ""}
+                            onChange={handleInputChange}
+                        >
+                            <option value="">Select Incident Name</option>
+                            {incidentNames.map((name, index) => (
+                                <option
+                                    key={name.incidentnameid}
+                                    value={name.incidentname}
+                                >
+                                    {name.incidentname}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label>Incident Description:</label>
+                        <select
+                            style={{ fontFamily: "Poppins" }}
+                            id="incidentdescription"
+                            name="incidentdescription"
+                            value={incidentdescription || ""}
+                            onChange={handleInputChange}
+                        >
+                            <option value="">Select Incident Description</option>
+                            {incidentDescriptions.map((description, index) => (
+                                <option
+                                    key={description.incidentdescriptionid}
+                                    value={description.incidentdescription}
+                                >
+                                    {description.incidentdescription}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
                     <label htmlFor="incidentowner">Incident Owner:</label>
                     <input
                         type="text"

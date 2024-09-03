@@ -317,7 +317,7 @@ app.post("/incident-api/incidentcategorypost", (req, res) => {
     } );
 });
 /******delete *******/
-app.delete("/incident-api/incidentcategorydelete/:incidencategoryid", (req, res) => {
+app.delete("/incident-api/incidentcategorydelete/:incidentcategoryid", (req, res) => {
     const {incidentcategoryid} = req.params;
     const sqlRemove="DELETE FROM agroincidentcategorym where incidentcategoryid=$1";
     db.query(sqlRemove ,[incidentcategoryid],(error,result)=>{
@@ -342,8 +342,19 @@ app.get("/incident-api/incidentcategoryget/:incidentcategoryid", async (req, res
         res.status(500).send("An error occurred while fetching the object type");
     }
 });
+app.put("/incident-api/incidentcategoryupdate/:incidentcategoryid", (req, res) => {
+    const { incidentcategoryid } = req.params;
+    const { incidentcategory, incidentname, incidentdescription } = req.body;
 
-
+    const sqlUpdate = "UPDATE agroincidentcategorym SET incidentcategory=$1, incidentname=$2, incidentdescription=$3 WHERE incidentcategoryid=$4";
+    db.query(sqlUpdate, [incidentcategory, incidentname, incidentdescription, incidentcategoryid], (error, result) => {
+        if (error) {
+            console.error("Error updating object type:", error);
+            return res.status(500).send("An error occurred while updating the object type");
+        }
+        res.send("Object type updated successfully");
+    });
+});
 //incident category tagging
 app.get("/incident-api/agroincidentcategorygets", (req, res) => {
     const sqlGet = "SELECT DISTINCT incidentcategory FROM agroincidentcategorym";
@@ -470,12 +481,12 @@ app.post("/incident-api/send-incident-email", async (req, res) => {
         } = req.body;
 
         // Fetch priority times from the database
-        const priorityResult = await pool.query('SELECT * FROM priority_times WHERE id = 1');
+        const priorityResult = await db.query('SELECT * FROM priority_times WHERE id = 1');
         const priorityTimes = priorityResult.rows[0];
         const timeFrame = priorityTimes[priority] || "24 hours"; // Default to "24 hours" if priority is not found
 
         // Check if the user exists
-        const result = await pool.query('SELECT id FROM users WHERE email = $1', [email1]);
+        const result = await db.query('SELECT id FROM users WHERE email = $1', [email1]);
 
         if (result.rows.length === 0) {
             res.status(404).json({ message: "User not found. Please send an invitation email using the /api/send-invite endpoint." });
@@ -718,6 +729,7 @@ app.get("/incident-api/incidentget", (req, res) => {
     const sqlGet = `
         SELECT
             a.email,
+            b.incidentid,
             b.incidentname,
             b.incidentcategory,
             b.incidentdescription,
@@ -726,6 +738,8 @@ app.get("/incident-api/incidentget", (req, res) => {
             b.currentaddress,
             b.incidentowner,
             b.raisedtouser,
+            b.tagss,
+            b.priority,
             b.status 
         FROM users a
         JOIN incident b ON a.id = b.id
@@ -770,6 +784,20 @@ app.delete("/incident-api/incidentdelete/:incidentid", (req, res) => {
         }
         res.send("object type deleted successfully")
     } );
+});
+
+app.put("/api/resolutionupdate/:incidentid", (req, res) => {
+    const { incidentid } = req.params;
+    const { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority } = req.body;
+    const sqlUpdate = "UPDATE resolution SET incidentcategory=$1, incidentname=$2, incidentowner=$3, incidentdescription=$4, date=$5, currentaddress=$6, gps=$7, raisedtouser=$8, status=$9, tagss=$10, priority=$11 WHERE incidentid = $12";
+    const values = [incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority, incidentid];
+    db.query(sqlUpdate, values, (error, result) => {
+        if (error) {
+            console.error("Error updating resolution:", error);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+        res.status(200).json({ message: "Resolution updated successfully" });
+    });
 });
 app.get("/incident-api/incidentget/:incidentid", async (req, res) => {
     try {
@@ -899,7 +927,7 @@ app.get("/incident-api/resolutionget", (req, res) => {
         res.json(result.rows);
     });
 });
-app.get("/incident-api/resolution/resolutionget", (req, res) => {
+app.get("/incident-api/adminresolutionget", (req, res) => {
     const sqlGet = `
         SELECT 
             r.incidentid,
@@ -907,6 +935,7 @@ app.get("/incident-api/resolution/resolutionget", (req, res) => {
             r.incidentname,
             r.incidentowner,
             r.resolutiondate,
+            r.resolutionid,
             r.resolutionremark,
             r.resolvedby,
             a.email AS user
@@ -939,16 +968,16 @@ app.get("/incident-api/resolution/resolutionget", (req, res) => {
 // });
 app.post("/incident-api/resolutionpost", (req, res) => {
     // Destructure fields from the request body
-    const { incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby,id } = req.body;
+    const { incidentid, incidentcategory, incidentname, incidentdescription, incidentowner, resolutiondate, resolutionremark, resolvedby,id } = req.body;
 
     // Basic validation
-    if (!incidentid || !incidentcategory || !incidentname || !incidentowner || !resolutiondate || !resolutionremark || !resolvedby) {
+    if (!incidentid || !incidentcategory || !incidentname || !incidentdescription || !incidentowner || !resolutiondate || !resolutionremark || !resolvedby) {
         return res.status(400).json({ error: "All fields are required" });
     }
 
     // SQL Insert query
-    const sqlInsert = "INSERT INTO resolution (incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby,id) VALUES ($1, $2, $3, $4, $5, $6, $7,$8)";
-    const values = [incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby,id];
+    const sqlInsert = "INSERT INTO resolution (incidentid, incidentcategory, incidentname, incidentdescription, incidentowner, resolutiondate, resolutionremark, resolvedby,id) VALUES ($1, $2, $3, $4, $5, $6, $7,$8,$9)";
+    const values = [incidentid, incidentcategory, incidentname, incidentdescription, incidentowner, resolutiondate, resolutionremark, resolvedby,id];
 
     // Execute the query
     db.query(sqlInsert, values, (error, result) => {
@@ -1009,22 +1038,20 @@ app.get("/incident-api/incidentget/:incidentid", (req, res) => {
 });
 
 
-
-
-// app.put("/api/resolutionupdate/:resolutionid", (req, res) => {
-//     const { resolutionid } = req.params;
-//     const { resolutiondate, resolutionremark, resolvedby } = req.body;
-//     const sqlUpdate = "UPDATE resolution SET resolutiondate = $1, resolutionremark = $2, resolvedby = $3 WHERE resolutionid = $4";
-//     const values = [resolutiondate, resolutionremark, resolvedby, resolutionid];
-//     db.query(sqlUpdate, values, (error, result) => {
-//         if (error) {
-//             console.error("Error updating resolution:", error);
-//             return res.status(500).json({ error: "Internal server error" });
-//         }
-//         res.status(200).json({ message: "Resolution updated successfully" });
-//     });
-// });
-app.post("/incident-api/send-emailforresolved/ids", async (req, res) => {
+app.put("/api/resolutionupdate/:resolutionid", (req, res) => {
+    const { resolutionid } = req.params;
+    const { resolutiondate, resolutionremark, resolvedby } = req.body;
+    const sqlUpdate = "UPDATE resolution SET resolutiondate = $1, resolutionremark = $2, resolvedby = $3 WHERE resolutionid = $4";
+    const values = [resolutiondate, resolutionremark, resolvedby, resolutionid];
+    db.query(sqlUpdate, values, (error, result) => {
+        if (error) {
+            console.error("Error updating resolution:", error);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+        res.status(200).json({ message: "Resolution updated successfully" });
+    });
+});
+app.post("/incident-api/send-emailforresolved", async (req, res) => {
     try {
         const transporter = nodemailer.createTransport({
             service: "Gmail",

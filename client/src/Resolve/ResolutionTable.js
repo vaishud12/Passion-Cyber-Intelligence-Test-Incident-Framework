@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ResolutionTable.css';
 import ResolutionAddEdit from './ResolutionAddEdit';
+import * as API from "../Endpoint/Endpoint";
 
 const ResolutionTable = () => {
   const [resolutionsByUser, setResolutionsByUser] = useState([]);
@@ -13,34 +14,34 @@ const ResolutionTable = () => {
   const [editItem, setEditItem] = useState(null);
 
   useEffect(() => {
-    const fetchResolutions = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/incident-api/resolution/resolutionget');
-        const resolutions = response.data;
-
-        // Group resolutions by user email
-        const groupedResolutions = resolutions.reduce((acc, resolution) => {
-          if (!acc[resolution.user]) {
-            acc[resolution.user] = [];
-          }
-          acc[resolution.user].push(resolution);
-          return acc;
-        }, {});
-
-        setResolutionsByUser(Object.entries(groupedResolutions).map(([user, resolutions]) => ({
-          user,
-          resolutions,
-        })));
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching resolutions:', err);
-        setError('Failed to fetch resolutions.');
-        setLoading(false);
-      }
-    };
-
-    fetchResolutions();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      const response = await axios.get(API.GET_ADMIN_RESOLUTION);
+      const resolutions = response.data;
+
+      // Group resolutions by user email
+      const groupedResolutions = resolutions.reduce((acc, resolution) => {
+        if (!acc[resolution.user]) {
+          acc[resolution.user] = [];
+        }
+        acc[resolution.user].push(resolution);
+        return acc;
+      }, {});
+
+      setResolutionsByUser(Object.entries(groupedResolutions).map(([user, resolutions]) => ({
+        user,
+        resolutions,
+      })));
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching resolutions:', err);
+      setError('Failed to fetch resolutions.');
+      setLoading(false);
+    }
+  };
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -57,6 +58,24 @@ const ResolutionTable = () => {
   const closeModal = () => {
     setModalVisible(false);
     document.body.style.overflow = 'auto'; // Restore scrolling when modal is closed
+    loadData(); // Refresh data when modal is closed
+  };
+
+  const deleteObject = async (resolutionid) => {
+    if (window.confirm("Are you sure you want to delete this resolution?")) {
+      try {
+        await axios.delete(API.DELETE_RESOLUTION(resolutionid), {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        console.log('Success: Resolution deleted successfully');
+        loadData(); // Refresh data after deletion
+      } catch (error) {
+        console.error("Error deleting resolution:", error);
+        setError('Failed to delete resolution.');
+      }
+    }
   };
 
   if (loading) return <p>Loading...</p>;
@@ -70,7 +89,7 @@ const ResolutionTable = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <span className="modal-close" onClick={closeModal}>&times;</span>
-            <ResolutionAddEdit onClose={closeModal} editItem={editItem} loadData={() => {}} />
+            <ResolutionAddEdit onClose={closeModal} editItem={editItem} loadData={loadData} />
           </div>
         </div>
       )}
@@ -108,7 +127,7 @@ const ResolutionTable = () => {
                   <td>{resolution.resolvedby}</td>
                   <td>
                     <button className="btn btn-edit" onClick={() => handleEditClick(resolution)}>Edit</button>
-                    <button className="btn btn-delete" onClick={() => console.log(`Delete ${resolution.resolutionid}`)}>Delete</button>
+                    <button className="btn btn-delete" onClick={() => deleteObject(resolution.resolutionid)}>Delete</button>
                   </td>
                 </tr>
               ))
