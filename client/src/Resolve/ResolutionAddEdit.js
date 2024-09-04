@@ -7,7 +7,7 @@ import * as API from "../Endpoint/Endpoint";
 const initialState = {
     incidentid: '',
     incidentcategory: '',
-    incidentdescription:'',
+   
     incidentname: '',
     incidentowner: '',
     resolutiondate: '',
@@ -17,15 +17,13 @@ const initialState = {
 
 const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
     const [state, setState] = useState(initialState);
-    const { incidentid, incidentcategory, incidentname, incidentdescription, incidentowner, resolutiondate, resolutionremark, resolvedby } = state;
+    const { incidentid, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby } = state;
     const [emailSent, setEmailSent] = useState(false);
-    const [incidentDescriptions, setIncidentDescriptions] = useState([]);
-    const [incidentCategories, setIncidentCategories] = useState([]);
-    const [incidentNames, setIncidentNames] = useState([]);
+    
     const userId = localStorage.getItem("user_id");
     const { resolutionid } = useParams();
     useEffect(() => {
-        if (editItem) {
+        if (editItem && editItem.resolutionid) {
             setState(editItem);
         } else if (incidentid) {
             axios.get(API.GET_SPECIFIC_INCIDENT(incidentid))
@@ -40,42 +38,6 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
         }
     }, [editItem, incidentid]);
 
-    useEffect(() => {
-        axios.get(API.GET_DISTINCT_INCIDENT_CATEGORY)
-            .then((resp) => {
-                console.log("Incident category data:", resp.data);
-                setIncidentCategories(resp.data);
-            })
-            .catch(error => {
-                console.error("Error fetching incident categories:", error);
-            });
-    }, []);
-
-    useEffect(() => {
-        if (incidentcategory) {
-            axios.get(`${API.GET_INCIDENT_NAME_BASEDON_INCIDENTCATEGORY}?incidentcategory=${incidentcategory}`)
-                .then((resp) => {
-                    console.log("Incident names Data:", resp.data);
-                    setIncidentNames(resp.data);
-                })
-                .catch(error => {
-                    console.error("Error fetching incident names:", error);
-                });
-        }
-    }, [incidentcategory]);
-    
-    useEffect(() => {
-        if (incidentname) {
-            axios.get(`${API.GET_INCIDENT_DESCRIPTION_BASEDON_INCIDENTNAME}?incidentname=${incidentname}`)
-                .then((resp) => {
-                    console.log("Incident descriptions Data:", resp.data);
-                    setIncidentDescriptions(resp.data);
-                })
-                .catch(error => {
-                    console.error("Error fetching incident descriptions:", error);
-                });
-        }
-    }, [incidentname]);
     
 
 
@@ -83,7 +45,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
         e.preventDefault();
     
         // Check if all required fields are provided
-        if (!resolutiondate || !incidentid || !incidentcategory || !incidentname || !incidentdescription || !incidentowner || !resolutionremark || !resolvedby) {
+        if (!resolutiondate || !incidentid || !incidentcategory || !incidentname  || !incidentowner || !resolutionremark || !resolvedby) {
             toast.error("Please provide a value for each input field");
             return;
         }
@@ -93,7 +55,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
             incidentid, 
             incidentcategory, 
             incidentname,
-            incidentdescription, 
+           
             incidentowner, 
             resolutiondate, 
             resolutionremark, 
@@ -105,12 +67,12 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
     
         try {
             // Conditional API call based on the presence of resolutionid
-            if (resolutionid) {
-                // If resolutionid is present, update the existing resolution
-                await axios.put(API.UPDATE_SPECIFIC_RESOLUTION(resolutionid), updatedData);
+            if (editItem && editItem.resolutionid) {
+                // Update the existing resolution
+                await axios.put(API.UPDATE_SPECIFIC_RESOLUTION(editItem.resolutionid), updatedData);
                 toast.success('Resolution updated successfully');
             } else if (incidentid) {
-                // If incidentid is present but resolutionid is not, create a new resolution
+                // Create a new resolution
                 await axios.post(API.POST_RESOLUTION, updatedData);
                 toast.success('Resolution added successfully');
             } else {
@@ -129,7 +91,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
                 incidentid,
                 incidentcategory,
                 incidentname,
-                incidentdescription,
+                
                 incidentowner,
                 resolutiondate,
                 resolutionremark,
@@ -140,7 +102,8 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
             setEmailSent(true);
     
             // Open WhatsApp with the message
-            const message = `Incident id: ${incidentid}\nIncident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nResolution Date: ${resolutiondate}\nResolution Remark: ${resolutionremark}\nResolved by: ${resolvedby}`;
+            const message = ` The Incident ${incidentname} is resolved by the Resolver!!
+            Incident ID: ${incidentid}\nIncident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nResolution Date: ${resolutiondate}\nResolution Remark: ${resolutionremark}\nResolved by: ${resolvedby}`;
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
     
@@ -151,7 +114,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
             toast.error(error.response?.data?.error || 'An error occurred');
         }
     };
-  
+    
     const handleGoBack = () => {
         onClose();
     };
@@ -167,7 +130,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
     return (
         <div className={`modal ${visible ? 'show' : 'hide'}`} style={{ marginTop: "20px" }}>
             <div className="modal-content">
-                <center><h1>{incidentid ? 'Edit Resolution' : 'Add Resolution'}</h1></center>
+                <center><h1>{editItem && editItem.resolutionid ? 'Edit Resolution' : 'Add Resolution'}</h1></center>
                 <form
                     style={{
                         margin: "auto",
@@ -188,66 +151,40 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
                         readOnly
                     />
                    
-                    <div>
-                        <label>Incident Category:</label>
-                        <select
-                            style={{ fontFamily: "Poppins" }}
-                            id="incidentcategory"
-                            name="incidentcategory"
-                            value={incidentcategory || ""}
-                            onChange={handleInputChange}
-                        >
-                            <option value="">Select Incident Category</option>
-                            {incidentCategories.map((category, index) => (
-                                <option
-                                    key={category.incidentcategoryid}
-                                    value={category.incidentcategory}
-                                >
-                                    {category.incidentcategory}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label>Incident Name:</label>
-                        <select
-                            style={{ fontFamily: "Poppins" }}
-                            id="incidentname"
-                            name="incidentname"
-                            value={incidentname || ""}
-                            onChange={handleInputChange}
-                        >
-                            <option value="">Select Incident Name</option>
-                            {incidentNames.map((name, index) => (
-                                <option
-                                    key={name.incidentnameid}
-                                    value={name.incidentname}
-                                >
-                                    {name.incidentname}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label>Incident Description:</label>
-                        <select
-                            style={{ fontFamily: "Poppins" }}
-                            id="incidentdescription"
-                            name="incidentdescription"
-                            value={incidentdescription || ""}
-                            onChange={handleInputChange}
-                        >
-                            <option value="">Select Incident Description</option>
-                            {incidentDescriptions.map((description, index) => (
-                                <option
-                                    key={description.incidentdescriptionid}
-                                    value={description.incidentdescription}
-                                >
-                                    {description.incidentdescription}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                   <div>
+    <label>Incident Category:</label>
+    <input
+        style={{ fontFamily: "Poppins" }}
+        type="text"
+        id="incidentcategory"
+        name="incidentcategory"
+        value={incidentcategory || ""}
+        onChange={handleInputChange}
+    />
+</div>
+<div>
+    <label>Incident Name:</label>
+    <input
+        style={{ fontFamily: "Poppins" }}
+        type="text"
+        id="incidentname"
+        name="incidentname"
+        value={incidentname || ""}
+        onChange={handleInputChange}
+    />
+</div>
+{/* <div>
+    <label>Incident Description:</label>
+    <input
+        style={{ fontFamily: "Poppins" }}
+        type="text"
+        id="incidentdescription"
+        name="incidentdescription"
+        value={incidentdescription || ""}
+        onChange={handleInputChange}
+    />
+</div> */}
+
 
                     <label htmlFor="incidentowner">Incident Owner:</label>
                     <input
@@ -287,7 +224,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
                         onChange={handleInputChange}
                     />
 
-                    <input type="submit" value={incidentid ? "Submit" : "Save"} />
+                    <input type="submit" value={editItem && editItem.resolutionid ? "Submit" : "Save"} />
                     {emailSent && <div style={{ color: 'green', marginTop: '10px' }}>Incident email sent successfully to user!</div>}
                     <button type="button" onClick={handleGoBack}>Go back</button>
                 </form>
@@ -300,156 +237,156 @@ export default ResolutionAddEdit;
 
 
 
-// // import React, { useState, useEffect } from 'react';
-// // import axios from 'axios';
-// // import { toast } from 'react-toastify';
-// // import './ResolutionAddEdit.css';
+// import React, { useState, useEffect } from 'react';
+// import axios from 'axios';
+// import { toast } from 'react-toastify';
+// import './ResolutionAddEdit.css';
 
-// // const ResolutionAddEdit = ({ visible, onClose, editItem, loadData }) => {
-// //   const [state, setState] = useState({
-// //     incidentid: '',
-// //     incidentname: '',
-// //     incidentowner: '',
-// //     resolutiondate: '',
-// //     resolutionremark: '',
-// //     resolvedby: ''
-// //   });
-// //   const [emailSent, setEmailSent] = useState(false);
+// const ResolutionAddEdit = ({ visible, onClose, editItem, loadData }) => {
+//   const [state, setState] = useState({
+//     incidentid: '',
+//     incidentname: '',
+//     incidentowner: '',
+//     resolutiondate: '',
+//     resolutionremark: '',
+//     resolvedby: ''
+//   });
+//   const [emailSent, setEmailSent] = useState(false);
 
-// //   useEffect(() => {
-// //     if (editItem) {
-// //       setState({
-// //         incidentid: editItem.incidentid || '',
-// //         incidentname: editItem.incidentname || '',
-// //         incidentowner: editItem.incidentowner || '',
-// //         resolutiondate: '',
-// //         resolutionremark: '',
-// //         resolvedby: ''
-// //       });
-// //     }
-// //   }, [editItem]);
+//   useEffect(() => {
+//     if (editItem) {
+//       setState({
+//         incidentid: editItem.incidentid || '',
+//         incidentname: editItem.incidentname || '',
+//         incidentowner: editItem.incidentowner || '',
+//         resolutiondate: '',
+//         resolutionremark: '',
+//         resolvedby: ''
+//       });
+//     }
+//   }, [editItem]);
 
-// //   const handleSubmit = async (e) => {
-// //     e.preventDefault();
-// //     const { incidentid, resolutiondate, resolutionremark, resolvedby, incidentname, incidentowner } = state;
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     const { incidentid, resolutiondate, resolutionremark, resolvedby, incidentname, incidentowner } = state;
 
-// //     if (!resolutiondate || !incidentid) {
-// //       toast.error("Please provide a value for each input field");
-// //     } else {
-// //       try {
-// //         if (!editItem.resolutionid) {
-// //           await axios.post("http://localhost:5000/api/resolutionpost", state);
-// //         } else {
-// //           await axios.put(`http://localhost:5000/api/resolutionupdate/${editItem.resolutionid}`, state);
-// //         }
-// //         setState({
-// //           incidentid: '',
-// //           incidentname: '',
-// //           incidentowner: '',
-// //           resolutiondate: '',
-// //           resolutionremark: '',
-// //           resolvedby: ''
-// //         });
-// //         toast.success(`${editItem.resolutionid ? 'Resolution updated' : 'Resolution Added'} successfully`);
+//     if (!resolutiondate || !incidentid) {
+//       toast.error("Please provide a value for each input field");
+//     } else {
+//       try {
+//         if (!editItem.resolutionid) {
+//           await axios.post("http://localhost:5000/api/resolutionpost", state);
+//         } else {
+//           await axios.put(`http://localhost:5000/api/resolutionupdate/${editItem.resolutionid}`, state);
+//         }
+//         setState({
+//           incidentid: '',
+//           incidentname: '',
+//           incidentowner: '',
+//           resolutiondate: '',
+//           resolutionremark: '',
+//           resolvedby: ''
+//         });
+//         toast.success(`${editItem.resolutionid ? 'Resolution updated' : 'Resolution Added'} successfully`);
         
-// //         // Send email
-// //         const emailPayload = {
-// //           email1: editItem.incidentowner,
-// //           from: resolvedby,
-// //           incidentid,
-// //           incidentname,
-// //           incidentowner,
-// //           resolutiondate,
-// //           resolutionremark,
-// //           resolvedby
-// //         };
-// //         await axios.post("http://localhost:5000/api/send-emailforresolved/ids", emailPayload);
-// //         toast.success('Email sent successfully');
-// //         setEmailSent(true);
+//         // Send email
+//         const emailPayload = {
+//           email1: editItem.incidentowner,
+//           from: resolvedby,
+//           incidentid,
+//           incidentname,
+//           incidentowner,
+//           resolutiondate,
+//           resolutionremark,
+//           resolvedby
+//         };
+//         await axios.post("http://localhost:5000/api/send-emailforresolved/ids", emailPayload);
+//         toast.success('Email sent successfully');
+//         setEmailSent(true);
 
-// //         // Open WhatsApp
-// //         const message = `Incident id: ${incidentid}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nResolution Date: ${resolutiondate}\nResolution Remark: ${resolutionremark}\nResolved by: ${resolvedby}`;
-// //         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-// //         window.open(whatsappUrl, '_blank');
+//         // Open WhatsApp
+//         const message = `Incident id: ${incidentid}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nResolution Date: ${resolutiondate}\nResolution Remark: ${resolutionremark}\nResolved by: ${resolvedby}`;
+//         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+//         window.open(whatsappUrl, '_blank');
 
-// //         onClose();
-// //         loadData(); // Refresh data in the parent component
-// //       } catch (error) {
-// //         toast.error(error.response?.data?.error || 'An error occurred');
-// //       }
-// //     }
-// //   };
+//         onClose();
+//         loadData(); // Refresh data in the parent component
+//       } catch (error) {
+//         toast.error(error.response?.data?.error || 'An error occurred');
+//       }
+//     }
+//   };
 
-// //   const handleInputChange = (e) => {
-// //     const { name, value } = e.target;
-// //     setState(prevState => ({
-// //       ...prevState,
-// //       [name]: value
-// //     }));
-// //   };
+//   const handleInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setState(prevState => ({
+//       ...prevState,
+//       [name]: value
+//     }));
+//   };
 
-// //   if (!visible) return null;
+//   if (!visible) return null;
 
-// //   return (
-// //     <div className="modal-overlay">
-// //       <div className="modal-content">
-// //         <span className="close-button" onClick={onClose}>&times;</span>
-// //         <form onSubmit={handleSubmit}>
-// //           <label htmlFor="incidentid">Incident ID:</label>
-// //           <input
-// //             type="text"
-// //             id="incidentid"
-// //             name="incidentid"
-// //             value={state.incidentid}
-// //             readOnly
-// //           />
-// //           <label htmlFor="incidentname">Incident Name:</label>
-// //           <input
-// //             type="text"
-// //             id="incidentname"
-// //             name="incidentname"
-// //             value={state.incidentname}
-// //             readOnly
-// //           />
-// //           <label htmlFor="incidentowner">Incident Owner:</label>
-// //           <input
-// //             type="text"
-// //             id="incidentowner"
-// //             name="incidentowner"
-// //             value={state.incidentowner}
-// //             readOnly
-// //           />
-// //           <label htmlFor="resolutiondate">Resolution Date:</label>
-// //           <input
-// //             type="date"
-// //             id="resolutiondate"
-// //             name="resolutiondate"
-// //             value={state.resolutiondate}
-// //             onChange={handleInputChange}
-// //           />
-// //           <label htmlFor="resolutionremark">Resolution Remark:</label>
-// //           <input
-// //             type="text"
-// //             id="resolutionremark"
-// //             name="resolutionremark"
-// //             value={state.resolutionremark}
-// //             onChange={handleInputChange}
-// //           />
-// //           <label htmlFor="resolvedby">Resolved By:</label>
-// //           <input
-// //             type="text"
-// //             id="resolvedby"
-// //             name="resolvedby"
-// //             value={state.resolvedby}
-// //             onChange={handleInputChange}
-// //           />
-// //           <button type="submit">{editItem.resolutionid ? "Update" : "Save"}</button>
-// //           {emailSent && <div style={{ color: 'green' }}>Incident email sent successfully!</div>}
-// //         </form>
-// //       </div>
-// //     </div>
-// //   );
-// // };
+//   return (
+//     <div className="modal-overlay">
+//       <div className="modal-content">
+//         <span className="close-button" onClick={onClose}>&times;</span>
+//         <form onSubmit={handleSubmit}>
+//           <label htmlFor="incidentid">Incident ID:</label>
+//           <input
+//             type="text"
+//             id="incidentid"
+//             name="incidentid"
+//             value={state.incidentid}
+//             readOnly
+//           />
+//           <label htmlFor="incidentname">Incident Name:</label>
+//           <input
+//             type="text"
+//             id="incidentname"
+//             name="incidentname"
+//             value={state.incidentname}
+//             readOnly
+//           />
+//           <label htmlFor="incidentowner">Incident Owner:</label>
+//           <input
+//             type="text"
+//             id="incidentowner"
+//             name="incidentowner"
+//             value={state.incidentowner}
+//             readOnly
+//           />
+//           <label htmlFor="resolutiondate">Resolution Date:</label>
+//           <input
+//             type="date"
+//             id="resolutiondate"
+//             name="resolutiondate"
+//             value={state.resolutiondate}
+//             onChange={handleInputChange}
+//           />
+//           <label htmlFor="resolutionremark">Resolution Remark:</label>
+//           <input
+//             type="text"
+//             id="resolutionremark"
+//             name="resolutionremark"
+//             value={state.resolutionremark}
+//             onChange={handleInputChange}
+//           />
+//           <label htmlFor="resolvedby">Resolved By:</label>
+//           <input
+//             type="text"
+//             id="resolvedby"
+//             name="resolvedby"
+//             value={state.resolvedby}
+//             onChange={handleInputChange}
+//           />
+//           <button type="submit">{editItem.resolutionid ? "Update" : "Save"}</button>
+//           {emailSent && <div style={{ color: 'green' }}>Incident email sent successfully!</div>}
+//         </form>
+//       </div>
+//     </div>
+//   );
+// };
 
 // // export default ResolutionAddEdit;
 

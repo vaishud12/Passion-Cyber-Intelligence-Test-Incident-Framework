@@ -7,6 +7,7 @@ function Login() {
   const [isAdmin, setIsAdmin] = useState(null); // Initial state is null
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false); // Add loading state
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate(); // Define navigate
  
   const handleSubmit = async (e) => {
@@ -67,15 +68,26 @@ function Login() {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Password:</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              required
-            />
-          </div>
+      <label className="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+      <input
+        type={showPassword ? "text" : "password"}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+        required
+      />
+      <div className="mt-2">
+        <label className="text-gray-700 text-sm">
+          <input
+            type="checkbox"
+            checked={showPassword}
+            onChange={() => setShowPassword(!showPassword)}
+            className="mr-2"
+          />
+          Show Password
+        </label>
+      </div>
+    </div>
           {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
           <button
             type="submit"

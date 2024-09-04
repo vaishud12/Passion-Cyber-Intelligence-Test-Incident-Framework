@@ -1,0 +1,14 @@
+/* AdminMain.css or global styles */
+
+.main-content {
+    margin-left: 4rem; /* Match the collapsed sidebar width */
+    transition: margin-left 0.3s; /* Smooth transition for expanding/collapsing */
+    padding: 1rem; /* Padding around the content */
+    background-color: #f4f4f4; /* Background color for the content */
+    flex: 1; /* Take up the remaining space */
+    overflow: auto; /* Allow scrolling if content overflows */
+}
+
+.sidebar.expanded ~ .main-content {
+    margin-left: 10rem; /* Adjust margin for expanded sidebar width */
+}

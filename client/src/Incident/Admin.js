@@ -4,8 +4,11 @@ import './Admin.css'; // Ensure this CSS file is created for styling
 import FAddEdit from './FAddEdit';
 import * as API from "../Endpoint/Endpoint";
 const Admin = () => {
+   
     const [incidentsByUser, setIncidentsByUser] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [tags, setTags] = useState([]);
+    const [selectedTag, setSelectedTag] = useState('');
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
@@ -76,27 +79,46 @@ const Admin = () => {
             setLoading(false);
         }
     };
+    const loadTags = async () => {
+        try {
+            const response = await axios.get(API.GET_TAGS);
+            console.log("Fetched tags:", response.data); // Debugging line
+            setTags(response.data.map(tagObj => tagObj.tagss)); // Ensure `tagss` is correct
+        } catch (error) {
+            console.error("Error fetching tags:", error);
+        }
+    };
+
     
     // Fetch data on component mount
     useEffect(() => {
         loadData();
+        loadTags();
     }, []);
     
-
+    
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
     // Filter incidents based on search query
-    const filterIncidents = (incidents) => {
-        return incidents.filter(user => 
-            user.incidents.some(incident =>
-                (incident.incidentname && incident.incidentname.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                (incident.description && incident.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()))
-            )
-        );
+   
+    const filterIncidents = (incidentsByUser) => {
+        return incidentsByUser.filter(user => {
+            return user.incidents.some(incident => {
+                // Ensure incident is defined before accessing its properties
+                return (
+                    (incident.incidentname && incident.incidentname.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                    (incident.description && incident.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                    (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                    (Array.isArray(incident.tagss) && incident.tagss.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
+                );
+            }) && 
+            (selectedTag === '' || (Array.isArray(user.incidents) && user.incidents.some(incident =>
+                Array.isArray(incident.tagss) && incident.tagss.includes(selectedTag)
+            )));
+        });
     };
-
+    
     const handlePriorityTimesSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -115,6 +137,10 @@ const Admin = () => {
             [name]: value
         }));
     };
+
+    
+    
+    
 
     const filteredIncidents = filterIncidents(incidentsByUser);
     const currentItems = filteredIncidents.slice(indexOfFirstItem, indexOfLastItem);
@@ -261,24 +287,47 @@ const Admin = () => {
    
 </div>
 
+<div style={{
+    display: 'flex',
+    justifyContent: 'center', // Center horizontally
+    marginBottom: '12px' // Space below the input field
+}}>
+    <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search..."
+        style={{
+            width: '300px',  // Fixed width for smaller size
+            maxWidth: '100%', // Responsive width
+            padding: '8px',
+            fontSize: '14px',
+            border: '1px solid #ccc', // Light border
+            borderRadius: '4px', // Rounded corners
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Slight shadow for depth
+            fontFamily: 'Poppins'
+        }}
+    />
+</div>
+
+<select 
+                    value={selectedTag} 
+                    onChange={(e) => setSelectedTag(e.target.value)} 
+                    className="tag-select"
+                >
+                    <option value="">All Tags</option>
+                    {tags.length > 0 ? (
+                        tags.map((tag, index) => (
+                            <option key={index} value={tag}>{tag}</option>
+                        ))
+                    ) : (
+                        <option value="">Loading Tags...</option>
+                    )}
+                </select>
+
+              
 
 
-<input
-    type="text"
-    value={searchQuery}
-    onChange={(e) => setSearchQuery(e.target.value)}
-    placeholder="Search..."
-    style={{
-        width: '100%',  // Full width of the container
-        padding: '8px',
-        fontSize: '14px',
-        border: '1px solid #ccc', // Light border
-        borderRadius: '4px', // Rounded corners
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Slight shadow for depth
-        marginBottom: '12px', // Space below the input field
-        fontFamily: 'Poppins'
-    }}
-/>
 
                 {chatbotVisible && (
                     <div className="modal-overlay">

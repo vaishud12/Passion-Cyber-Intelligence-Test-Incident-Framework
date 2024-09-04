@@ -4,6 +4,7 @@ import axios from 'axios';
 import ProfileModal from './components/ProfileModal';
 import { FaUserCircle } from 'react-icons/fa';
 import logo from './Signup-Login/logo.jpeg'; 
+import * as API from "./Endpoint/Endpoint";
 const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -19,7 +20,7 @@ const Navbar = () => {
     const fetchUserDetails = async () => {
       if (email) {
         try {
-          const response = await axios.get('http://localhost:5000/incident-api/userid', {
+          const response = await axios.get(API.GET_USERID, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
             params: { email }
           });
@@ -51,19 +52,19 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-blue-500 p-4 flex justify-between items-center">
+       <nav className="bg-blue-500 p-4 flex justify-between items-center fixed top-0 left-0 right-0" style={{ height: '60px' }}>
         <div className="flex items-center">
           <img src={logo} alt="Logo" className="h-10 w-26 mr-2" />
         </div>
         <ul className="flex space-x-4">
           <li>
-            <a href="/Home" className="text-white hover:text-gray-200">Home</a>
+            <a  className="text-white hover:text-gray-200">Home</a>
           </li>
           <li>
-            <a href="/about" className="text-white hover:text-gray-200">About</a>
+            <a  className="text-white hover:text-gray-200">About</a>
           </li>
           <li>
-            <a href="/contact" className="text-white hover:text-gray-200">Contact</a>
+            <a  className="text-white hover:text-gray-200">Contact</a>
           </li>
           <li className="relative">
             <button onClick={toggleDropdown} className="flex items-center space-x-2 text-white focus:outline-none">
@@ -72,7 +73,7 @@ const Navbar = () => {
                 <div className="flex flex-col ml-2 text-left">
                   <span className="text-white">{userEmail}</span>
                   <span className="text-sm text-gray-300">
-                    {isAdmin ? 'Admin' : 'User'} {/* Correctly display Admin/User */}
+                    {isAdmin ? 'Admin' : 'User'}
                   </span>
                 </div>
               )}
@@ -80,10 +81,8 @@ const Navbar = () => {
             {dropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-20">
                 <a href="#" onClick={(e) => { e.preventDefault(); openModal(); }} className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-                {isAdmin && (
-                  <a href="/admin" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Admin</a>
-                )}
-                <a href="/logout" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
+                
+                <a href="/login" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
               </div>
             )}
           </li>

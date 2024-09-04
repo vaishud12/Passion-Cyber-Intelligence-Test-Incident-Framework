@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-
+import * as API from "../Endpoint/Endpoint";
 const ResetPassword = () => {
   const [alertMessage, setAlertMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -21,7 +21,7 @@ const ResetPassword = () => {
       setAlertMessage("Passwords do not match");
     } else {
       try {
-        await axios.post('http://localhost:5014/incident-api/reset-password', { password, token });
+        await axios.post(API.GET_RESET_PASSWORD, { password, token });
         setSuccessMessage("Password has been reset successfully");
         setTimeout(() => navigate('/'), 3000); // Redirect after 3 seconds
       } catch (error) {

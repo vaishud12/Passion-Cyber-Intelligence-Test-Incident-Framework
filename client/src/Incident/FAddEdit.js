@@ -37,7 +37,7 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
    
     const [emailValidation, setEmailValidation] = useState({ exists: true, message: '' });
     const [showConfirmInvite, setShowConfirmInvite] = useState(false);
-    console.log(editItem.incidentid)
+    // console.log(editItem.incidentid)
     // Constant variable for tag names
     const tagNames = tags.map(tag => tag.name);
   
@@ -115,10 +115,10 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
 
 
     useEffect(() => {
-        if (editItem) {
+        if (editItem && editItem.incidentid) {
             setState(editItem);
-        } else if (editItem.incidentid) {
-            axios.get(API.GET_SPECIFIC_INCIDENT(editItem.incidentid))
+        } else if (incidentid) {
+            axios.get(API.GET_SPECIFIC_INCIDENT(incidentid))
                 .then(resp => {
                     console.log("Response:", resp.data);
                     setState(resp.data[0]);
@@ -216,14 +216,20 @@ const handleSubmit = async (e) => {
 
             console.log("Updated Data:", updatedData);
 
-            if (!incidentid) {
-                await axios.post(API.POST_INCIDENT, updatedData);
-            } else if(editItem.incidentid) {
+            // if (!editItem.incidentid) {
+            //     await axios.post(API.POST_INCIDENT, updatedData);
+            // } else if(editItem && editItem.incidentid) {
+            //     await axios.put(API.UPDATE_SPECIFIC_INCIDENT(editItem.incidentid), updatedData);
+            // }
+            if (editItem && editItem.incidentid) {
+                // For updating an existing record
                 await axios.put(API.UPDATE_SPECIFIC_INCIDENT(editItem.incidentid), updatedData);
+            } else {
+                // For creating a new record
+                await axios.post(API.POST_INCIDENT, updatedData);
             }
-
             setState(initialState);
-            toast.success(`${editItem.incidentid  ? 'Incident updated' : 'Incident added'} successfully`);
+            toast.success(`${editItem && editItem.incidentid  ? 'Incident updated' : 'Incident added'} successfully`);
 
             const emailPayload = {
                 email1: raisedtouser,
@@ -338,7 +344,7 @@ const handleSubmit = async (e) => {
     return (
         <div className={`modal ${visible ? 'show' : 'hide'}`} style={{ marginTop: "20px" }}>
             <div className="modal-content">
-                <center><h1>{editItem ? 'Edit Incident' : 'Add Incident'}</h1></center>
+                <center><h1>{editItem && editItem.incidentid ? 'Edit Incident' : 'Add Incident'}</h1></center>
                 <form onSubmit={handleSubmit}>
                     <div>
                         <label>Incident Category:</label>
@@ -550,7 +556,7 @@ const handleSubmit = async (e) => {
 
 
 
-                    <input type="submit" value={editItem.incidentid ? "Update" : "Save"} />
+                    <input type="submit" value={editItem && editItem.incidentid ? "Update" : "Save"} />
                     {emailSent && <div style={{ color: 'green', marginTop: '10px' }}>Email sent successfully!</div>}
                 </form>
                 <button onClick={handleGoBack}>Go Back</button>

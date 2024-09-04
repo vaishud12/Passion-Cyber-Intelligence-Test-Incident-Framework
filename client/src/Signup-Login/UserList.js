@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../Incident/FTable.css'; // Importing FTable styles
-
+import * as API from "../Endpoint/Endpoint";
 
 const UserList = () => {
     const [users, setUsers] = useState([]);
@@ -11,7 +11,7 @@ const UserList = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get('http://localhost:5014/incident-api/users', {
+                const response = await axios.get(API.GET_USERS, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }

@@ -6,8 +6,7 @@ import * as API from "../Endpoint/Endpoint";
 
 const IncidentCategory = () => {
     const [data, setData] = useState([]);
-    const [tags, setTags] = useState([]);
-    const [selectedTag, setSelectedTag] = useState('');
+    
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -30,22 +29,16 @@ const IncidentCategory = () => {
         }
     };
 
-    const loadTags = async () => {
-        try {
-            const response = await axios.get(API.GET_TAGS);
-            console.log("Fetched tags:", response.data); // Debugging line
-            setTags(response.data.map(tagObj => tagObj.tagss)); // Ensure `tagss` is correct
-        } catch (error) {
-            console.error("Error fetching tags:", error);
-        }
-    };
+    
 
     useEffect(() => {
         loadData();
-        loadTags();
+        
     }, []);
 
     const deleteObject = async (incidentcategoryid) => {
+        if (!incidentcategoryid) return; // Safety check
+
         if (window.confirm("Are you sure you want to delete this object?")) {
             try {
                 const response = await axios.delete(API.DELETE_INCIDENT_CATEGORY(incidentcategoryid));
@@ -72,9 +65,11 @@ const IncidentCategory = () => {
 
     const filterData = (data) => {
         return data.filter(item => {
-            const matchesTag = selectedTag ? Array.isArray(item.tags) && item.tags.includes(selectedTag) : true;
-            const matchesSearch = searchQuery ? item.incidentname.toLowerCase().includes(searchQuery.toLowerCase()) || item.incidentdescription.toLowerCase().includes(searchQuery.toLowerCase()) : true;
-            return matchesTag && matchesSearch;
+            const matchesSearch = searchQuery ? 
+                (item.incidentname && item.incidentname.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                (item.incidentdescription && item.incidentdescription.toLowerCase().includes(searchQuery.toLowerCase())) 
+                : true;
+            return matchesSearch;
         });
     };
 
@@ -115,13 +110,28 @@ const IncidentCategory = () => {
     return (
         <>
             <div className="admin-container">
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search..."
-                    className="search-input"
-                />
+            <div style={{
+    display: 'flex',
+    justifyContent: 'center', // Center horizontally
+    marginBottom: '12px' // Space below the input field
+}}>
+    <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search..."
+        style={{
+            width: '300px',  // Fixed width for smaller size
+            maxWidth: '100%', // Responsive width
+            padding: '8px',
+            fontSize: '14px',
+            border: '1px solid #ccc', // Light border
+            borderRadius: '4px', // Rounded corners
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Slight shadow for depth
+            fontFamily: 'Poppins'
+        }}
+    />
+</div>
                 <button 
                     className="btn btn-add" 
                     style={{
@@ -140,21 +150,7 @@ const IncidentCategory = () => {
                     Add Incident Category
                 </button>
 
-                <select 
-                    value={selectedTag} 
-                    onChange={(e) => setSelectedTag(e.target.value)} 
-                    className="tag-select"
-                >
-                    <option value="">All Tags</option>
-                    {tags.length > 0 ? (
-                        tags.map((tag, index) => (
-                            <option key={index} value={tag}>{tag}</option>
-                        ))
-                    ) : (
-                        <option value="">Loading Tags...</option>
-                    )}
-                </select>
-
+                
                 {chatbotVisible && (
                     <div className="modal-overlay">
                         <div className="modal-content">
@@ -194,7 +190,7 @@ const IncidentCategory = () => {
                                         <td>{incidents[0].incidentdescription}</td>
                                         <td>
                                             <button className="btn btn-edit" onClick={() => handleEditUserClick(incidents[0])}>Edit</button>
-                                            <button className="btn btn-delete" onClick={() => deleteObject(incidents[0].incidentcategoryid)}>Delete</button>
+                                            <button className="btn btn-delete" onClick={() => deleteObject(incidents[0]?.incidentcategoryid)}>Delete</button>
                                         </td>
                                     </tr>
                                     {incidents.slice(1).map((incident, subIndex) => (
@@ -203,7 +199,7 @@ const IncidentCategory = () => {
                                             <td>{incident.incidentdescription}</td>
                                             <td>
                                                 <button className="btn btn-edit" onClick={() => handleEditUserClick(incident)}>Edit</button>
-                                                <button className="btn btn-delete" onClick={() => deleteObject(incident.incidentcategoryid)}>Delete</button>
+                                                <button className="btn btn-delete" onClick={() => deleteObject(incident?.incidentcategoryid)}>Delete</button>
                                             </td>
                                         </tr>
                                     ))}

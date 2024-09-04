@@ -182,7 +182,7 @@ const transporter = nodemailer.createTransport({
       from: 'vaishnavisd23@gmail.com',
       to: email,
       subject: 'Password Reset',
-      text: `You requested a password reset. Please use the following link to reset your password: http://localhost:3000/api/reset-password/${token}`,
+      text: `You requested a password reset. Please use the following link to reset your password: http://localhost:3014/api/reset-password/${token}`,
     };
   
     transporter.sendMail(mailOptions, (error, info) => {
@@ -786,17 +786,17 @@ app.delete("/incident-api/incidentdelete/:incidentid", (req, res) => {
     } );
 });
 
-app.put("/api/resolutionupdate/:incidentid", (req, res) => {
+app.put("/incident-api/incidentupdate/:incidentid", (req, res) => {
     const { incidentid } = req.params;
     const { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority } = req.body;
-    const sqlUpdate = "UPDATE resolution SET incidentcategory=$1, incidentname=$2, incidentowner=$3, incidentdescription=$4, date=$5, currentaddress=$6, gps=$7, raisedtouser=$8, status=$9, tagss=$10, priority=$11 WHERE incidentid = $12";
+    const sqlUpdate = "UPDATE incident SET incidentcategory=$1, incidentname=$2, incidentowner=$3, incidentdescription=$4, date=$5, currentaddress=$6, gps=$7, raisedtouser=$8, status=$9, tagss=$10, priority=$11 WHERE incidentid = $12";
     const values = [incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority, incidentid];
     db.query(sqlUpdate, values, (error, result) => {
         if (error) {
             console.error("Error updating resolution:", error);
             return res.status(500).json({ error: "Internal server error" });
         }
-        res.status(200).json({ message: "Resolution updated successfully" });
+        res.status(200).json({ message: "Incident updated successfully" });
     });
 });
 app.get("/incident-api/incidentget/:incidentid", async (req, res) => {
@@ -968,16 +968,16 @@ app.get("/incident-api/adminresolutionget", (req, res) => {
 // });
 app.post("/incident-api/resolutionpost", (req, res) => {
     // Destructure fields from the request body
-    const { incidentid, incidentcategory, incidentname, incidentdescription, incidentowner, resolutiondate, resolutionremark, resolvedby,id } = req.body;
+    const { incidentid, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby,id } = req.body;
 
     // Basic validation
-    if (!incidentid || !incidentcategory || !incidentname || !incidentdescription || !incidentowner || !resolutiondate || !resolutionremark || !resolvedby) {
+    if (!incidentid || !incidentcategory || !incidentname ||  !incidentowner || !resolutiondate || !resolutionremark || !resolvedby) {
         return res.status(400).json({ error: "All fields are required" });
     }
 
     // SQL Insert query
-    const sqlInsert = "INSERT INTO resolution (incidentid, incidentcategory, incidentname, incidentdescription, incidentowner, resolutiondate, resolutionremark, resolvedby,id) VALUES ($1, $2, $3, $4, $5, $6, $7,$8,$9)";
-    const values = [incidentid, incidentcategory, incidentname, incidentdescription, incidentowner, resolutiondate, resolutionremark, resolvedby,id];
+    const sqlInsert = "INSERT INTO resolution (incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby,id) VALUES ($1, $2, $3, $4, $5, $6, $7,$8)";
+    const values = [incidentid, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby,id];
 
     // Execute the query
     db.query(sqlInsert, values, (error, result) => {
@@ -1038,7 +1038,7 @@ app.get("/incident-api/incidentget/:incidentid", (req, res) => {
 });
 
 
-app.put("/api/resolutionupdate/:resolutionid", (req, res) => {
+app.put("/incident-api/resolutionupdate/:resolutionid", (req, res) => {
     const { resolutionid } = req.params;
     const { resolutiondate, resolutionremark, resolvedby } = req.body;
     const sqlUpdate = "UPDATE resolution SET resolutiondate = $1, resolutionremark = $2, resolvedby = $3 WHERE resolutionid = $4";

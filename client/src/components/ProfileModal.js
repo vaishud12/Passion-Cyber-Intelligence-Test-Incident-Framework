@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-
+import * as API from "../Endpoint/Endpoint";
 const ProfileModal = ({ isOpen, onClose, email }) => {
   const [userDetails, setUserDetails] = useState(null);
 
@@ -8,7 +8,7 @@ const ProfileModal = ({ isOpen, onClose, email }) => {
     const fetchUserDetails = async () => {
       try {
         if (email) {
-          const response = await axios.get(`http://localhost:5014/incident-api/userid`, {
+          const response = await axios.get(API.GET_USERID, {
             params: { email }
           });
           setUserDetails(response.data);

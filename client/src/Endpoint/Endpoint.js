@@ -78,3 +78,19 @@ export const UPDATE_SPECIFIC_RESOLUTION = (resolutionid) =>
 
 export const GET_USER_RESOLUTION = (userId) =>
   `${BASE_URL}user-resolutions/${userId}`;
+
+export const GET_USERS =
+  `${BASE_URL}users`;
+
+export const POST_FORGET_PASSWORD =
+  `${BASE_URL}forget-password`;
+
+export const GET_RESET_PASSWORD =
+  `${BASE_URL}reset-password`;
+
+export const GET_USERID =
+  `${BASE_URL}userid`;
+
+
+
+

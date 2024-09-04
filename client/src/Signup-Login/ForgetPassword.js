@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
+import * as API from "../Endpoint/Endpoint";
 
 const ForgetPassword = () => {
   const [alertMessage, setAlertMessage] = useState(null);
@@ -13,7 +14,7 @@ const ForgetPassword = () => {
     if (!email) {
       setAlertMessage("Please enter your email");
     } else {
-      axios.post('http://localhost:5014/incident-api/forget-password', { email })
+      axios.post(API.POST_FORGET_PASSWORD, { email })
         .then((res) => {
           setSuccessMessage("Password reset link has been sent to your email");
           setAlertMessage(null); // Clear any previous error messages
