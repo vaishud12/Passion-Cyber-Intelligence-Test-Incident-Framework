@@ -1,5 +1,5 @@
 const BASE_URL = "http://localhost:5014/incident-api/";
-//const BASE_URL = "https://audit1.passionit.com/startup-api/startup-api/";
+// const BASE_URL = "https://incidentmgmt.passionit.com/incident-api/incident-api/";
 
 export const LOGIN = `${BASE_URL}login`;
 export const SIGNUP = `${BASE_URL}signup`;
@@ -92,5 +92,14 @@ export const GET_USERID =
   `${BASE_URL}userid`;
 
 
+  export const GET_USERBYID_API = (email) =>
+    `${BASE_URL}getUserByEmail/${email}`;
 
+export const GET_INCIDENTS_COUNT_BY_USER = `${BASE_URL}incidentsuser-count`;
+
+export const GET_INCIDENTS_BY_PRIORITY = `${BASE_URL}priority`;
+
+export const GET_TRENDS = `${BASE_URL}trends`;
+
+export const GET_INCIDENT_LOCATION = `${BASE_URL}locations`;
 

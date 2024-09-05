@@ -206,7 +206,7 @@ const handleSubmit = async (e) => {
                 break;
         }
 
-        const userResponse = await axios.get(`http://localhost:5014/incident-api/getUserByEmail/${raisedtouser}`);
+        const userResponse = await axios.get(API.GET_USERBYID_API(raisedtouser));
         console.log("User response:", userResponse.data);
 
         if (userResponse.data && userResponse.data.userid) {

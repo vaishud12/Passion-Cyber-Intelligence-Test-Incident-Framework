@@ -1,4 +1,4 @@
-.tag-input-container {
+/* .tag-input-container {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -38,8 +38,5 @@
   font-size: 14px;
   flex-grow: 1;
   min-width: 100px; /* Ensures the input has a minimum width */
-}
 
-.tag-input::placeholder {
-  color: #aaa;
-}
+

@@ -954,6 +954,7 @@ app.get("/incident-api/adminresolutionget", (req, res) => {
 
 
 
+
 // app.post("/api/resolutionpost", (req, res) => {
 //     const { incidentid,incidentcategory,incidentname,incidentowner,resolutiondate, resolutionremark, resolvedby } = req.body;
 //     const sqlInsert = "INSERT INTO resolution (incidentid,incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby) VALUES ($1, $2, $3, $4, $5, $6, $7)";
@@ -1098,6 +1099,150 @@ app.post("/incident-api/send-emailforresolved", async (req, res) => {
     }
 });
 
+//Admin dashboard
+app.get('/incident-api/incidentsuser-count', async (req, res) => {
+    try {
+      const results = await db.query(`
+        SELECT u.email, COUNT(i.id) AS incident_count
+        FROM users u
+        JOIN incident i ON u.id = i.id
+        GROUP BY u.email;
+      `);
+      res.json(results.rows);  // Return the result as JSON
+    } catch (error) {
+      console.error('Error fetching incident counts by user:', error);
+      res.status(500).send('Server Error');
+    }
+  });
+
+  app.get('/incident-api/resolution-statuses', async (req, res) => {
+    try {
+      // Fetch resolutions based on users
+      const result = await pool.query(`
+        SELECT
+          resolution_status,
+          COUNT(*) AS count
+        FROM
+          resolution
+        GROUP BY
+          resolution_status
+        ORDER BY
+          resolution_status
+      `);
+      
+      // Send the result as JSON
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching resolution data:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+  app.get('/incident-api/priority', (req, res) => {
+    // SQL query to get incidents with priority and user info
+    const sqlGet = `
+      SELECT
+        i.priority,
+        u.email AS user,
+        COUNT(*) AS count
+      FROM incident i
+      JOIN users u ON i.id = u.id
+      GROUP BY i.priority, u.email
+      ORDER BY i.priority, u.email;
+    `;
+  
+    db.query(sqlGet, (error, result) => {
+      if (error) {
+        console.error('Error fetching incident priority data:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+  
+      // Format data to match frontend expectations
+      const formattedResult = result.rows.map(row => ({
+        priority: row.priority,
+        user: row.user,
+        count: parseInt(row.count, 10)
+      }));
+  
+      res.status(200).json(formattedResult);
+    });
+  });
+
+  app.get('/incident-api/trends', async (req, res) => {
+    try {
+      // SQL query to fetch trends with category and priority
+      const sqlQuery = `
+        SELECT 
+          c.incidentcategory AS category, 
+          i.priority, 
+          COUNT(*) AS count
+        FROM 
+          incident i
+        JOIN 
+          agroincidentcategorym c ON i.incidentid = c.incidentcategoryid
+        GROUP BY 
+          c.incidentcategory, i.priority
+        ORDER BY 
+          count DESC;
+      `;
+  
+      const result = await db.query(sqlQuery);
+  
+      // Prepare data for the frontend
+      const trends = result.rows.map(row => ({
+        category: row.category, // Ensure this matches the alias used in SQL query
+        priority: row.priority,
+        count: parseInt(row.count, 10), // Ensure count is a number
+      }));
+  
+      res.json(trends);
+  
+    } catch (err) {
+      console.error('Error fetching incident trends:', err);
+      res.status(500).send('Server error');
+    }
+  });
+
+  app.get('/incident-api/locations', async (req, res) => {
+    try {
+      const sqlQuery = `
+        SELECT
+          i.incidentid,
+          i.incidentcategory,
+          i.incidentdescription,
+          i.currentaddress,
+          i.gps,
+          u.email
+        FROM
+          incident i
+        JOIN
+          users u ON i.id = u.id;
+      `;
+  
+      const result = await db.query(sqlQuery);
+  
+      // Format the result
+      const incidents = result.rows.map(row => {
+        const [latitude, longitude] = row.gps.split(',').map(coord => parseFloat(coord.trim()));
+        return {
+          id: row.incidentid,
+          category: row.incidentcategory,
+          description: row.incidentdescription,
+          currentaddress: row.currentaddress,
+          latitude: latitude,
+          longitude: longitude,
+          email: row.email,
+        };
+      });
+  
+      res.status(200).json(incidents);
+    } catch (error) {
+      console.error('Error fetching incident location data:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something went wrong!');

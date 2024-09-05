@@ -56,7 +56,7 @@
 .menu-item svg {
     font-size: 1.5rem; /* Icon size */
     margin-right: 10px; /* Space between icon and text */
-    color: blue; /* Icon color */
+    color: rgb(77, 77, 224); /* Icon color */
 }
 
 .menu-text {

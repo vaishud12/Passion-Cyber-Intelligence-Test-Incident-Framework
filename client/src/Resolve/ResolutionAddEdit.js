@@ -25,8 +25,9 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
     useEffect(() => {
         if (editItem && editItem.resolutionid) {
             setState(editItem);
-        } else if (incidentid) {
-            axios.get(API.GET_SPECIFIC_INCIDENT(incidentid))
+        } else if (editItem.incidentid) {
+            axios.get(API.GET_SPECIFIC_INCIDENT(editItem.incidentid))
+            
                 .then(resp => {
                     console.log("Response from GET:", resp.data);
                     setState(resp.data[0]);
@@ -38,7 +39,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
         }
     }, [editItem, incidentid]);
 
-    
+    console.log(editItem.incidentid)
 
 
     const handleSubmit = async (e) => {
@@ -71,7 +72,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
                 // Update the existing resolution
                 await axios.put(API.UPDATE_SPECIFIC_RESOLUTION(editItem.resolutionid), updatedData);
                 toast.success('Resolution updated successfully');
-            } else if (incidentid) {
+            } else if (editItem.incidentid) {
                 // Create a new resolution
                 await axios.post(API.POST_RESOLUTION, updatedData);
                 toast.success('Resolution added successfully');

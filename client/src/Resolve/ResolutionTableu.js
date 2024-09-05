@@ -103,6 +103,7 @@ const ResolutionTableu = ({ userId }) => {
           <tr>
             <th>Resolution ID</th>
             <th>Incident ID</th>
+            <th>Incident Category</th>
             <th>Incident Name</th>
             <th>Incident Owner</th>
             <th>Resolution Date</th>
@@ -117,6 +118,8 @@ const ResolutionTableu = ({ userId }) => {
               <td>{item.resolutionid}</td>
               <td>{item.incidentid}</td>
               <td>{item.incidentname}</td>
+              <td>{item.incidentcategory}</td>
+              
               <td>{item.incidentowner}</td>
               <td>{item.resolutiondate}</td>
               <td>{item.resolutionremark}</td>

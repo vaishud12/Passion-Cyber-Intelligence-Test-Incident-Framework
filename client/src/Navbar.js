@@ -61,10 +61,10 @@ const Navbar = () => {
             <a  className="text-white hover:text-gray-200">Home</a>
           </li>
           <li>
-            <a  className="text-white hover:text-gray-200">About</a>
+            <a className="text-white hover:text-gray-200">About</a>
           </li>
           <li>
-            <a  className="text-white hover:text-gray-200">Contact</a>
+            <a className="text-white hover:text-gray-200">Contact</a>
           </li>
           <li className="relative">
             <button onClick={toggleDropdown} className="flex items-center space-x-2 text-white focus:outline-none">

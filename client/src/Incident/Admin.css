@@ -94,7 +94,7 @@ table
     border-radius: 8px; /* Rounded corners */
     padding: 20px; /* Padding around the content */
     max-width: 80vw; /* Maximum width of the modal */
-    max-height: 90vh; /* Maximum height of the modal */
+    
     overflow:auto; /* Allow scrolling if content exceeds the max height */
     position: relative;
 }
