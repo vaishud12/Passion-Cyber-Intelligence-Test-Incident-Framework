@@ -57,15 +57,7 @@ const Navbar = () => {
           <img src={logo} alt="Logo" className="h-10 w-26 mr-2" />
         </div>
         <ul className="flex space-x-4">
-          <li>
-            <a  className="text-white hover:text-gray-200">Home</a>
-          </li>
-          <li>
-            <a className="text-white hover:text-gray-200">About</a>
-          </li>
-          <li>
-            <a className="text-white hover:text-gray-200">Contact</a>
-          </li>
+          
           <li className="relative">
             <button onClick={toggleDropdown} className="flex items-center space-x-2 text-white focus:outline-none">
               <FaUserCircle className="h-8 w-8" />

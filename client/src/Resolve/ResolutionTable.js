@@ -100,6 +100,7 @@ const ResolutionTable = () => {
         <table className="styled-table">
           <thead>
             <tr>
+              <th>Sr No</th> {/* Added serial number column */}
               <th>User</th>
               <th>Resolution ID</th>
               <th>Incident ID</th>
@@ -112,10 +113,11 @@ const ResolutionTable = () => {
             </tr>
           </thead>
           <tbody>
-            {currentItems.map((userGroup, index) => (
-              userGroup.resolutions.map((resolution, i) => (
-                <tr key={`${index}-${i}`}>
-                  {i === 0 && (
+            {resolutionsByUser.flatMap((userGroup, userIndex) =>
+              userGroup.resolutions.map((resolution, index) => (
+                <tr key={`${userIndex}-${index}`}>
+                  <td>{(currentPage - 1) * itemsPerPage + userIndex * itemsPerPage + index + 1}</td> {/* Serial number */}
+                  {index === 0 && (
                     <td rowSpan={userGroup.resolutions.length}><b>{userGroup.user}</b></td>
                   )}
                   <td>{resolution.resolutionid}</td>
@@ -131,7 +133,7 @@ const ResolutionTable = () => {
                   </td>
                 </tr>
               ))
-            ))}
+            )}
           </tbody>
         </table>
       )}

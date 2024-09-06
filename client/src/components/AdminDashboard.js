@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bar, Line,  Doughnut, Chart } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, ArcElement, Title, Tooltip, PointElement, Legend } from 'chart.js';
 import axios from 'axios';
+import {jwtDecode} from 'jwt-decode';
 
 import * as API from "../Endpoint/Endpoint";
 
@@ -24,7 +25,42 @@ const AdminDashboard = () => {
     datasets: []
   });
   const [splineChartData, setSplineChartData] = useState({ labels: [], datasets: [] });
-   
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const [userId, setUserId] = useState('');
+ 
+  useEffect(() => {
+    const decodeToken = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (token) {
+                const decoded = jwtDecode(token);
+                const userId = parseInt(decoded.userId, 10);
+                setUserId(userId);
+                localStorage.setItem('user_id', userId);
+
+                console.log('Decoded token:', decoded); // Debug decoded token
+                console.log('User ID:', userId); // Debug user ID
+
+                // Fetch user data to check if the user is an admin
+                // try {
+                //     const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
+                //     console.log('User data:', response.data); // Debug user data
+                   
+                // } catch (error) {
+                //     console.error('Error fetching user data:', error);
+                // }
+            }
+        } catch (error) {
+            console.error('Error decoding token:', error);
+        }
+    };
+
+    if (isLoggedIn) {
+        decodeToken();
+    }
+}, [isLoggedIn]);
+
+
   useEffect(() => {
     // Function to fetch incident data
     const fetchIncidentData = async () => {

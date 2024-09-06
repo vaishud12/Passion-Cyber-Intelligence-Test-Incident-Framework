@@ -6,6 +6,7 @@ const nodemailer = require('nodemailer');
 const bcrypt = require("bcryptjs");
 const jwt = require('jsonwebtoken'); // Import jsonwebtoken
 const pg = require('pg');
+require('dotenv').config();
 
 const { Sequelize, DataTypes } = require('sequelize'); // Import Sequelize and DataTypes
 
@@ -168,6 +169,17 @@ app.get('/incident-api/isAdmin', authenticateToken, async (req, res) => {
 // });
 //foreget passowrd 
 // Nodemailer transporter setup
+
+const decodeToken = (token) => {
+    try {
+        // Replace 'your-secret-key' with your actual secret key
+        const decoded = jwt.verify(token, JWT_SECRET);
+        return decoded; // Decoded token, which may include user info like name
+    } catch (err) {
+        console.error('Token decoding failed:', err);
+        return null;
+    }
+};
 const transporter = nodemailer.createTransport({
     service: 'Gmail',
     auth: {
@@ -177,12 +189,17 @@ const transporter = nodemailer.createTransport({
   });
   
   // Function to send reset email
-  const sendResetEmail = (email, token) => {
+  const sendResetEmail = (email,name,token) => {
+    const baseURL = process.env.BASE_URL
     const mailOptions = {
       from: 'vaishnavisd23@gmail.com',
       to: email,
       subject: 'Password Reset',
-      text: `You requested a password reset. Please use the following link to reset your password: http://localhost:3014/api/reset-password/${token}`,
+      text: ``,
+    html: `<p>Hi ${name || "User"},</p>
+    <p>You requested a password reset. Click the link below to reset your password:</p>
+    <a href="${baseURL}reset-password/${token}">Reset Password</a>
+    <p>This link will expire in 1 hour.</p>`,
     };
   
     transporter.sendMail(mailOptions, (error, info) => {
@@ -204,7 +221,7 @@ app.post('/incident-api/forget-password', async (req, res) => {
         }
 
         const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '1h' });
-        sendResetEmail(email, token);
+        sendResetEmail(email, user.name, token);
         res.send('Password reset link sent to your email');
     } catch (error) {
         console.error(error);
@@ -515,7 +532,7 @@ Status: ${status}`
             res.status(200).json({ message: "Incident email sent successfully." });
         }
     } catch (error) {
-        console.error("Error in /api/send-incident-email:", error);
+        console.error("Error in /incident-api/send-incident-email:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -533,19 +550,17 @@ app.post("/incident-api/send-invite", async (req, res) => {
         });
 
         // Create an invite link
-        const inviteLink = `http://your-website.com/signup?invite=${encodeURIComponent(email)}`;
+        const inviteLink = process.env.BASE_URL;
 
         const inviteMailOptions = {
             from: "vaishnavisd23@gmail.com",
             to: email,
             subject: 'Invitation to Join Our Platform',
-            text: `Hello,
-
-It appears that you are not registered with our system. Please use the following link to register and join our platform:
-
-${inviteLink}
-
-Thank you!`
+            text: ``,
+            html: `<p>Hi,</p>
+             <p>It appears that you are not registered with our system. Please use the following link to register and join our platform:</p>
+             <a href="${inviteLink}">Join Passion Incident</a>
+             <p>Thank you!</p>`,
         };
 
         // Send the invitation email
@@ -573,6 +588,18 @@ app.get('/incident-api/check-email/:email', async (req, res) => {
         console.error('Error checking email:', error);
         res.status(500).json({ exists: false, message: 'Server error' });
     }
+});
+
+app.delete("/incident-api/userdelete/:id", (req, res) => {
+    const {id} = req.params;
+    const sqlRemove="DELETE FROM users where id=$1";
+    db.query(sqlRemove ,[id],(error,result)=>{
+        if(error) {
+            console.log(error);
+            return res.status(500).send("an error occurred while deleting object type")
+        }
+        res.send("object type deleted successfully")
+    } );
 });
 // for Admin sert priority
 app.post('/incident-api/set-priority-times', async (req, res) => {

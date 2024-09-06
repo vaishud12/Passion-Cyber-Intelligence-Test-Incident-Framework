@@ -84,7 +84,7 @@ table
     display: flex; /* Center the modal content */
     align-items: center;
     justify-content: center;
-    overflow:auto; /* Prevent scrolling of the overlay */
+   
     z-index: 1000; /* Ensure it's on top of other content */
 }
 
@@ -94,7 +94,7 @@ table
     border-radius: 8px; /* Rounded corners */
     padding: 20px; /* Padding around the content */
     max-width: 80vw; /* Maximum width of the modal */
-    
+    max-height: 80vh; /* Maximum height of the modal */
     overflow:auto; /* Allow scrolling if content exceeds the max height */
     position: relative;
 }

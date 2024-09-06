@@ -56,8 +56,10 @@ function Login() {
   return (
     <div className="login-container bg-gray-100 h-screen flex items-center justify-center">
       <div className="max-w-md w-full mx-auto p-8 bg-white rounded-lg shadow-md">
-      <img src={logo} alt="Logo" className="h-10 w-26 mr-2" />
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Login</h2>
+      <div className="flex justify-center mb-4">
+          <img src={logo} alt="Logo" className="h-12" />
+        </div>
+        <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">Login</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">Email:</label>

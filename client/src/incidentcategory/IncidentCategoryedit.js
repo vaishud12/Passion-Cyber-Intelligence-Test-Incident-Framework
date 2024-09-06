@@ -16,7 +16,7 @@ const IncidentCategoryedit = ({ visible, onClose, editItem, loadData }) => {
     const { incidentcategory, incidentname, incidentdescription } = state;
     const { incidentcategoryid } = useParams();
     const userId = localStorage.getItem("user_id");
-
+    console.log(userId);
     useEffect(() => {
         if (editItem && editItem.incidentcategoryid) {
             setState(editItem);

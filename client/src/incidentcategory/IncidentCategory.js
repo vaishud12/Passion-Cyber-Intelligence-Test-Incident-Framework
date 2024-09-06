@@ -6,7 +6,6 @@ import * as API from "../Endpoint/Endpoint";
 
 const IncidentCategory = () => {
     const [data, setData] = useState([]);
-    
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -29,11 +28,8 @@ const IncidentCategory = () => {
         }
     };
 
-    
-
     useEffect(() => {
         loadData();
-        
     }, []);
 
     const deleteObject = async (incidentcategoryid) => {
@@ -110,28 +106,28 @@ const IncidentCategory = () => {
     return (
         <>
             <div className="admin-container">
-            <div style={{
-    display: 'flex',
-    justifyContent: 'center', // Center horizontally
-    marginBottom: '12px' // Space below the input field
-}}>
-    <input
-        type="text"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="Search..."
-        style={{
-            width: '300px',  // Fixed width for smaller size
-            maxWidth: '100%', // Responsive width
-            padding: '8px',
-            fontSize: '14px',
-            border: '1px solid #ccc', // Light border
-            borderRadius: '4px', // Rounded corners
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Slight shadow for depth
-            fontFamily: 'Poppins'
-        }}
-    />
-</div>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'center', // Center horizontally
+                    marginBottom: '12px' // Space below the input field
+                }}>
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search..."
+                        style={{
+                            width: '300px',  // Fixed width for smaller size
+                            maxWidth: '100%', // Responsive width
+                            padding: '8px',
+                            fontSize: '14px',
+                            border: '1px solid #ccc', // Light border
+                            borderRadius: '4px', // Rounded corners
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Slight shadow for depth
+                            fontFamily: 'Poppins'
+                        }}
+                    />
+                </div>
                 <button 
                     className="btn btn-add" 
                     style={{
@@ -150,7 +146,6 @@ const IncidentCategory = () => {
                     Add Incident Category
                 </button>
 
-                
                 {chatbotVisible && (
                     <div className="modal-overlay">
                         <div className="modal-content">
@@ -175,6 +170,7 @@ const IncidentCategory = () => {
                     <table className="styled-table">
                         <thead>
                             <tr>
+                                <th>Sr No</th> {/* Added serial number column */}
                                 <th>Incident Category</th>
                                 <th>Incident Name</th>
                                 <th>Incident Description</th>
@@ -182,29 +178,22 @@ const IncidentCategory = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentItems.map(([category, incidents], index) => (
-                                <React.Fragment key={index}>
-                                    <tr>
-                                        <td rowSpan={incidents.length}>{category}</td>
-                                        <td>{incidents[0].incidentname}</td>
-                                        <td>{incidents[0].incidentdescription}</td>
+                            {currentItems.flatMap(([category, incidents], index) => 
+                                incidents.map((incident, subIndex) => (
+                                    <tr key={`${category}-${subIndex}`}>
+                                        <td>{(currentPage - 1) * itemsPerPage + index * itemsPerPage + subIndex + 1}</td> {/* Serial number */}
+                                        {subIndex === 0 && (
+                                            <td rowSpan={incidents.length}>{category}</td>
+                                        )}
+                                        <td>{incident.incidentname}</td>
+                                        <td>{incident.incidentdescription}</td>
                                         <td>
-                                            <button className="btn btn-edit" onClick={() => handleEditUserClick(incidents[0])}>Edit</button>
-                                            <button className="btn btn-delete" onClick={() => deleteObject(incidents[0]?.incidentcategoryid)}>Delete</button>
+                                            <button className="btn btn-edit" onClick={() => handleEditUserClick(incident)}>Edit</button>
+                                            <button className="btn btn-delete" onClick={() => deleteObject(incident.incidentcategoryid)}>Delete</button>
                                         </td>
                                     </tr>
-                                    {incidents.slice(1).map((incident, subIndex) => (
-                                        <tr key={subIndex}>
-                                            <td>{incident.incidentname}</td>
-                                            <td>{incident.incidentdescription}</td>
-                                            <td>
-                                                <button className="btn btn-edit" onClick={() => handleEditUserClick(incident)}>Edit</button>
-                                                <button className="btn btn-delete" onClick={() => deleteObject(incident?.incidentcategoryid)}>Delete</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </React.Fragment>
-                            ))}
+                                ))
+                            )}
                         </tbody>
                     </table>
                 )}

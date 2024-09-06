@@ -330,12 +330,12 @@ const Admin = () => {
 
 
                 {chatbotVisible && (
-                    <div className="modal-overlay">
-                        <div className="modal-content">
+                    < div className="modal-overlay">
+                        
                             <span className="modal-close" onClick={closeModal}>&times;</span>
                             <FAddEdit onClose={closeModal} editItem={editItem} loadData={loadData} />
                             
-                        </div>
+                        
                     </div>
                 )}
 
@@ -345,6 +345,7 @@ const Admin = () => {
                     <table className="styled-table">
                         <thead>
                             <tr>
+                            <th>S.No</th>
                                 <th>User Email</th>
                                 <th>Incident id</th>
                                 <th>Incident Name</th>
@@ -362,31 +363,32 @@ const Admin = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentItems.map((user, index) => (
-                                user.incidents.map((incident, i) => (
-                                    <tr key={`${index}-${i}`}>
-                                        {i === 0 && (
-                                            <td rowSpan={user.incidents.length}><b>{user.email}</b></td>
-                                        )}
-                                        <td>{incident.incidentid || 'N/A'}</td>
-                                        <td>{incident.incidentname || 'N/A'}</td>
-                                        <td>{incident.incidentcategory || 'N/A'}</td>
-                                        <td>{incident.incidentdescription|| 'N/A'}</td>
-                                        <td>{incident.date || 'N/A'}</td>
-                                        <td>{incident.gps || 'N/A'}</td>
-                                        <td>{incident.currentaddress || 'N/A'}</td>
-                                        <td>{incident.incidentowner || 'N/A'}</td>
-                                        <td>{incident.raisedtouser || 'N/A'}</td>
-                                        <td>{incident.tagss || 'N/A'}</td>
-                                        <td>{incident.priority || 'N/A'}</td>
-                                        <td>{incident.status || 'N/A'}</td>
-                                        <td>
-                                            <button className="btn btn-edit" onClick={() => handleEditUserClick(incident)}>Edit</button>
-                                            <button className="btn btn-delete" onClick={() => deleteObject(incident.incidentid)}>Delete</button>
-                                        </td>
-                                    </tr>
-                                ))
-                            ))}
+                        {currentItems.map((user, userIndex) => (
+        user.incidents.map((incident, incidentIndex) => (
+            <tr key={`${userIndex}-${incidentIndex}`}>
+                <td>{(currentPage - 1) * itemsPerPage + incidentIndex + 1}</td> {/* Serial number */}
+                {incidentIndex === 0 && (
+                    <td rowSpan={user.incidents.length}><b>{user.email}</b></td>
+                )}
+                <td>{incident.incidentid || 'N/A'}</td>
+                <td>{incident.incidentname || 'N/A'}</td>
+                <td>{incident.incidentcategory || 'N/A'}</td>
+                <td>{incident.description || 'N/A'}</td>
+                <td>{incident.date || 'N/A'}</td>
+                <td>{incident.gps || 'N/A'}</td>
+                <td>{incident.currentaddress || 'N/A'}</td>
+                <td>{incident.incidentowner || 'N/A'}</td>
+                <td>{incident.raisedtouser || 'N/A'}</td>
+                <td>{incident.tagss || 'N/A'}</td>
+                <td>{incident.priority || 'N/A'}</td>
+                <td>{incident.status || 'N/A'}</td>
+                <td>
+                    <button className="btn btn-edit" onClick={() => handleEditUserClick(incident)}>Edit</button>
+                    <button className="btn btn-delete" onClick={() => deleteObject(incident.incidentid)}>Delete</button>
+                </td>
+            </tr>
+        ))
+    ))}
                         </tbody>
                     </table>
                 )}

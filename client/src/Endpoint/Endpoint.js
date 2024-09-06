@@ -91,6 +91,9 @@ export const GET_RESET_PASSWORD =
 export const GET_USERID =
   `${BASE_URL}userid`;
 
+  export const DELETE_USERID =(id) =>
+    `${BASE_URL}userdelete/${id}`;
+
 
   export const GET_USERBYID_API = (email) =>
     `${BASE_URL}getUserByEmail/${email}`;

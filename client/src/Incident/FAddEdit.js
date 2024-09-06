@@ -24,6 +24,7 @@ const initialState = {
 const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
     const [state, setState] = useState(initialState);
     const [emailSent, setEmailSent] = useState(false);
+    const [message, setMessage] = useState(false);
     const [incidentCategories, setIncidentCategories] = useState([]);
     const [incidentNames, setIncidentNames] = useState([]);
     const [priority, setPriority] = useState('');
@@ -32,6 +33,7 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
     const { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status} = state;
     const { incidentid } = useParams();
     const userId = localStorage.getItem("user_id");
+    console.log(userId);
     const [tags, setTags] = useState([]);
     const [query, setQuery] = useState('');
    
@@ -208,12 +210,13 @@ const handleSubmit = async (e) => {
 
         const userResponse = await axios.get(API.GET_USERBYID_API(raisedtouser));
         console.log("User response:", userResponse.data);
-
+        
         if (userResponse.data && userResponse.data.userid) {
             const raisedToUserId = userResponse.data.userid;
+            console.log(raisedToUserId)
             const tagss = tagNames;
-            const updatedData = { ...state, userid: raisedToUserId, raisedtouserid: raisedToUserId, id: userId, tagss, priority };
-
+            const updatedData = { ...state, userid: raisedToUserId, id: userId, tagss, priority };
+            
             console.log("Updated Data:", updatedData);
 
             // if (!editItem.incidentid) {
@@ -298,16 +301,25 @@ const handleSubmit = async (e) => {
             [name]: value
         }));
         
-        const handleEmailChange = (e) => {
-            const email = e.target.value;
-            setState((prevState) => ({ ...prevState, raisedtouser: email }));
+        // const handleEmailChange = (e) => {
+        //     const email = e.target.value;
+        //     setState((prevState) => ({ ...prevState, raisedtouser: email }));
         
-            // Trigger the email existence check
-            checkEmailExists(email);
-        };
+        //     // Trigger the email existence check
+        //     checkEmailExists(email);
+        // };
         
         // Handle input change
-        
+        if (name === "raisedtouser") {
+            // Update email value in the state
+            setState(prevState => ({
+                ...prevState,
+                raisedtouser: value
+            }));
+    
+            // Trigger email existence check
+            checkEmailExists(value);
+        }
         // Fetch incident names and descriptions when category or name changes
         if (name === 'incidentcategory') {
             setState(prevState => ({
@@ -332,8 +344,10 @@ const handleSubmit = async (e) => {
         try {
             await axios.post(API.SEND_INVITE_EMAIL, invitePayload);
             toast.success('Invitation sent successfully');
+            setMessage("Invitation sent successfully");
         } catch (error) {
             toast.error("Failed to send invitation.");
+            setMessage("Failed to send invitation.");
         }
     } else {
         toast.error("User was not found and invitation was not sent.");
@@ -457,6 +471,8 @@ const handleSubmit = async (e) => {
         onChange={handleInputChange}
     />
     {!emailValidation.exists && <div style={{ color: 'red' }}>{emailValidation.message}</div>}
+
+    {message && <div style={{ color: 'green' }}className="message">{message}</div>}
 </div>
 <div>
       <p>Select or add tags below:</p>

@@ -101,6 +101,7 @@ const ResolutionTableu = ({ userId }) => {
       <table className="styled-table" style={{ width: '100%' }}>
         <thead>
           <tr>
+            <th>Sr no</th>
             <th>Resolution ID</th>
             <th>Incident ID</th>
             <th>Incident Category</th>
@@ -113,8 +114,9 @@ const ResolutionTableu = ({ userId }) => {
           </tr>
         </thead>
         <tbody>
-          {currentItems.map((item) => (
+          {currentItems.map((item,index) => (
             <tr key={item.resolutionid}>
+               <td>{index + 1}</td>
               <td>{item.resolutionid}</td>
               <td>{item.incidentid}</td>
               <td>{item.incidentname}</td>

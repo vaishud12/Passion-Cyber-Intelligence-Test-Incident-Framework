@@ -8,7 +8,7 @@ import * as API from "../Endpoint/Endpoint";
 const FTable = ({ userId }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [tags, setTags] = useState([]);
+  
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const [chatbotVisible, setChatbotVisible] = useState(false);
@@ -33,22 +33,22 @@ const FTable = ({ userId }) => {
   };
 
   // Fetch tags data
-  const loadTags = async () => {
-    try {
-      const response = await axios.get(API.GET_TAGS, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      setTags(response.data.map(tagObj => tagObj.tag));
-    } catch (error) {
-      console.error("Error fetching tags:", error);
-    }
-  };
+  // const loadTags = async () => {
+  //   try {
+  //     const response = await axios.get(API.GET_TAGS, {
+  //       headers: {
+  //         Authorization: `Bearer ${localStorage.getItem('token')}`,
+  //       },
+  //     });
+  //     setTags(response.data.map(tagObj => tagObj.tag));
+  //   } catch (error) {
+  //     console.error("Error fetching tags:", error);
+  //   }
+  // };
 
   useEffect(() => {
     loadData();
-    loadTags();
+    
   }, []);
 
   // Filter data based on search query and selected tag
@@ -61,11 +61,11 @@ const FTable = ({ userId }) => {
       )
     );
     setFilteredData(filtered);
-  }, [searchQuery, selectedTag, data]);
+  }, [searchQuery,  data]);
 
   useEffect(() => {
     filterData();
-  }, [searchQuery, selectedTag, filterData]);
+  }, [searchQuery,  filterData]);
 
   const deleteObject = async (incidentid) => {
     if (window.confirm("Are you sure you want to delete this object?")) {
@@ -116,30 +116,27 @@ const FTable = ({ userId }) => {
   // Styles for the modal overlay and modal content
   const modalOverlayStyle = {
     position: 'absolute',
-    top: -5,
+    top: -3,
     left: 0,
     width: '80%',
-    height: '60%',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000,
   };
-
+  
   const modalContentStyle = {
     position: 'relative',
     width: '80%',
-    maxHeight: '50vh',
-    maxWidth: '400px',
+    height: '20%', // Enforced specific height
+    maxHeight: '5%', // Still keeping maxHeight smaller
     backgroundColor: '#fff',
-    overflowY: 'auto',
     padding: '10px',
     borderRadius: '8px',
     boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
     zIndex: 1001,
+    overflowY: 'auto', // Ensures content doesn't overflow the modal height
   };
-
   return (
     <div style={{ marginTop: '30px', position: 'relative' }}>
 
@@ -151,16 +148,7 @@ const FTable = ({ userId }) => {
         className="search-input"
       />
 
-      <select 
-        value={selectedTag} 
-        onChange={(e) => setSelectedTag(e.target.value)} 
-        className="tag-select"
-      >
-        <option value="">All Tags</option>
-        {tags.map(tag => (
-          <option key={tag} value={tag}>{tag}</option>
-        ))}
-      </select>
+      
 
       <button
         className="btn btn-contact"
@@ -190,6 +178,7 @@ const FTable = ({ userId }) => {
       <table className="styled-table" style={{ width: '100%' }}>
         <thead>
           <tr>
+            <th>S.No</th>
             <th>IncidentID</th>
             <th>Incident Category</th>
             <th>Incident Name</th>
@@ -206,8 +195,9 @@ const FTable = ({ userId }) => {
           </tr>
         </thead>
         <tbody>
-          {currentItems.map((item) => (
+          {currentItems.map((item, index) => (
             <tr key={item.incidentid}>
+               <td>{index + 1}</td>
               <td>{item.incidentid}</td>
               <td>{item.incidentcategory}</td>
               <td>{item.incidentname}</td>
