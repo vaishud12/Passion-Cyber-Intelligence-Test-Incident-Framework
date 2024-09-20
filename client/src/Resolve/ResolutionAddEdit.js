@@ -6,6 +6,7 @@ import './ResolutionAddEdit.css';
 import * as API from "../Endpoint/Endpoint";
 const initialState = {
     incidentid: '',
+    sector:'',
     incidentcategory: '',
    
     incidentname: '',
@@ -17,7 +18,7 @@ const initialState = {
 
 const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
     const [state, setState] = useState(initialState);
-    const { incidentid, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby } = state;
+    const { incidentid, sector, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby } = state;
     const [emailSent, setEmailSent] = useState(false);
     
     const userId = localStorage.getItem("user_id");
@@ -46,14 +47,15 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
         e.preventDefault();
     
         // Check if all required fields are provided
-        if (!resolutiondate || !incidentid || !incidentcategory || !incidentname  || !incidentowner || !resolutionremark || !resolvedby) {
-            toast.error("Please provide a value for each input field");
+        if (!resolutiondate || !incidentid || !sector || !incidentcategory || !incidentname  || !incidentowner || !resolutionremark || !resolvedby) {
+            alert("Please provide a value for each input field");
             return;
         }
     
         // Prepare data to be sent to the backend
         const updatedData = { 
             incidentid, 
+            sector,
             incidentcategory, 
             incidentname,
            
@@ -90,6 +92,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
                 email1: incidentowner, // Ensure this is a valid email
                 from: resolvedby,
                 incidentid,
+                sector, 
                 incidentcategory,
                 incidentname,
                 
@@ -104,7 +107,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
     
             // Open WhatsApp with the message
             const message = ` The Incident ${incidentname} is resolved by the Resolver!!
-            Incident ID: ${incidentid}\nIncident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nResolution Date: ${resolutiondate}\nResolution Remark: ${resolutionremark}\nResolved by: ${resolvedby}`;
+            Incident ID: ${incidentid}\nSector:${sector}\nIncident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nResolution Date: ${resolutiondate}\nResolution Remark: ${resolutionremark}\nResolved by: ${resolvedby}`;
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
     
@@ -151,7 +154,17 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
                         onChange={handleInputChange}
                         readOnly
                     />
-                   
+                                  <div>
+    <label>Incident Sector:</label>
+    <input
+        style={{ fontFamily: "Poppins" }}
+        type="text"
+        id="sector"
+        name="sector"
+        value={sector || ""}
+        onChange={handleInputChange}
+    />
+</div>
                    <div>
     <label>Incident Category:</label>
     <input

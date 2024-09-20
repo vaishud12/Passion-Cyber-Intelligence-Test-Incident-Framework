@@ -23,7 +23,7 @@ const Sidebar = ({ onMenuItemClick }) => {
           {expanded && <span className="menu-text">Home</span>}
         </div>
         <div className="menu-item" onClick={() => handleClick('fTable')}>
-          <FaTable />
+        onClick={() => handleClick('incidentCategory')}
           {expanded && <span className="menu-text">Incident</span>}
         </div>
         <div className="menu-item" onClick={() => handleClick('rtable')}>
@@ -36,7 +36,7 @@ const Sidebar = ({ onMenuItemClick }) => {
         </div>
         <div className="menu-item" onClick={() => handleClick('incidentCategory')}>
           <FaTags />
-          {expanded && <span className="menu-text">AgroIncident</span>}
+          {expanded && <span className="menu-text">Category</span>}
         </div>
       </div>
     </div>

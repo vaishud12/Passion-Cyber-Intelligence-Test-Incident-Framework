@@ -3,18 +3,21 @@ import axios from 'axios';
 import '../Incident/Admin.css'; // Ensure this CSS file is created for styling
 import IncidentCategoryedit from './IncidentCategoryedit';
 import * as API from "../Endpoint/Endpoint";
+import * as XLSX from 'xlsx';
 
 const IncidentCategory = () => {
     const [data, setData] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
+    const [filteredDatal, setFilteredDatal] = useState([]);
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [successMessage, setSuccessMessage] = useState('');
-    const itemsPerPage = 5;
+    const itemsPerPage = 25;
     const [chatbotVisible, setChatbotVisible] = useState(false);
     const [editItem, setEditItem] = useState(null);
     const [isAdding, setIsAdding] = useState(true); // Track if we are adding or editing
+    const [file, setFile] = useState(null);
 
     const loadData = async () => {
         try {
@@ -49,16 +52,6 @@ const IncidentCategory = () => {
         }
     };
 
-    const groupByCategory = (data) => {
-        return data.reduce((acc, item) => {
-            if (!acc[item.incidentcategory]) {
-                acc[item.incidentcategory] = [];
-            }
-            acc[item.incidentcategory].push(item);
-            return acc;
-        }, {});
-    };
-
     const filterData = (data) => {
         return data.filter(item => {
             const matchesSearch = searchQuery ? 
@@ -70,11 +63,10 @@ const IncidentCategory = () => {
     };
 
     const filteredData = filterData(data);
-    const groupedData = groupByCategory(filteredData);
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = Object.entries(groupedData).slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -102,6 +94,54 @@ const IncidentCategory = () => {
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
+
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);
+    };
+
+    const groupBySectorAndCategory = (data) => {
+        const groupedData = {};
+        data.forEach(item => {
+            if (!groupedData[item.sector]) {
+                groupedData[item.sector] = {};
+            }
+            if (!groupedData[item.sector][item.incidentcategory]) {
+                groupedData[item.sector][item.incidentcategory] = [];
+            }
+            groupedData[item.sector][item.incidentcategory].push(item);
+        });
+        return groupedData;
+    };
+
+    const groupedData = groupBySectorAndCategory(currentItems);
+
+
+    const handleUpload = async () => {
+        if (!file) {
+            alert("Please upload an Excel file.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetNames = workbook.SheetNames;
+            const sheet = workbook.Sheets[sheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+            try {
+                const response = await axios.post('http://localhost:5014/incident-api/upload', jsonData);
+                if (response.status === 200) {
+                    alert('Data uploaded successfully!');
+                }
+            } catch (error) {
+                console.error("Error uploading data:", error);
+                alert("Error uploading data.");
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    };
 
     return (
         <>
@@ -146,6 +186,55 @@ const IncidentCategory = () => {
                     Add Incident Category
                 </button>
 
+                <div style={{
+    display: 'flex',
+    flexDirection: 'column', // Arrange elements vertically
+    alignItems: 'center', // Center elements horizontally
+    gap: '10px', // Space between elements
+    marginTop: '20px' // Space above the container
+}}>
+    <p style={{
+        fontSize: '16px',
+        fontFamily: 'Poppins',
+        margin: '0 0 10px 0', // Space below the text
+        color: '#333' // Dark text color
+    }}>
+        Select Excel file only to upload Categories
+    </p>
+    <input 
+        type="file" 
+        accept=".xlsx, .xls" 
+        onChange={handleFileChange} 
+        style={{
+            border: '1px solid #ccc', 
+            borderRadius: '4px', 
+            padding: '8px', 
+            fontSize: '14px', 
+            fontFamily: 'Poppins', 
+            width: '100%', 
+            maxWidth: '300px'
+        }} 
+    />
+    <button 
+        onClick={handleUpload} 
+        style={{
+            backgroundColor: '#3385ffdf', 
+            color: 'white', 
+            padding: '10px 20px', 
+            fontSize: '16px', 
+            border: 'none', 
+            borderRadius: '5px', 
+            cursor: 'pointer', 
+            transition: 'background-color 0.3s', 
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+            marginBottom:'4px',
+        }}
+    >
+        Upload
+    </button>
+</div>
+
+
                 {chatbotVisible && (
                     <div className="modal-overlay">
                         <div className="modal-content">
@@ -170,47 +259,76 @@ const IncidentCategory = () => {
                     <table className="styled-table">
                         <thead>
                             <tr>
-                                <th>Sr No</th> {/* Added serial number column */}
+                               
+                                <th>Sector</th>
                                 <th>Incident Category</th>
                                 <th>Incident Name</th>
+                                
                                 <th>Incident Description</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {currentItems.flatMap(([category, incidents], index) => 
-                                incidents.map((incident, subIndex) => (
-                                    <tr key={`${category}-${subIndex}`}>
-                                        <td>{(currentPage - 1) * itemsPerPage + index * itemsPerPage + subIndex + 1}</td> {/* Serial number */}
-                                        {subIndex === 0 && (
-                                            <td rowSpan={incidents.length}>{category}</td>
+                        {Object.keys(groupedData).map(sector => (
+                            Object.keys(groupedData[sector]).map((category, categoryIndex) => (
+                                groupedData[sector][category].map((item, itemIndex) => (
+                                    <tr key={item.incidentcategoryid}>
+                                        {categoryIndex === 0 && itemIndex === 0 && (
+                                            <td rowSpan={Object.keys(groupedData[sector]).reduce((acc, cat) => acc + groupedData[sector][cat].length, 0)}>
+                                                {sector}
+                                            </td>
                                         )}
-                                        <td>{incident.incidentname}</td>
-                                        <td>{incident.incidentdescription}</td>
+                                        {itemIndex === 0 && (
+                                            <td rowSpan={groupedData[sector][category].length}>
+                                                {category}
+                                            </td>
+                                        )}
+                                        <td>{item.incidentname}</td>
+                                        <td>{item.incidentdescription}</td>
                                         <td>
-                                            <button className="btn btn-edit" onClick={() => handleEditUserClick(incident)}>Edit</button>
-                                            <button className="btn btn-delete" onClick={() => deleteObject(incident.incidentcategoryid)}>Delete</button>
+                                            <button className="btn btn-edit" onClick={() => handleEditUserClick(item)}>Edit</button>
+                                            <button className="btn btn-delete" onClick={() => deleteObject(item.incidentcategoryid)}>Delete</button>
                                         </td>
                                     </tr>
                                 ))
-                            )}
-                        </tbody>
+                            ))
+                        ))}
+                    </tbody>
                     </table>
                 )}
 
-                <center>
-                    <div className="pagination">
-                        {Array.from({ length: Math.ceil(Object.keys(groupedData).length / itemsPerPage) }, (_, i) => (
-                            <button
-                                key={i + 1}
-                                onClick={() => paginate(i + 1)}
-                                className={currentPage === i + 1 ? 'active' : ''}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                    </div>
-                </center>
+<center>
+  <div className="pagination">
+    <button
+      onClick={() => paginate(currentPage - 1)}
+      disabled={currentPage === 1}
+    >
+      &#x2039; {/* Left arrow */}
+    </button>
+
+    {Array.from(
+      { length: Math.ceil(filteredDatal.length / itemsPerPage) },
+      (_, i) => (
+        <button
+          key={i + 1}
+          onClick={() => paginate(i + 1)}
+          className={currentPage === i + 1 ? "active" : ""}
+        >
+          {i + 1}
+        </button>
+      )
+    )}
+
+    <button
+      onClick={() => paginate(currentPage + 1)}
+      disabled={
+        currentPage === Math.ceil(filteredDatal.length / itemsPerPage)
+      }
+    >
+      &#x203A; {/* Right arrow */}
+    </button>
+  </div>
+</center>
             </div>
         </>
     );

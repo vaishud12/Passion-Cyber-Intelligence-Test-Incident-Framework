@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './FTable.css';
 import FAddEdit from './FAddEdit';
+import UFview from './UFview';
+import FView from './FView';
 import ResolutionAddEdit from '../Resolve/ResolutionAddEdit';
 import * as API from "../Endpoint/Endpoint";
 
@@ -10,14 +12,28 @@ const FTable = ({ userId }) => {
   const [filteredData, setFilteredData] = useState([]);
   
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 2;
   const [chatbotVisible, setChatbotVisible] = useState(false);
   const [resolutionVisible, setResolutionVisible] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [resolutionItem, setResolutionItem] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
+  const [selectedIncident, setSelectedIncident] = useState(null);
+  
+    
+    const [fViewVisible, setFViewVisible] = useState(false);
+    const openFViewModal = (item) => {
+        setSelectedIncident(item);
+        setFViewVisible(true);
+    };
 
+    const closeFViewModal = () => {
+        setFViewVisible(false);
+    };
+    // Update the size state on window resize
+    const isSmallScreen = window.innerWidth <= 768;
+    const isVerySmallScreen = window.innerWidth <= 480;
   // Fetch incidents data
   const loadData = async () => {
     try {
@@ -106,6 +122,7 @@ const FTable = ({ userId }) => {
     setResolutionVisible(false);
     document.body.style.overflow = 'auto'; // Restore scrolling when modal is closed
   };
+  
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -124,12 +141,40 @@ const FTable = ({ userId }) => {
     justifyContent: 'center',
     alignItems: 'center',
   };
-  
+
   const modalContentStyle = {
+    // position: 'relative',
+  width: isVerySmallScreen ? '90%' : isSmallScreen ? '90%' : '95%',
+  height: isVerySmallScreen ? '1%' : isSmallScreen ? '16%' : '50%',
+  maxHeight: isVerySmallScreen ? '0.001%' : isSmallScreen ? '5%' : '10%',
+  backgroundColor: '#fff',
+  padding: '10px',
+  borderRadius: '8px',
+  boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+  zIndex: 1001,
+  overflowY: 'hidden', // Ensures content doesn't overflow the modal height
+  };
+
+
+/* Example CSS for responsiveness */
+
+
+  const ufViewModalOverlayStyle = {
+    position: 'absolute',
+    top: -3,
+    left: 0,
+    width: '80%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  };
+  
+  const ufViewModalContentStyle = {
     position: 'relative',
     width: '80%',
-    height: '20%', // Enforced specific height
-    maxHeight: '5%', // Still keeping maxHeight smaller
+    height: '50%', // Enforced specific height
+    maxHeight: '10%', // Still keeping maxHeight smaller
     backgroundColor: '#fff',
     padding: '10px',
     borderRadius: '8px',
@@ -137,6 +182,7 @@ const FTable = ({ userId }) => {
     zIndex: 1001,
     overflowY: 'auto', // Ensures content doesn't overflow the modal height
   };
+  
   return (
     <div style={{ marginTop: '30px', position: 'relative' }}>
 
@@ -175,6 +221,25 @@ const FTable = ({ userId }) => {
         </div>
       )}
 
+{fViewVisible && selectedIncident && (
+  <div style={ufViewModalOverlayStyle}>
+    <div style={ufViewModalContentStyle}>
+      <span
+        style={{ position: 'absolute', top: '10px', right: '10px', cursor: 'pointer' }}
+        onClick={closeFViewModal}
+      >
+        &times;
+      </span>
+      <UFview
+        isOpen={fViewVisible}
+        closeModal={closeFViewModal}
+        incident={selectedIncident}
+      />
+    </div>
+  </div>
+)}
+
+        <div className="table-wrapper">
       <table className="styled-table" style={{ width: '100%' }}>
         <thead>
           <tr>
@@ -188,9 +253,12 @@ const FTable = ({ userId }) => {
             <th>Current Address</th>
             <th>GPS</th>
             <th>Raised to User</th>
-            <th>Status</th>
+            
             <th>Tags</th>
             <th>Priority</th>
+            <th>Status</th>
+            <th>Remark</th>
+            <th>Image</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -210,7 +278,28 @@ const FTable = ({ userId }) => {
               <td><b>{item.tagss}</b></td>
               <td><b>{item.priority}</b></td>
               <td><b>{item.status}</b></td>
+              <td>{item.remark || 'N/A'}</td>
+                <td>
+                {item.photo ? (
+                                <img
+                                    src={API.GET_IMAGE_URL(item.photo)} // Update this based on your image path
+                                    alt={item.incidentname}
+                                    style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '5px' }}
+                                />
+                            ) : (
+                                <p>No Image</p>
+                            )}
+                           
+            </td>
+              
               <td>
+              <button
+                    className="btn btn-edit"
+                    onClick={() => openFViewModal(item)}
+                  >
+                    View
+                  </button>
+               
                 <button className="btn btn-edit" onClick={() => handleEditUserClick(item)}>Edit</button>
                 <button className="btn btn-edit" onClick={() => handleResolveClick(item)}>Resolve</button>
                 <button className="btn btn-delete" onClick={() => deleteObject(item.incidentid)}>Delete</button>
@@ -219,6 +308,7 @@ const FTable = ({ userId }) => {
           ))}
         </tbody>
       </table>
+      </div>
 
       <center>
         <div className="pagination">

@@ -1,5 +1,6 @@
 const BASE_URL = "http://localhost:5014/incident-api/";
 // const BASE_URL = "https://incidentmgmt.passionit.com/incident-api/incident-api/";
+const BASE_IMAGE_URL = "http://localhost:5014/uploads/";
 
 export const LOGIN = `${BASE_URL}login`;
 export const SIGNUP = `${BASE_URL}signup`;
@@ -34,6 +35,9 @@ export const CHECK_EMAIL = (email) =>
 
 export const GET_SPECIFIC_INCIDENT = (incidentid) =>
   `${BASE_URL}incidentget/${incidentid}`;
+
+export const GET_DISTINCT_SECTOR = 
+  `${BASE_URL}agroincidentsectorgets`;
 
 export const GET_DISTINCT_INCIDENT_CATEGORY = 
   `${BASE_URL}agroincidentcategorygets`;
@@ -91,9 +95,17 @@ export const GET_RESET_PASSWORD =
 export const GET_USERID =
   `${BASE_URL}userid`;
 
-  export const DELETE_USERID =(id) =>
+  export const POST_USERS = 
+   `${BASE_URL}userspost`
+
+ export const DELETE_USERID =(id) =>
     `${BASE_URL}userdelete/${id}`;
 
+  export const GET_USER_BY_ID =(id) =>
+    `${BASE_URL}userget/${id}`;
+
+  export const PUT_USER_BY_ID =(id) =>
+    `${BASE_URL}userupdate/${id}`
 
   export const GET_USERBYID_API = (email) =>
     `${BASE_URL}getUserByEmail/${email}`;
@@ -105,4 +117,5 @@ export const GET_INCIDENTS_BY_PRIORITY = `${BASE_URL}priority`;
 export const GET_TRENDS = `${BASE_URL}trends`;
 
 export const GET_INCIDENT_LOCATION = `${BASE_URL}locations`;
+export const GET_IMAGE_URL = (filename) => `${BASE_IMAGE_URL}${filename}`;
 

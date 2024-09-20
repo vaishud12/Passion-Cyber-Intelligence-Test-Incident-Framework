@@ -1,9 +1,16 @@
 const express = require('express');
 const app = express();
+const path = require('path');
+const sanitizeHtml = require('sanitize-html');
+
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const nodemailer = require('nodemailer');
+const xlsx = require('xlsx');
 const bcrypt = require("bcryptjs");
+const csvParser = require('csv-parser');
+const fs = require('fs'); // Import fs module
+const multer = require("multer");
 const jwt = require('jsonwebtoken'); // Import jsonwebtoken
 const pg = require('pg');
 require('dotenv').config();
@@ -54,6 +61,120 @@ const User = sequelize.define("User", { // Model name should be singular and Pas
     timestamps: false, // Disable timestamps if they are not present in the existing table
 });
 
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/'); // Directory where files will be uploaded
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname)); // Unique filename
+    }
+});
+const upload = multer({ dest: 'uploads/' });
+app.post('/incident-api/upload-users', upload.single('file'), async (req, res) => {
+    const filePath = path.join(__dirname, 'uploads', req.file.filename);
+    const users = [];
+
+    try {
+        if (path.extname(req.file.originalname) === '.csv') {
+            fs.createReadStream(filePath)
+                .pipe(csvParser())
+                .on('data', (row) => {
+                    console.log('Parsed row:', row);
+                    const { name, email, password, role, roletype, companyname, designation, empcode } = row;
+                    if (!name || !email || !password) {
+                        console.warn(`Skipping user with email ${email || 'undefined'} due to missing required fields`);
+                        return;
+                    }
+                    users.push({ name, email, password: password.toString(), role, roletype, companyname, designation, empcode });
+                })
+                .on('end', async () => {
+                    try {
+                        console.log('Users to be hashed:', users);
+                        const hashedUsers = await Promise.all(users.map(async (user) => {
+                            try {
+                                const hashedPassword = await bcrypt.hash(user.password, 10);
+                                return { ...user, password: hashedPassword };
+                            } catch (error) {
+                                console.error(`Error hashing password for user ${user.email}:`, error);
+                                throw error;
+                            }
+                        }));
+
+                        console.log('Hashed users:', hashedUsers);
+
+                        const sqlInsert = `INSERT INTO users (name, email, password, role, roletype, companyname, designation, empcode) 
+                                           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`;
+                        
+                        await Promise.all(hashedUsers.map(userData => 
+                            db.query(sqlInsert, [userData.name, userData.email, userData.password, userData.role, userData.roletype, userData.companyname, userData.designation, userData.empcode])
+                        ));
+
+                        fs.unlinkSync(filePath);
+                        res.status(200).json({ message: 'Users uploaded successfully' });
+                    } catch (error) {
+                        console.error('Error inserting users into database:', error);
+                        res.status(500).json({ error: 'Error inserting users into database' });
+                    }
+                })
+                .on('error', (error) => {
+                    console.error('Error reading file:', error);
+                    res.status(500).json({ error: 'Error reading file' });
+                });
+        } else if (path.extname(req.file.originalname) === '.xlsx') {
+            const workbook = xlsx.readFile(filePath);
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const data = xlsx.utils.sheet_to_json(worksheet);
+
+            console.log('Parsed Excel data:', data);
+            data.forEach((row) => {
+                const { name, email, password, role, roletype, companyname, designation, empcode } = row;
+                if (!name || !email || !password) {
+                    console.warn(`Skipping user with email ${email || 'undefined'} due to missing required fields`);
+                    return;
+                }
+                users.push({ name, email, password: password.toString(), role, roletype, companyname, designation, empcode });
+            });
+
+            try {
+                console.log('Users to be hashed:', users);
+                const hashedUsers = await Promise.all(users.map(async (user) => {
+                    try {
+                        const hashedPassword = await bcrypt.hash(user.password, 10);
+                        return { ...user, password: hashedPassword };
+                    } catch (error) {
+                        console.error(`Error hashing password for user ${user.email}:`, error);
+                        throw error;
+                    }
+                }));
+
+                console.log('Hashed users:', hashedUsers);
+
+                const sqlInsert = `INSERT INTO users (name, email, password, role, roletype, companyname, designation, empcode) 
+                                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`;
+                
+                await Promise.all(hashedUsers.map(userData => 
+                    db.query(sqlInsert, [userData.name, userData.email, userData.password, userData.role, userData.roletype, userData.companyname, userData.designation, userData.empcode])
+                ));
+
+                fs.unlinkSync(filePath);
+                res.status(200).json({ message: 'Users uploaded successfully' });
+            } catch (error) {
+                console.error('Error inserting users into database:', error);
+                res.status(500).json({ error: 'Error inserting users into database' });
+            }
+        } else {
+            fs.unlinkSync(filePath);
+            res.status(400).json({ error: 'Unsupported file type' });
+        }
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        res.status(500).json({ error: 'Unexpected error occurred' });
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+        }
+    }
+});
 
 // Signup route
 app.post("/incident-api/signup", async (req, res) => {
@@ -71,6 +192,30 @@ app.post("/incident-api/signup", async (req, res) => {
         res.status(400).send("Error creating user");
     }
 });
+app.use(bodyParser.json());
+
+app.post('/incident-api/upload', async (req, res) => {
+  const data = req.body;
+
+  // Insert data into the database
+  try {
+    for (const row of data) {
+      // Ensure each row contains the necessary fields
+      const { incidentcategory, incidentname, incidentdescription } = row;
+
+      // Adjust the query and fields based on your table schema
+      const query = 'INSERT INTO agroincidentcategorym (incidentcategory, incidentname, incidentdescription) VALUES ($1, $2, $3)';
+      const values = [incidentcategory, incidentname, incidentdescription];
+
+      await db.query(query, values);
+    }
+    res.status(200).send('Data uploaded successfully!');
+  } catch (error) {
+    console.error("Error inserting data:", error);
+    res.status(500).send('Error uploading data.');
+  }
+});
+
 
 // Login route
 // app.post("/login", async (req, res) => {
@@ -259,7 +404,82 @@ app.get('/incident-api/users', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+ //to Add User through Admin screen
+ const saltRounds = 10;
+app.post("/incident-api/userspost", async (req, res) => {
+    const {
+        name, email, password, role, roletype, companyname, designation, empcode
+    } = req.body;
 
+    try {
+        // Hash the password before storing it
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        
+        const sqlInsert = `
+            INSERT INTO users (name, email, password, role, roletype, companyname, designation, empcode) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `;
+        
+        const values = [
+            name, email, hashedPassword, role, roletype, companyname, designation, empcode
+        ];
+        
+        db.query(sqlInsert, values, (error, result) => {
+            if (error) {
+                console.error("Error inserting data", error);
+                res.status(500).json({ error: "Internal server error" });
+            } else {
+                res.status(200).json({ message: "User inserted successfully" });
+            }
+        });
+    } catch (error) {
+        console.error("Error hashing password", error);
+        res.status(500).json({ error: "Error hashing password" });
+    }
+});
+
+
+//get user
+
+app.get("/incident-api/userget/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Convert regid to a number
+        const useridNumber = parseInt(id);
+
+        const sqlGet = "SELECT * FROM users WHERE id = $1";
+        const result = await db.query(sqlGet, [useridNumber]);
+        res.send(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("An error occurred while fetching the object type");
+    }
+});
+app.put("/incident-api/userupdate/:id", (req, res) => {
+    const { id } = req.params;
+    const {name,email,
+        password,
+        role,
+        roletype,
+        companyname,
+        designation,
+        empcode} = req.body;
+
+    const sqlUpdate = "UPDATE users SET name=$1, email=$2, password=$3, role=$4, roletype=$5, companyname=$6, designation=$7, empcode=$8 WHERE id=$9";
+    db.query(sqlUpdate, [name,email,
+        password,
+        role,
+        roletype,
+        companyname,
+        designation,
+        empcode, id], (error, result) => {
+        if (error) {
+            console.error("Error updating object type:", error);
+            return res.status(500).send("An error occurred while updating the object type");
+        }
+        res.send("Object type updated successfully");
+    });
+});
 // Route to get user incidents
 app.get("/incident-api/user-incidents/:userId", authenticateToken, (req, res) => {
     const userId = req.params.userId; // Correctly access userId from req.params
@@ -321,9 +541,9 @@ app.get("/incident-api/agroincidentcategoryget", (req, res) => {
 
     //add a query
 app.post("/incident-api/incidentcategorypost", (req, res) => {
-    const {incidentcategory,incidentname,incidentdescription} = req.body;
-    const sqlInsert = "INSERT INTO agroincidentcategorym (incidentcategory,incidentname,incidentdescription) VALUES ($1, $2, $3)";
-    const values=[incidentcategory,incidentname,incidentdescription];
+    const {sector,incidentcategory,incidentname,incidentdescription} = req.body;
+    const sqlInsert = "INSERT INTO agroincidentcategorym (sector,incidentcategory,incidentname,incidentdescription) VALUES ($1, $2, $3, $4)";
+    const values=[sector,incidentcategory,incidentname,incidentdescription];
     db.query(sqlInsert ,values,(error,result)=>{
         if (error) {
             console.error("error intersting object type",error);
@@ -361,10 +581,10 @@ app.get("/incident-api/incidentcategoryget/:incidentcategoryid", async (req, res
 });
 app.put("/incident-api/incidentcategoryupdate/:incidentcategoryid", (req, res) => {
     const { incidentcategoryid } = req.params;
-    const { incidentcategory, incidentname, incidentdescription } = req.body;
+    const { sector, incidentcategory, incidentname, incidentdescription } = req.body;
 
-    const sqlUpdate = "UPDATE agroincidentcategorym SET incidentcategory=$1, incidentname=$2, incidentdescription=$3 WHERE incidentcategoryid=$4";
-    db.query(sqlUpdate, [incidentcategory, incidentname, incidentdescription, incidentcategoryid], (error, result) => {
+    const sqlUpdate = "UPDATE agroincidentcategorym SET sector=$1, incidentcategory=$2, incidentname=$3, incidentdescription=$4 WHERE incidentcategoryid=$5";
+    db.query(sqlUpdate, [sector, incidentcategory, incidentname, incidentdescription, incidentcategoryid], (error, result) => {
         if (error) {
             console.error("Error updating object type:", error);
             return res.status(500).send("An error occurred while updating the object type");
@@ -373,9 +593,31 @@ app.put("/incident-api/incidentcategoryupdate/:incidentcategoryid", (req, res) =
     });
 });
 //incident category tagging
-app.get("/incident-api/agroincidentcategorygets", (req, res) => {
-    const sqlGet = "SELECT DISTINCT incidentcategory FROM agroincidentcategorym";
+
+app.get("/incident-api/agroincidentsectorgets", (req, res) => {
+    const sqlGet = "SELECT DISTINCT sector FROM agroincidentcategorym";
     db.query(sqlGet, (error, result) => {
+        if (error) {
+            console.error("Error fetching incident categories:", error);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+        res.json(result.rows);
+    });
+});
+app.get("/incident-api/agroincidentcategorygets", (req, res) => {
+    // Extract the sector from the query parameters
+    const sector = req.query.sector;
+
+    // Validate that the sector parameter is provided
+    if (!sector) {
+        return res.status(400).json({ error: "Sector parameter is required" });
+    }
+
+    // Define the SQL query with a parameter placeholder
+    const sqlGet = "SELECT DISTINCT incidentcategory FROM agroincidentcategorym WHERE sector=$1";
+
+    // Execute the query with the sector parameter
+    db.query(sqlGet, [sector], (error, result) => {
         if (error) {
             console.error("Error fetching incident categories:", error);
             return res.status(500).json({ error: "Internal server error" });
@@ -485,6 +727,7 @@ app.post("/incident-api/send-incident-email", async (req, res) => {
 
         const {
             email1,
+            sector,
             incidentcategory,
             incidentname,
             incidentowner,
@@ -517,6 +760,7 @@ app.post("/incident-api/send-incident-email", async (req, res) => {
 
 Incident Report: ${incidentname}
 
+Sector: ${sector}
 Incident Category: ${incidentcategory}
 Incident Name: ${incidentname}
 Incident Owner: ${incidentowner}
@@ -757,6 +1001,7 @@ app.get("/incident-api/incidentget", (req, res) => {
         SELECT
             a.email,
             b.incidentid,
+            b.sector,
             b.incidentname,
             b.incidentcategory,
             b.incidentdescription,
@@ -767,7 +1012,8 @@ app.get("/incident-api/incidentget", (req, res) => {
             b.raisedtouser,
             b.tagss,
             b.priority,
-            b.status 
+            b.status,
+            b.remark,b.photo 
         FROM users a
         JOIN incident b ON a.id = b.id
     `;
@@ -781,13 +1027,42 @@ app.get("/incident-api/incidentget", (req, res) => {
     });
 });
 
+
 //add a query
-app.post("/incident-api/incidentpost", (req, res) => {
-    const { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid,id, tagss, priority} = req.body;
-    
-    // Insert raisedtouserid into the userid column
-    const sqlInsert = "INSERT INTO incident (incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid,id, tagss, priority) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,$11,$12,$13)";
-    const values = [incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid, id, tagss, priority];
+
+
+// Middleware to serve static files
+app.use('/uploads', express.static('uploads'));
+const storagi = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const uploading = multer({ storage: storagi });
+
+app.post('/incident-api/incidentpost', uploading.single('photo'), (req, res) => {
+    const { sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid, id, tagss, priority, remark } = req.body;
+
+    // Extract the filename from the uploaded file
+    const photo = req.file ? req.file.filename : null;
+
+    console.log('Received file:', photo); // Check if this logs the file name
+    console.log('Received remark:', remark);
+
+    // Insert data into the database
+    const sqlInsert = `
+        INSERT INTO incident (
+            sector, incidentcategory, incidentname, incidentowner, incidentdescription, 
+            date, currentaddress, gps, raisedtouser, status, 
+            userid, id, tagss, priority, remark, photo
+        ) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+    `;
+    const values = [sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid, id, tagss, priority, remark, photo];
 
     db.query(sqlInsert, values, (error, result) => {
         if (error) {
@@ -798,6 +1073,7 @@ app.post("/incident-api/incidentpost", (req, res) => {
         }
     });
 });
+
 
 
 /******delete *******/
@@ -815,9 +1091,9 @@ app.delete("/incident-api/incidentdelete/:incidentid", (req, res) => {
 
 app.put("/incident-api/incidentupdate/:incidentid", (req, res) => {
     const { incidentid } = req.params;
-    const { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority } = req.body;
-    const sqlUpdate = "UPDATE incident SET incidentcategory=$1, incidentname=$2, incidentowner=$3, incidentdescription=$4, date=$5, currentaddress=$6, gps=$7, raisedtouser=$8, status=$9, tagss=$10, priority=$11 WHERE incidentid = $12";
-    const values = [incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority, incidentid];
+    const { sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority } = req.body;
+    const sqlUpdate = "UPDATE incident SET sector=$1, incidentcategory=$2, incidentname=$3, incidentowner=$4, incidentdescription=$5, date=$6, currentaddress=$7, gps=$8, raisedtouser=$9, status=$10, tagss=$11, priority=$12 WHERE incidentid = $13";
+    const values = [sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority, incidentid];
     db.query(sqlUpdate, values, (error, result) => {
         if (error) {
             console.error("Error updating resolution:", error);
@@ -958,6 +1234,7 @@ app.get("/incident-api/adminresolutionget", (req, res) => {
     const sqlGet = `
         SELECT 
             r.incidentid,
+            r.sector,
             r.incidentcategory,
             r.incidentname,
             r.incidentowner,
@@ -996,16 +1273,16 @@ app.get("/incident-api/adminresolutionget", (req, res) => {
 // });
 app.post("/incident-api/resolutionpost", (req, res) => {
     // Destructure fields from the request body
-    const { incidentid, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby,id } = req.body;
+    const { incidentid, sector, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby,id } = req.body;
 
     // Basic validation
-    if (!incidentid || !incidentcategory || !incidentname ||  !incidentowner || !resolutiondate || !resolutionremark || !resolvedby) {
+    if (!incidentid || !sector || !incidentcategory || !incidentname ||  !incidentowner || !resolutiondate || !resolutionremark || !resolvedby) {
         return res.status(400).json({ error: "All fields are required" });
     }
 
     // SQL Insert query
-    const sqlInsert = "INSERT INTO resolution (incidentid, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby,id) VALUES ($1, $2, $3, $4, $5, $6, $7,$8)";
-    const values = [incidentid, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby,id];
+    const sqlInsert = "INSERT INTO resolution (incidentid, sector, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby,id) VALUES ($1, $2, $3, $4, $5, $6, $7,$8,$9)";
+    const values = [incidentid, sector, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby,id];
 
     // Execute the query
     db.query(sqlInsert, values, (error, result) => {
@@ -1092,6 +1369,8 @@ app.post("/incident-api/send-emailforresolved", async (req, res) => {
         const {
             email1,
             incidentid,
+            sector,
+            incidentcategory,
             incidentname,
             incidentowner,
             resolutiondate,
@@ -1110,6 +1389,8 @@ app.post("/incident-api/send-emailforresolved", async (req, res) => {
                 This Query has been resolved by ${resolvedby}
                 
                 Incident id: ${incidentid},
+                Sector:${sector},
+                Incident Category:${incidentcategory},
                 Incident name: ${incidentname},
                 Incident Owner: ${incidentowner},
                 Resolution Date: ${resolutiondate},

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bar, Line,  Doughnut, Chart } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, ArcElement, Title, Tooltip, PointElement, Legend } from 'chart.js';
 import axios from 'axios';
+ // Make sure to install and import this plugin
 import {jwtDecode} from 'jwt-decode';
 
 import * as API from "../Endpoint/Endpoint";
@@ -296,26 +297,27 @@ const AdminDashboard = () => {
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold text-center mb-6">Admin Dashboard</h1>
-      <div className="flex space-x-4 mb-6">
-        <button
-          className={`w-full py-2 px-4 text-white font-semibold rounded-lg shadow-md ${currentView === 'category' ? 'bg-blue-500' : 'bg-blue-300'}`}
-          onClick={() => setCurrentView('category')}
-        >
-          Incident Categories
-        </button>
-        <button
-          className={`w-full py-2 px-4 text-white font-semibold rounded-lg shadow-md ${currentView === 'incident' ? 'bg-blue-500' : 'bg-blue-300'}`}
-          onClick={() => setCurrentView('incident')}
-        >
-          Incidents
-        </button>
-        <button
-          className={`w-full py-2 px-4 text-white font-semibold rounded-lg shadow-md ${currentView === 'resolution' ? 'bg-blue-500' : 'bg-blue-300'}`}
-          onClick={() => setCurrentView('resolution')}
-        >
-          Resolutions
-        </button>
-      </div>
+      <div className="flex flex-col md:flex-row md:space-x-4 mb-6">
+  <button
+    className={`w-full md:w-auto py-2 px-4 text-white font-semibold rounded-lg shadow-md ${currentView === 'category' ? 'bg-blue-500' : 'bg-blue-300'}`}
+    onClick={() => setCurrentView('category')}
+  >
+    Incident Categories
+  </button>
+  <button
+    className={`w-full md:w-auto py-2 px-4 text-white font-semibold rounded-lg shadow-md ${currentView === 'incident' ? 'bg-blue-500' : 'bg-blue-300'}`}
+    onClick={() => setCurrentView('incident')}
+  >
+    Incidents
+  </button>
+  <button
+    className={`w-full md:w-auto py-2 px-4 text-white font-semibold rounded-lg shadow-md ${currentView === 'resolution' ? 'bg-blue-500' : 'bg-blue-300'}`}
+    onClick={() => setCurrentView('resolution')}
+  >
+    Resolutions
+  </button>
+</div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <div className="bg-white p-6 rounded-lg shadow-lg">
         <h2 className="text-xl font-semibold mb-4">Total Incidents</h2>
@@ -392,36 +394,40 @@ const AdminDashboard = () => {
             <div className="bg-white p-6 rounded-lg shadow-lg">
               <h2 className="text-xl font-semibold mb-4">Incident Priority</h2>
               <Line
-      data={splineChartData}
-      options={{
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'top',
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => `${context.dataset.label}: ${context.raw.y}`,
-            },
-          },
+  data={splineChartData}
+  options={{
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => `${context.dataset.label}: ${context.raw.y}`,
         },
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: 'Priority',
-            },
-          },
-          y: {
-            title: {
-              display: true,
-              text: 'Count',
-            },
-            beginAtZero: true,
-          },
+      },
+      // Enable the 3D effect
+      'chartjs-plugin-3d': {
+        perspective: 100, // Adjust the perspective to achieve a 3D effect
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Priority',
         },
-      }}
-    />
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Count',
+        },
+        beginAtZero: true,
+      },
+    },
+  }}
+/>
             </div>
             
             <div className="bg-white p-6 rounded-lg shadow-lg col-span-1 md:col-span-2 w-full max-w-4xl mx-auto">
@@ -464,22 +470,40 @@ const AdminDashboard = () => {
         {currentView === 'resolution' && (
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-xl font-semibold mb-4">Resolution Statuses</h2>
-            <Doughnut
-        data={resolutionData}
-        options={{
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'top',
-            },
-            tooltip: {
-              callbacks: {
-                label: (context) => `${context.label}: ${context.raw}`,
-              },
-            },
-          },
-        }}
-      />
+            <Bar
+  data={{
+    labels: resolutionData.labels, // Use the labels from your state
+    datasets: [{
+      label: 'Total Resolutions by User',
+      data: resolutionData.datasets[0].data, // Use the data from your dataset
+      backgroundColor: 'rgba(54, 162, 235, 0.5)', // Adjust the color as needed
+      borderColor: 'rgba(54, 162, 235, 1)', // Border color
+      borderWidth: 1,
+    }],
+  }}
+  options={{
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => `${context.dataset.label}: ${context.raw}`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        stacked: true, // Enable stacking for the x-axis
+      },
+      y: {
+        stacked: true, // Enable stacking for the y-axis
+        beginAtZero: true,
+      },
+    },
+  }}
+/>
           </div>
         )}
       </div>

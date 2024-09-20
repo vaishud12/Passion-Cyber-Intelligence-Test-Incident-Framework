@@ -52,7 +52,7 @@ const Navbar = () => {
 
   return (
     <>
-       <nav className="bg-blue-500 p-4 flex justify-between items-center fixed top-0 left-0 right-0" style={{ height: '60px' }}>
+       <nav className="bg-blue-500 p-4 flex justify-between items-center fixed top-0 left-0 right-0" style={{ height: '50px' }}>
         <div className="flex items-center">
           <img src={logo} alt="Logo" className="h-10 w-26 mr-2" />
         </div>

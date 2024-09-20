@@ -1,10 +1,9 @@
-/* Sidebar.css */
-
+/* Default Styles */
 .sidebar {
-    width: 4.2rem; /* Narrow width for collapsed state */
-    height: calc(100vh - 50px); /* Full height minus Navbar height */
-    background-color: white; /* White background for the sidebar */
-    color: blue; /* Default text color */
+    /* width: 4.2rem; Default collapsed width */
+    height: calc(100vh - 40px); /* Full height minus Navbar height */
+    background-color: white;
+    color: blue;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -14,30 +13,32 @@
     top: 50px; /* Positioning below the Navbar */
     left: 0;
     overflow: hidden;
-    border-right: 1px solid #ddd; /* Light border for separation */
+    border-right: 1px solid #ddd;
     z-index: 1000; /* Ensure sidebar is above other content */
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* Optional shadow for separation */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Optional shadow for separation */
 }
 
 .sidebar.expanded {
     width: 13rem; /* Wider width for expanded state */
 }
 
+/* Toggle button styling */
 .toggle-button {
     margin: 10px;
     padding: 10px;
-    background-color: #e0e0e0; /* Light gray background */
-    color: blue; /* Button text color */
+    background-color: #e0e0e0;
+    color: blue;
     cursor: pointer;
     border-radius: 4px;
     text-align: center;
-    width: 100%; /* Full width of sidebar */
+    width: 100%;
 }
 
+/* Menu items styling */
 .menu-items {
     display: flex;
     flex-direction: column;
-    width: 100%; /* Full width of sidebar */
+    width: 100%;
 }
 
 .menu-item {
@@ -45,31 +46,68 @@
     cursor: pointer;
     display: flex;
     align-items: center;
-    color: blue; /* Text and icon color */
-    transition: background-color 0.2s; /* Smooth transition for hover effect */
+    color: blue;
+    transition: background-color 0.2s;
 }
 
 .menu-item:hover {
-    background-color: #f0f0f0; /* Light gray background on hover */
+    background-color: #f0f0f0;
 }
 
 .menu-item svg {
-    font-size: 1.5rem; /* Icon size */
-    margin-right: 10px; /* Space between icon and text */
-    color: rgb(77, 77, 224); /* Icon color */
+    font-size: 1.5rem;
+    margin-right: 10px;
+    color: rgb(77, 77, 224);
 }
 
 .menu-text {
-    margin-left: 10px; /* Space between icon and text */
-    color: blue; /* Text color */
-    opacity: 1; /* Ensure text is visible in expanded state */
-    transition: opacity 0.3s; /* Smooth transition for text visibility */
+    margin-left: 10px;
+    color: blue;
+    opacity: 1;
+    transition: opacity 0.3s;
 }
 
 .sidebar .menu-text {
-    opacity: 0; /* Hide text in collapsed state */
+    opacity: 0;
 }
 
 .sidebar.expanded .menu-text {
-    opacity: 1; /* Show text when expanded */
+    opacity: 1;
+}
+
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+    .sidebar {
+        /* width: 1rem; Narrower width for smaller screens when collapsed */
+    }
+
+    /* .sidebar.expanded {
+        width: 10rem; /* Wider width for expanded state on smaller screens */
+
+
+    .menu-text {
+        display: none; /* Hide text in collapsed state on smaller screens */
+    }
+
+    .sidebar.expanded .menu-text {
+        display: inline; /* Show text in expanded state on smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .sidebar {
+        width: 2.5rem; /* Even narrower width for very small screens when collapsed */
+    }
+
+    .sidebar.expanded {
+        width: 8rem; /* Wider width for expanded state on very small screens */
+    }
+
+    .menu-text {
+        display: none; /* Hide text in collapsed state on very small screens */
+    }
+
+    .sidebar.expanded .menu-text {
+        display: inline; /* Show text in expanded state on very small screens */
+    }
 }

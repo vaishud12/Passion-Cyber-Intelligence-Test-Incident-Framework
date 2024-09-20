@@ -6,6 +6,7 @@ import '../Incident/FAddEdit.css'; // Ensure the path is correct
 import * as API from "../Endpoint/Endpoint";
 
 const initialState = {
+    sector:'',
     incidentcategory: '',
     incidentname: '',
     incidentdescription: '',
@@ -13,7 +14,7 @@ const initialState = {
 
 const IncidentCategoryedit = ({ visible, onClose, editItem, loadData }) => {
     const [state, setState] = useState(initialState);
-    const { incidentcategory, incidentname, incidentdescription } = state;
+    const { sector, incidentcategory, incidentname, incidentdescription } = state;
     const { incidentcategoryid } = useParams();
     const userId = localStorage.getItem("user_id");
     console.log(userId);
@@ -35,7 +36,7 @@ const IncidentCategoryedit = ({ visible, onClose, editItem, loadData }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!incidentcategory || !incidentname || !incidentdescription) {
+        if (!sector ||!incidentcategory || !incidentname || !incidentdescription) {
             toast.error("Please provide a value for each input field");
             return;
         }
@@ -53,7 +54,7 @@ const IncidentCategoryedit = ({ visible, onClose, editItem, loadData }) => {
             setState(initialState);
             toast.success(`${editItem && editItem.incidentcategoryid ? 'Incident updated' : 'Incident added'} successfully`);
             
-            const message = `Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nDescription: ${incidentdescription}`;
+            const message = `Sector: ${sector}\nIncident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nDescription: ${incidentdescription}`;
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
             
@@ -82,6 +83,15 @@ const IncidentCategoryedit = ({ visible, onClose, editItem, loadData }) => {
             <div className="modal-content">
                 <center><h1>{editItem && editItem.incidentcategoryid ? 'Edit Incident Category' : 'Add Incident Category'}</h1></center>
                 <form onSubmit={handleSubmit}>
+                <label htmlFor="themecategory">Sector</label>
+                    <input
+                        type="text"
+                        id="sector"
+                        name="sector"
+                        value={sector || ""}
+                        placeholder="Enter Sector"
+                        onChange={handleInputChange}
+                    />
                     <label htmlFor="incidentcategory">Incident Category</label>
                     <input
                         type="text"

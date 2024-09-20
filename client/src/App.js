@@ -8,6 +8,7 @@ import ResetPassword from './Signup-Login/ResetPassword';
 import PrivateRoute from './components/PrivateRoute';
 import AdminMain from './BotAnalysis/AdminMain';
 import Home from './Home';
+import FView from './Incident/FView';
 
 
 
@@ -48,6 +49,7 @@ const App = () => {
           <Route path="/chatbot" element={<PrivateRoute>
                   <Chatbot/>
                 </PrivateRoute>} />
+               
         </Routes>
       </Router>
     </div>

@@ -4,6 +4,7 @@ import './ResolutionTable.css'; // Make sure to style the table appropriately
 import ResolutionAddEdit from './ResolutionAddEdit'; // Adjust the path if necessary
 import * as API from "../Endpoint/Endpoint";
 const ResolutionTableu = ({ userId }) => {
+  const [filteredData, setFilteredData] = useState([]);
   const [resolutions, setResolutions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -97,13 +98,14 @@ const ResolutionTableu = ({ userId }) => {
           </div>
         </div>
       )}
-
+      <div className="table-wrapperr">
       <table className="styled-table" style={{ width: '100%' }}>
         <thead>
           <tr>
             <th>Sr no</th>
             <th>Resolution ID</th>
             <th>Incident ID</th>
+            <th>Sector</th>
             <th>Incident Category</th>
             <th>Incident Name</th>
             <th>Incident Owner</th>
@@ -119,8 +121,10 @@ const ResolutionTableu = ({ userId }) => {
                <td>{index + 1}</td>
               <td>{item.resolutionid}</td>
               <td>{item.incidentid}</td>
-              <td>{item.incidentname}</td>
+              <td>{item.sector}</td>
               <td>{item.incidentcategory}</td>
+              
+              <td>{item.incidentname}</td>
               
               <td>{item.incidentowner}</td>
               <td>{item.resolutiondate}</td>
@@ -134,19 +138,40 @@ const ResolutionTableu = ({ userId }) => {
           ))}
         </tbody>
       </table>
-
+      </div>
       <center>
-        <div className="pagination">
-          {Array.from(
-            { length: Math.ceil(resolutions.length / itemsPerPage) },
-            (_, i) => (
-              <button key={i + 1} onClick={() => paginate(i + 1)}>
-                {i + 1}
-              </button>
-            )
-          )}
-        </div>
-      </center>
+  <div className="pagination">
+    <button
+      onClick={() => paginate(currentPage - 1)}
+      disabled={currentPage === 1}
+    >
+      &#x2039; {/* Left arrow */}
+    </button>
+
+    {Array.from(
+      { length: Math.ceil(filteredData.length / itemsPerPage) },
+      (_, i) => (
+        <button
+          key={i + 1}
+          onClick={() => paginate(i + 1)}
+          className={currentPage === i + 1 ? "active" : ""}
+        >
+          {i + 1}
+        </button>
+      )
+    )}
+
+    <button
+      onClick={() => paginate(currentPage + 1)}
+      disabled={
+        currentPage === Math.ceil(filteredData.length / itemsPerPage)
+      }
+    >
+      &#x203A; {/* Right arrow */}
+    </button>
+  </div>
+</center>
+      
     </div>
   );
 };

@@ -2,18 +2,33 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Admin.css'; // Ensure this CSS file is created for styling
 import FAddEdit from './FAddEdit';
+
 import * as API from "../Endpoint/Endpoint";
+import FView from './FView';
 const Admin = () => {
    
     const [incidentsByUser, setIncidentsByUser] = useState([]);
     const [loading, setLoading] = useState(true);
     const [tags, setTags] = useState([]);
+    const [filteredData, setFilteredData] = useState([]);
+
     const [selectedTag, setSelectedTag] = useState('');
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
     const [chatbotVisible, setChatbotVisible] = useState(false);
     const [editItem, setEditItem] = useState(null);
+    const [selectedIncident, setSelectedIncident] = useState(null);
+    
+    const [fViewVisible, setFViewVisible] = useState(false);
+    const openFViewModal = (incident) => {
+        setSelectedIncident(incident);
+        setFViewVisible(true);
+    };
+
+    const closeFViewModal = () => {
+        setFViewVisible(false);
+    };
     const [searchQuery, setSearchQuery] = useState(''); // New state for search query
    
     const [priorityTimes, setPriorityTimes] = useState({
@@ -23,7 +38,11 @@ const Admin = () => {
         medium: '',
         low: ''
     });
-
+    
+   
+  // Function to handle viewing an incident in the modal
+  
+    
     useEffect(() => {
         const fetchIncidents = async () => {
             try {
@@ -151,7 +170,8 @@ const Admin = () => {
         setEditItem(item);
         openModal();
     };
-
+   
+    
     const openModal = () => {
         setChatbotVisible(true);
         document.body.style.overflow = 'hidden'; // Prevent scrolling on the body
@@ -177,7 +197,9 @@ const Admin = () => {
           }
         }
       };
-    
+      
+      
+    //   const imageUrl = `http://localhost:5014/uploads/${incident.photo}`; // Adjust the URL based on your server configuration
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
@@ -202,90 +224,30 @@ const Admin = () => {
                 >
                     Add Incident
                 </button>
-                <div 
-    style={{
-        display: 'flex',
-        flexDirection: 'column', // Stack items vertically
-        alignItems: 'center', // Center horizontally
-        justifyContent: 'center', // Center vertically
-        padding: '10px',
-        height: '50vh', // Full viewport height for vertical centering
-    }}
->
-    <form onSubmit={handlePriorityTimesSubmit} style={{ width: '100%', maxWidth: '1000px' }}>
-    <h3 style={{
-            textAlign: 'center', // Center the heading text
-            fontWeight: 'bold', // Make the heading bold
-            marginBottom: '20px' // Space below the heading
-        }}>
-            Set Priority Times
-        </h3>
-        
-        <div 
-            style={{
-                display: 'flex',
-                flexWrap: 'wrap', // Allows wrapping of items if they overflow
-                gap: '15px', // Space between the input fields
-                justifyContent: 'center', // Center horizontally
-                marginBottom: '20px' // Space below the priority inputs
-            }}
-        >
-            {Object.keys(priorityTimes).map(priority => (
-                <div key={priority} style={{ flex: '1 1 auto' }}>
-                    <label style={{
-                        display: 'block',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        color: '#333',
-                        fontFamily: 'Poppins',
-                        marginBottom: '8px'
-                    }}>
-                        {priority.charAt(0).toUpperCase() + priority.slice(1)}:
-                        <input
-                            type="text"
-                            name={priority}
-                            value={priorityTimes[priority]}
-                            onChange={handlePriorityTimeChange}
-                            placeholder="Time in hours"
-                            min="0"
-                            style={{
-                                width: '100%', // Full width of the container
-                                padding: '8px',
-                                fontSize: '14px',
-                                border: '1px solid #ccc',
-                                borderRadius: '4px',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                marginBottom: '12px'
-                            }}
-                        />
-                    </label>
+                <div className="priority-container">
+                    <form onSubmit={handlePriorityTimesSubmit} className="priority-form">
+                        <h3 className="priority-heading">Set Priority Times</h3>
+                        <div className="priority-inputs">
+                            {Object.keys(priorityTimes).map(priority => (
+                                <div key={priority} className="priority-input-wrapper">
+                                    <label className="priority-label">
+                                        {priority.charAt(0).toUpperCase() + priority.slice(1)}:
+                                        <input
+                                            type="text"
+                                            name={priority}
+                                            value={priorityTimes[priority]}
+                                            onChange={handlePriorityTimeChange}
+                                            placeholder="Time in hours"
+                                            min="0"
+                                            className="priority-input"
+                                        />
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                        <button type="submit" className="priority-button">Save Priority Times</button>
+                    </form>
                 </div>
-            ))}
-        </div>
-
-        <button
-            type="submit"
-            style={{
-                textAlign:'cenetr',
-                padding: '10px 15px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                color: '#fff',
-                backgroundColor: '#007bff',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                width: '80%', // Full width of the container
-                maxWidth: '150px', // Limit button width
-                marginTop: '20px' // Space above the button
-            }}
-        >
-            Save Priority Times
-        </button>
-    </form>
-
-   
-</div>
 
 <div style={{
     display: 'flex',
@@ -342,14 +304,17 @@ const Admin = () => {
                 {incidentsByUser.length === 0 ? (
                     <p>No incidents found.</p>
                 ) : (
+                    
+                    <div div className="table-wrapperrr">
                     <table className="styled-table">
                         <thead>
                             <tr>
                             <th>S.No</th>
                                 <th>User Email</th>
                                 <th>Incident id</th>
-                                <th>Incident Name</th>
+                                <th>Sector</th>
                                 <th>Category</th>
+                                <th>Incident Name</th>
                                 <th>Description</th>
                                 <th>Date</th>
                                 <th>GPS</th>
@@ -359,6 +324,8 @@ const Admin = () => {
                                 <th>Tags</th>
                                 <th>Priority</th>
                                 <th>Status</th>
+                                <th>Remark</th>
+                                <th>Image</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -371,8 +338,9 @@ const Admin = () => {
                     <td rowSpan={user.incidents.length}><b>{user.email}</b></td>
                 )}
                 <td>{incident.incidentid || 'N/A'}</td>
-                <td>{incident.incidentname || 'N/A'}</td>
+                <td>{incident.sector || 'N/A'}</td>
                 <td>{incident.incidentcategory || 'N/A'}</td>
+                <td>{incident.incidentname || 'N/A'}</td>
                 <td>{incident.description || 'N/A'}</td>
                 <td>{incident.date || 'N/A'}</td>
                 <td>{incident.gps || 'N/A'}</td>
@@ -382,7 +350,40 @@ const Admin = () => {
                 <td>{incident.tagss || 'N/A'}</td>
                 <td>{incident.priority || 'N/A'}</td>
                 <td>{incident.status || 'N/A'}</td>
+                <td>{incident.remark || 'N/A'}</td>
                 <td>
+                {incident.photo ? (
+                                <img
+                                    src={API.GET_IMAGE_URL(incident.photo)} // Update this based on your image path
+                                    alt={incident.incidentname}
+                                    style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '5px' }}
+                                />
+                            ) : (
+                                <p>No Image</p>
+                            )}
+                           
+            </td>
+                      
+                <td>
+                
+                <button 
+                                                onClick={() => openFViewModal(incident)}
+                                                className="btn btn-view"
+                                            >
+                                                View
+                                            </button>
+                {fViewVisible && selectedIncident && (
+    <div className="backdrop">
+        <div className="modal-body">
+            <FView 
+                isOpen={fViewVisible} 
+                closeModal={closeFViewModal} 
+                incident={selectedIncident} 
+            />
+        </div>
+    </div>
+)}
+     
                     <button className="btn btn-edit" onClick={() => handleEditUserClick(incident)}>Edit</button>
                     <button className="btn btn-delete" onClick={() => deleteObject(incident.incidentid)}>Delete</button>
                 </td>
@@ -391,21 +392,45 @@ const Admin = () => {
     ))}
                         </tbody>
                     </table>
+                    </div>
                 )}
                 <center>
-                    <div className="pagination">
-                        {Array.from({ length: Math.ceil(filteredIncidents.length / itemsPerPage) }, (_, i) => (
-                            <button
-                                key={i + 1}
-                                onClick={() => paginate(i + 1)}
-                                className={currentPage === i + 1 ? 'active' : ''}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                    </div>
-                </center>
+  <div className="pagination">
+    <button
+      onClick={() => paginate(currentPage - 1)}
+      disabled={currentPage === 1}
+    >
+      &#x2039; {/* Left arrow */}
+    </button>
+
+    {Array.from(
+      { length: Math.ceil(filteredData.length / itemsPerPage) },
+      (_, i) => (
+        <button
+          key={i + 1}
+          onClick={() => paginate(i + 1)}
+          className={currentPage === i + 1 ? "active" : ""}
+        >
+          {i + 1}
+        </button>
+      )
+    )}
+
+    <button
+      onClick={() => paginate(currentPage + 1)}
+      disabled={
+        currentPage === Math.ceil(filteredData.length / itemsPerPage)
+      }
+    >
+      &#x203A; {/* Right arrow */}
+    </button>
+  </div>
+</center>
+
+
             </div>
+            
+           
         </>
     );
 };

@@ -204,14 +204,14 @@
 import React, { useState, useEffect } from 'react';
 import {jwtDecode} from 'jwt-decode'; // Correct named import for jwt-decode
 import axios from 'axios';
-import BotAinput from './BotAinput';
+
 import FTable from '../Incident/FTable'; // Import FTable component
 // import UserIncidents from '../Incident/UserIncidents'; // Import UserIncidents component
 import ResolutionTableu from '../Resolve/ResolutionTableu';
 
 const Main = () => {
     const [fTableVisible, setFTableVisible] = useState(false);
-    const [botAInputVisible, setBotAInputVisible] = useState(false);
+    
     const [rTableVisible, setRTableVisible] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
     const [userId, setUserId] = useState('');
@@ -251,7 +251,7 @@ const Main = () => {
     const handleTable = (component) => {
         if (component === 'fTable') {
             setFTableVisible(true);
-            setBotAInputVisible(false);
+            
             setRTableVisible(false);
         // } else if (component === 'botAInput') {
         //     setBotAInputVisible(true);
@@ -260,7 +260,7 @@ const Main = () => {
         } else if (component === 'rtable') {
             setRTableVisible(true);
             setFTableVisible(false);
-            setBotAInputVisible(false);
+           
         }
     };
 
@@ -272,7 +272,7 @@ const Main = () => {
             >
                 Page Analyzer
             </button> */}
-            <div className="flex justify-between space-x-4 mt-4">
+            <div className="flex justify-between space-x-3 mt-2">
                 <button
                     className="w-full px-4 py-2 text-white transition duration-300 bg-green-500 rounded-md hover:bg-green-600"
                     onClick={() => handleTable('fTable')}
@@ -288,7 +288,7 @@ const Main = () => {
                 </button>
             </div>
 
-            {botAInputVisible && <BotAinput userId={userId}/>}
+            
             {fTableVisible && <FTable userId={userId} />}
             {rTableVisible && <ResolutionTableu userId={userId}/>}
 

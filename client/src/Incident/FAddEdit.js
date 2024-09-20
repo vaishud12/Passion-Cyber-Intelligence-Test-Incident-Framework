@@ -5,10 +5,12 @@ import { toast } from 'react-toastify';
 import './FAddEdit.css';
 
 import * as API from "../Endpoint/Endpoint";
-
+import 'react-quill/dist/quill.snow.css'; // Import the Quill styles
+import PlainTextQuillEditor from '../components/PlainTextQuillEditor';
 // import AgroSuggestions from '../components/AgroSuggestions'
 
 const initialState = {
+    sector:'', 
     incidentcategory: '',
     incidentname: '',
     incidentowner: '',
@@ -25,20 +27,22 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
     const [state, setState] = useState(initialState);
     const [emailSent, setEmailSent] = useState(false);
     const [message, setMessage] = useState(false);
+    const [sectors, setSectors] = useState([]);
     const [incidentCategories, setIncidentCategories] = useState([]);
     const [incidentNames, setIncidentNames] = useState([]);
     const [priority, setPriority] = useState('');
-
     const [incidentDescriptions, setIncidentDescriptions] = useState([]);
-    const { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status} = state;
+    const {sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status} = state;
     const { incidentid } = useParams();
     const userId = localStorage.getItem("user_id");
     console.log(userId);
     const [tags, setTags] = useState([]);
     const [query, setQuery] = useState('');
-   
+    const [remark, setRemark] = useState('');
     const [emailValidation, setEmailValidation] = useState({ exists: true, message: '' });
     const [showConfirmInvite, setShowConfirmInvite] = useState(false);
+
+    const [photo, setPhoto] = useState(null);
     // console.log(editItem.incidentid)
     // Constant variable for tag names
     const tagNames = tags.map(tag => tag.name);
@@ -130,15 +134,28 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
     }, [editItem, incidentid]);
 
     useEffect(() => {
-        axios.get(API.GET_DISTINCT_INCIDENT_CATEGORY)
+        axios.get(API.GET_DISTINCT_SECTOR)
             .then((resp) => {
-                console.log("Incident category data:", resp.data);
-                setIncidentCategories(resp.data);
+                console.log("Incident sector data:", resp.data);
+                setSectors(resp.data);
             })
             .catch(error => {
-                console.error("Error fetching incident categories:", error);
+                console.error("Error fetching incident sector:", error);
             });
     }, []);
+
+    useEffect(() => {
+        if (sector) { // Fetch only if sector is selected
+            axios.get(`${API.GET_DISTINCT_INCIDENT_CATEGORY}?sector=${sector}`)
+                .then((resp) => {
+                    console.log("Incident category data:", resp.data);
+                    setIncidentCategories(resp.data);
+                })
+                .catch(error => {
+                    console.error("Error fetching incident category:", error);
+                });
+        }
+    }, [sector]); // Dependency array includes sector
 
     useEffect(() => {
         if (incidentcategory) {
@@ -167,124 +184,166 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
     }, [incidentname]);
     
 
-   
     
-
-const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    console.log("Form submitted");
-    console.log("Form data:", { incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser });
-
-    if (!incidentcategory || !incidentname || !incidentowner || !incidentdescription || !date || !currentaddress || !gps || !raisedtouser) {
-        toast.error("Please provide a value for each input field");
-        return;
-    }
-
-    try {
-        // Fetch priority times from the server
-        const priorityResponse = await axios.get(API.GET_PRIORITY_TIME);
-        const priorityTimes = priorityResponse.data;
-
-        // Determine the appropriate priority time
-        let timeFrame = '24 hours'; // Default value
-        switch (priority) {
-            case 'critical':
-                timeFrame = priorityTimes.critical;
-                break;
-            case 'veryhigh':
-                timeFrame = priorityTimes.veryhigh;
-                break;
-            case 'high':
-                timeFrame = priorityTimes.high;
-                break;
-            case 'medium':
-                timeFrame = priorityTimes.medium;
-                break;
-            case 'low':
-                timeFrame = priorityTimes.low;
-                break;
-            default:
-                break;
+    
+    
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+    
+        console.log("Form submitted");
+        console.log("Form data:", { sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser });
+    
+        if (!sector || !incidentcategory || !incidentname || !incidentowner || !incidentdescription || !date || !currentaddress || !gps || !raisedtouser) {
+            alert("Please provide a value for each input field");
+            return;
         }
-
-        const userResponse = await axios.get(API.GET_USERBYID_API(raisedtouser));
-        console.log("User response:", userResponse.data);
-        
-        if (userResponse.data && userResponse.data.userid) {
-            const raisedToUserId = userResponse.data.userid;
-            console.log(raisedToUserId)
-            const tagss = tagNames;
-            const updatedData = { ...state, userid: raisedToUserId, id: userId, tagss, priority };
-            
-            console.log("Updated Data:", updatedData);
-
-            // if (!editItem.incidentid) {
-            //     await axios.post(API.POST_INCIDENT, updatedData);
-            // } else if(editItem && editItem.incidentid) {
-            //     await axios.put(API.UPDATE_SPECIFIC_INCIDENT(editItem.incidentid), updatedData);
-            // }
-            if (editItem && editItem.incidentid) {
-                // For updating an existing record
-                await axios.put(API.UPDATE_SPECIFIC_INCIDENT(editItem.incidentid), updatedData);
-            } else {
-                // For creating a new record
-                await axios.post(API.POST_INCIDENT, updatedData);
+    
+        try {
+            // Fetch priority times from the server
+            const priorityResponse = await axios.get(API.GET_PRIORITY_TIME);
+            const priorityTimes = priorityResponse.data;
+    
+            // Determine the appropriate priority time
+            let timeFrame = '24 hours'; // Default value
+            switch (priority) {
+                case 'critical':
+                    timeFrame = priorityTimes.critical;
+                    break;
+                case 'veryhigh':
+                    timeFrame = priorityTimes.veryhigh;
+                    break;
+                case 'high':
+                    timeFrame = priorityTimes.high;
+                    break;
+                case 'medium':
+                    timeFrame = priorityTimes.medium;
+                    break;
+                case 'low':
+                    timeFrame = priorityTimes.low;
+                    break;
+                default:
+                    break;
             }
-            setState(initialState);
-            toast.success(`${editItem && editItem.incidentid  ? 'Incident updated' : 'Incident added'} successfully`);
-
-            const emailPayload = {
-                email1: raisedtouser,
-                from: incidentowner,
-                incidentcategory,
-                incidentname,
-                incidentowner,
-                incidentdescription,
-                date,
-                currentaddress,
-                gps,
-                raisedtouser,
-                status,
-                tagss,
-                priority,
-            };
-
-            console.log("Email Payload:", emailPayload);
-
-            try {
-                const emailResponse = await axios.post(API.SEND_INCIDENT_EMAIL, emailPayload);
-                console.log("Email response:", emailResponse);
-
-                if (emailResponse.status === 200) {
-                    toast.success('Email sent successfully');
-                    setEmailSent(true);
+    
+            // Fetch user data
+            const userResponse = await axios.get(API.GET_USERBYID_API(raisedtouser));
+            console.log("User response:", userResponse.data);
+    
+            if (userResponse.data && userResponse.data.userid) {
+                const raisedToUserId = userResponse.data.userid;
+                console.log('Raised to User ID:', raisedToUserId);
+    
+                // Create FormData object
+                const formData = new FormData();
+                formData.append('sector', sector);
+                formData.append('incidentcategory', incidentcategory);
+                formData.append('incidentname', incidentname);
+                formData.append('incidentowner', incidentowner);
+                formData.append('incidentdescription', incidentdescription);
+                formData.append('date', date);
+                formData.append('currentaddress', currentaddress);
+                formData.append('gps', gps);
+                formData.append('raisedtouser', raisedtouser);
+                formData.append('status', status);
+                formData.append('userid', raisedToUserId);
+                formData.append('id', userId);
+                formData.append('tagss', tagNames); // Assuming `tagNames` is defined elsewhere
+                formData.append('priority', priority);
+                formData.append('remark', remark);
+                if (Array.isArray(tagNames)) {
+                    tagNames.forEach(tag => {
+                        formData.append('tagss[]', tag); // Add each tag separately
+                    });
                 }
-            } catch (emailError) {
-                if (emailError.response && emailError.response.status === 404) {
-                    toast.warn(emailError.response.data.message || 'User not found.');
-                    setShowConfirmInvite(true);  // Show confirmation dialog
+                // Append photo if available
+                if (photo) {
+                    formData.append('photo', photo);
+                }
+    
+                console.log("Form Data:", formData);
+    
+                // Submit data
+                if (editItem && editItem.incidentid) {
+                    // For updating an existing record
+                    await axios.put(API.UPDATE_SPECIFIC_INCIDENT(editItem.incidentid), formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
                 } else {
-                    toast.error("An error occurred while sending the email.");
+                    // For creating a new record
+                    await axios.post(API.POST_INCIDENT, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
                 }
+    
+                setState(initialState);
+                toast.success(`${editItem && editItem.incidentid ? 'Incident updated' : 'Incident added'} successfully`);
+    
+                // Prepare and send email payload
+                const emailPayload = {
+                    email1: raisedtouser,
+                    from: incidentowner,
+                    sector,
+                    incidentcategory,
+                    incidentname,
+                    incidentowner,
+                    incidentdescription,
+                    date,
+                    currentaddress,
+                    gps,
+                    raisedtouser,
+                    status,
+                    tagss: tagNames,
+                    priority,
+                    remark,
+                    photo: photo ? photo.name : null, // Include photo name in email payload
+                };
+    
+                console.log("Email Payload:", emailPayload);
+    
+                try {
+                    const emailResponse = await axios.post(API.SEND_INCIDENT_EMAIL, emailPayload);
+                    console.log("Email response:", emailResponse);
+    
+                    if (emailResponse.status === 200) {
+                        toast.success('Email sent successfully');
+                        setEmailSent(true);
+                    }
+                } catch (emailError) {
+                    if (emailError.response && emailError.response.status === 404) {
+                        toast.warn(emailError.response.data.message || 'User not found.');
+                        setShowConfirmInvite(true);  // Show confirmation dialog
+                    } else {
+                        toast.error("An error occurred while sending the email.");
+                    }
+                }
+    
+                // Prepare and open WhatsApp URL
+                const message = `This Incident ${incidentname} Should be Resolved within ${timeFrame}!!!!! ... Sector: ${sector}, Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nIncident Description: ${incidentdescription}\nDate: ${date}\nCurrent Address: ${currentaddress}\nGPS: ${gps}\nRaised to User: ${raisedtouser}\nStatus: ${status}\ntags:${tagNames}, priority:${priority}`;
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                window.open(whatsappUrl, '_blank');
+    
+                loadData();
+            } else {
+                toast.error("User not found.");
             }
-
-            const message = `This Incident ${incidentname} Should be Resolved within ${timeFrame}!!!!! ... Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nIncident Description: ${incidentdescription}\nDate: ${date}\nCurrent Address: ${currentaddress}\nGPS: ${gps}\nRaised to User: ${raisedtouser}\nStatus: ${status}\ntags:${tagss}, priority:${priority}`;
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
-
-            loadData();
-        } else {
-            toast.error("User not found.");
+        } catch (error) {
+            console.error("Submit error:", error);
+            toast.error("An error occurred while processing the request.");
         }
-    } catch (error) {
-        console.error("Submit error:", error);
-        toast.error("An error occurred while processing the request.");
-    }
-};
+    };
+    
+    
+const handlePhotoChange = (e) => {
+    setPhoto(e.target.files[0]);
+  };
 
-    
-    
+  const handleRemarkChange = (plainText) => {
+    setRemark(plainText);
+  };
     const handleGoBack = () => {
         onClose();
     };
@@ -321,15 +380,25 @@ const handleSubmit = async (e) => {
             checkEmailExists(value);
         }
         // Fetch incident names and descriptions when category or name changes
-        if (name === 'incidentcategory') {
+        if (name === 'sector') {
             setState(prevState => ({
                 ...prevState,
+                sector: value,
+                incidentcategory: '', // Reset incident category when sector changes
+                incidentname: '', // Reset incident name when sector changes
+                incidentdescription: '' // Reset description when sector changes
+            }));
+        } else if (name === 'incidentcategory') {
+            setState(prevState => ({
+                ...prevState,
+                incidentcategory: value,
                 incidentname: '', // Reset incident name when category changes
                 incidentdescription: '' // Reset description when category changes
             }));
         } else if (name === 'incidentname') {
             setState(prevState => ({
                 ...prevState,
+                incidentname: value,
                 incidentdescription: '' // Reset description when name changes
             }));
         }
@@ -360,6 +429,26 @@ const handleSubmit = async (e) => {
             <div className="modal-content">
                 <center><h1>{editItem && editItem.incidentid ? 'Edit Incident' : 'Add Incident'}</h1></center>
                 <form onSubmit={handleSubmit}>
+                <div>
+                        <label>Sector:</label>
+                        <select
+                            style={{ fontFamily: "Poppins" }}
+                            id="sector"
+                            name="sector"
+                            value={sector || ""}
+                            onChange={handleInputChange}
+                        >
+                            <option value="">Select Sector </option>
+                            {sectors.map((sectory, index) => (
+                                <option
+                                    key={sectory.incidentcategoryid}
+                                    value={sectory.sector}
+                                >
+                                    {sectory.sector}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                     <div>
                         <label>Incident Category:</label>
                         <select
@@ -569,8 +658,9 @@ const handleSubmit = async (e) => {
         Low
     </label>
 </div>
-
-
+<input type="file" name="photo" onChange={handlePhotoChange} />
+      {/* Rich Text Editor for Remark */}
+      <PlainTextQuillEditor onChange={handleRemarkChange} />
 
                     <input type="submit" value={editItem && editItem.incidentid ? "Update" : "Save"} />
                     {emailSent && <div style={{ color: 'green', marginTop: '10px' }}>Email sent successfully!</div>}

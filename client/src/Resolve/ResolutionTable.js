@@ -5,11 +5,13 @@ import ResolutionAddEdit from './ResolutionAddEdit';
 import * as API from "../Endpoint/Endpoint";
 
 const ResolutionTable = () => {
+  const [filteredData, setFilteredData] = useState([]);
+  
   const [resolutionsByUser, setResolutionsByUser] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
   const [modalVisible, setModalVisible] = useState(false);
   const [editItem, setEditItem] = useState(null);
 
@@ -83,75 +85,103 @@ const ResolutionTable = () => {
 
   return (
     <div style={{ marginTop: '30px', position: 'relative' }}>
-      <button className="btn btn-contact" onClick={() => setModalVisible(true)}>Add Resolution</button>
+  <button className="btn btn-contact" onClick={() => setModalVisible(true)}>Add Resolution</button>
 
-      {modalVisible && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <span className="modal-close" onClick={closeModal}>&times;</span>
-            <ResolutionAddEdit onClose={closeModal} editItem={editItem} loadData={loadData} />
-          </div>
-        </div>
-      )}
-
-      {resolutionsByUser.length === 0 ? (
-        <p>No resolutions found.</p>
-      ) : (
-        <table className="styled-table">
-          <thead>
-            <tr>
-              <th>Sr No</th> {/* Added serial number column */}
-              <th>User</th>
-              <th>Resolution ID</th>
-              <th>Incident ID</th>
-              <th>Incident Name</th>
-              <th>Incident Owner</th>
-              <th>Resolution Date</th>
-              <th>Resolution Remark</th>
-              <th>Resolved By</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {resolutionsByUser.flatMap((userGroup, userIndex) =>
-              userGroup.resolutions.map((resolution, index) => (
-                <tr key={`${userIndex}-${index}`}>
-                  <td>{(currentPage - 1) * itemsPerPage + userIndex * itemsPerPage + index + 1}</td> {/* Serial number */}
-                  {index === 0 && (
-                    <td rowSpan={userGroup.resolutions.length}><b>{userGroup.user}</b></td>
-                  )}
-                  <td>{resolution.resolutionid}</td>
-                  <td>{resolution.incidentid}</td>
-                  <td>{resolution.incidentname}</td>
-                  <td>{resolution.incidentowner}</td>
-                  <td>{resolution.resolutiondate}</td>
-                  <td>{resolution.resolutionremark}</td>
-                  <td>{resolution.resolvedby}</td>
-                  <td>
-                    <button className="btn btn-edit" onClick={() => handleEditClick(resolution)}>Edit</button>
-                    <button className="btn btn-delete" onClick={() => deleteObject(resolution.resolutionid)}>Delete</button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      )}
-
-      <center>
-        <div className="pagination">
-          {Array.from({ length: Math.ceil(resolutionsByUser.length / itemsPerPage) }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => paginate(i + 1)}
-              className={currentPage === i + 1 ? 'active' : ''}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      </center>
+  {modalVisible && (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <span className="modal-close" onClick={closeModal}>&times;</span>
+        <ResolutionAddEdit onClose={closeModal} editItem={editItem} loadData={loadData} />
+      </div>
     </div>
+  )}
+
+  {resolutionsByUser.length === 0 ? (
+    <p>No resolutions found.</p>
+  ) : (
+    <div className="table-wrappera" style={{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto', marginTop: '50px' }}>
+      <table className="styled-table" style={{ width: '100%', height:'100%'  }} >
+        <thead>
+          <tr>
+            <th>Sr No</th> {/* Added serial number column */}
+            <th>User</th>
+            <th>Resolution ID</th>
+            <th>Incident ID</th>
+            <th>Sector</th>
+            <th>Incident Category</th>
+            <th>Incident Name</th>
+            <th>Incident Owner</th>
+            <th>Resolution Date</th>
+            <th>Resolution Remark</th>
+            <th>Resolved By</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {resolutionsByUser.flatMap((userGroup, userIndex) =>
+            userGroup.resolutions.map((resolution, index) => (
+              <tr key={`${userIndex}-${index}`}>
+                <td>
+                  {(currentPage - 1) * itemsPerPage + userIndex * itemsPerPage + index + 1}
+                </td> {/* Serial number */}
+                {index === 0 && (
+                  <td rowSpan={userGroup.resolutions.length}><b>{userGroup.user}</b></td>
+                )}
+                <td>{resolution.resolutionid }</td>
+                <td>{resolution.incidentid || 'N/A'}</td>
+                <td>{resolution.sector || 'N/A'}</td>
+                <td>{resolution.incidentcategory || 'N/A'}</td>
+                <td>{resolution.incidentname || 'N/A'}</td>
+                <td>{resolution.incidentowner || 'N/A'}</td>
+                <td>{resolution.resolutiondate || 'N/A'}</td>
+                <td>{resolution.resolutionremark || 'N/A'}</td>
+                <td>{resolution.resolvedby || 'N/A'}</td>
+                <td>
+                  <button className="btn btn-edit" onClick={() => handleEditClick(resolution)}>Edit</button>
+                  <button className="btn btn-delete" onClick={() => deleteObject(resolution.resolutionid)}>Delete</button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  )}
+
+<center>
+  <div className="pagination">
+    <button
+      onClick={() => paginate(currentPage - 1)}
+      disabled={currentPage === 1}
+    >
+      &#x2039; {/* Left arrow */}
+    </button>
+
+    {Array.from(
+      { length: Math.ceil(filteredData.length / itemsPerPage) },
+      (_, i) => (
+        <button
+          key={i + 1}
+          onClick={() => paginate(i + 1)}
+          className={currentPage === i + 1 ? "active" : ""}
+        >
+          {i + 1}
+        </button>
+      )
+    )}
+
+    <button
+      onClick={() => paginate(currentPage + 1)}
+      disabled={
+        currentPage === Math.ceil(filteredData.length / itemsPerPage)
+      }
+    >
+      &#x203A; {/* Right arrow */}
+    </button>
+  </div>
+</center>
+
+</div>
   );
 };
 
