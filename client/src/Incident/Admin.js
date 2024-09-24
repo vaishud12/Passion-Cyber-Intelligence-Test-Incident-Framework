@@ -125,15 +125,23 @@ const Admin = () => {
         return incidentsByUser.filter(user => {
             return user.incidents.some(incident => {
                 // Ensure incident is defined before accessing its properties
-                return (
+                const matchesSearchQuery = (
                     (incident.incidentname && incident.incidentname.toLowerCase().includes(searchQuery.toLowerCase())) ||
                     (incident.description && incident.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                    (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                    (Array.isArray(incident.tagss) && incident.tagss.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
+                    (incident.sector && incident.sector.toLowerCase().includes(searchQuery.toLowerCase())) || // Check sector
+                    (incident.category && incident.category.toLowerCase().includes(searchQuery.toLowerCase())) || // Check category
+                    (incident.priority && incident.priority.toLowerCase().includes(searchQuery.toLowerCase())) || // Check priority
+                    (incident.status && incident.status.toLowerCase().includes(searchQuery.toLowerCase())) || // Check status
+                    (Array.isArray(incident.tagss) && incident.tagss.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))) || // Check tags
+                    (incident.date && incident.date.toString().toLowerCase().includes(searchQuery.toLowerCase())) || // Check date
+                    (incident.gps && incident.gps.toString().toLowerCase().includes(searchQuery.toLowerCase())) || // Check GPS coordinates
+                    (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) // Check user email
                 );
+    
+                return matchesSearchQuery;
             }) && 
-            (selectedTag === '' || (Array.isArray(user.incidents) && user.incidents.some(incident =>
-                Array.isArray(incident.tagss) && incident.tagss.includes(selectedTag)
+            (selectedTag === '' || (user.incidents.some(incident =>
+                Array.isArray(incident.tagss) && incident.tagss.some(tag => tag.toLowerCase() === selectedTag.toLowerCase())
             )));
         });
     };
@@ -287,18 +295,16 @@ const Admin = () => {
                     )}
                 </select>
 
-              
-
+                
 
 
                 {chatbotVisible && (
-                    < div className="modal-overlay">
-                        
+                    < div className="modal-overlay" >
                             <span className="modal-close" onClick={closeModal}>&times;</span>
                             <FAddEdit onClose={closeModal} editItem={editItem} loadData={loadData} />
-                            
+                         </div>   
                         
-                    </div>
+                   
                 )}
 
                 {incidentsByUser.length === 0 ? (
@@ -341,7 +347,7 @@ const Admin = () => {
                 <td>{incident.sector || 'N/A'}</td>
                 <td>{incident.incidentcategory || 'N/A'}</td>
                 <td>{incident.incidentname || 'N/A'}</td>
-                <td>{incident.description || 'N/A'}</td>
+                <td>{incident.incidentdescription || 'N/A'}</td>
                 <td>{incident.date || 'N/A'}</td>
                 <td>{incident.gps || 'N/A'}</td>
                 <td>{incident.currentaddress || 'N/A'}</td>

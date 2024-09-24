@@ -195,26 +195,38 @@ app.post("/incident-api/signup", async (req, res) => {
 app.use(bodyParser.json());
 
 app.post('/incident-api/upload', async (req, res) => {
-  const data = req.body;
-
-  // Insert data into the database
-  try {
-    for (const row of data) {
-      // Ensure each row contains the necessary fields
-      const { incidentcategory, incidentname, incidentdescription } = row;
-
-      // Adjust the query and fields based on your table schema
-      const query = 'INSERT INTO agroincidentcategorym (incidentcategory, incidentname, incidentdescription) VALUES ($1, $2, $3)';
-      const values = [incidentcategory, incidentname, incidentdescription];
-
-      await db.query(query, values);
+    const data = req.body;
+  
+    // Insert data into the database
+    try {
+      for (const row of data) {
+        // Ensure each row contains the necessary fields
+        const {sector, incidentcategory, incidentname, incidentdescription } = row;
+  
+        // Adjust the query and fields based on your table schema
+        // Check for duplicates based on incidentname (or any other unique identifier)
+        const checkQuery = 'SELECT COUNT(*) FROM agroincidentcategorym WHERE incidentname = $1';
+        const checkValues = [incidentname];
+        const result = await db.query(checkQuery, checkValues);
+  
+        if (parseInt(result.rows[0].count) === 0) {
+          // Only insert if no duplicates are found
+          const insertQuery = 'INSERT INTO agroincidentcategorym (sector,incidentcategory, incidentname, incidentdescription) VALUES ($1, $2, $3,$4)';
+          const insertValues = [sector,incidentcategory, incidentname, incidentdescription];
+  
+          await db.query(insertQuery, insertValues);
+        } else {
+          console.warn(`Duplicate entry found for incidentname: ${incidentname}`);
+          // Optionally, you can send a response or log duplicates here if needed
+        }
+      }
+      res.status(200).send('Data uploaded successfully!');
+    } catch (error) {
+      console.error("Error inserting data:", error);
+      res.status(500).send('Error uploading data.');
     }
-    res.status(200).send('Data uploaded successfully!');
-  } catch (error) {
-    console.error("Error inserting data:", error);
-    res.status(500).send('Error uploading data.');
-  }
-});
+  });
+  
 
 
 // Login route
@@ -397,7 +409,7 @@ app.post('/incident-api/reset-password', async (req, res) => {
   // Route to get all users with their passwords
 app.get('/incident-api/users', async (req, res) => {
     try {
-        const result = await db.query('SELECT id, name, email, password, role FROM users');
+        const result = await db.query('SELECT * FROM users');
         res.json(result.rows);
     } catch (error) {
         console.error('Error fetching users:', error);
@@ -714,72 +726,8 @@ app.get("/incident-api/agroincidentdescriptiongets", (req, res) => {
 //         res.status(500).json({ error: error.message });
 //     }
 // });
+// Serve static files from the uploads directory
 
-app.post("/incident-api/send-incident-email", async (req, res) => {
-    try {
-        const transporter = nodemailer.createTransport({
-            service: "Gmail",
-            auth: {
-                user: "vaishnavisd23@gmail.com",
-                pass: "pyxo oadt rfcu lcxg",
-            },
-        });
-
-        const {
-            email1,
-            sector,
-            incidentcategory,
-            incidentname,
-            incidentowner,
-            incidentdescription,
-            date,
-            currentaddress,
-            gps,
-            raisedtouser,
-            status,
-            priority
-        } = req.body;
-
-        // Fetch priority times from the database
-        const priorityResult = await db.query('SELECT * FROM priority_times WHERE id = 1');
-        const priorityTimes = priorityResult.rows[0];
-        const timeFrame = priorityTimes[priority] || "24 hours"; // Default to "24 hours" if priority is not found
-
-        // Check if the user exists
-        const result = await db.query('SELECT id FROM users WHERE email = $1', [email1]);
-
-        if (result.rows.length === 0) {
-            res.status(404).json({ message: "User not found. Please send an invitation email using the /api/send-invite endpoint." });
-        } else {
-            // Send the incident report email if user exists
-            const mailOptions = {
-                from: incidentowner,
-                to: email1,
-                subject: `Incident Report: ${incidentname}`,
-                text: `Resolve this incident within the given time frame: ${timeFrame}.
-
-Incident Report: ${incidentname}
-
-Sector: ${sector}
-Incident Category: ${incidentcategory}
-Incident Name: ${incidentname}
-Incident Owner: ${incidentowner}
-Description: ${incidentdescription}
-Date: ${date}
-Current Address: ${currentaddress}
-GPS: ${gps}
-Raised to User: ${raisedtouser}
-Status: ${status}`
-            };
-
-            await transporter.sendMail(mailOptions);
-            res.status(200).json({ message: "Incident email sent successfully." });
-        }
-    } catch (error) {
-        console.error("Error in /incident-api/send-incident-email:", error);
-        res.status(500).json({ error: error.message });
-    }
-});
 
 app.post("/incident-api/send-invite", async (req, res) => {
     try {
@@ -1032,7 +980,7 @@ app.get("/incident-api/incidentget", (req, res) => {
 
 
 // Middleware to serve static files
-app.use('/uploads', express.static('uploads'));
+app.use('/incident-api/uploads', express.static('uploads'));
 const storagi = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/');
@@ -1072,6 +1020,84 @@ app.post('/incident-api/incidentpost', uploading.single('photo'), (req, res) => 
             res.status(200).json({ message: "Incident inserted successfully" });
         }
     });
+});
+app.post("/incident-api/send-incident-email", uploading.single('photo'), async (req, res) => {
+    try {
+        const transporter = nodemailer.createTransport({
+            service: "Gmail",
+            auth: {
+                user: "vaishnavisd23@gmail.com",
+                pass: "pyxo oadt rfcu lcxg",
+            },
+        });
+
+        const {
+            email1,
+            sector,
+            incidentcategory,
+            incidentname,
+            incidentowner,
+            incidentdescription,
+            date,
+            currentaddress,
+            gps,
+            raisedtouser,
+            status,
+            priority,
+            remark,
+        } = req.body;
+
+        // Fetch priority times from the database
+        const priorityResult = await db.query('SELECT * FROM priority_times WHERE id = 1');
+        const priorityTimes = priorityResult.rows[0];
+        const timeFrame = priorityTimes[priority] || "24 hours"; // Default to "24 hours" if priority is not found
+
+        // Check if the user exists
+        const result = await db.query('SELECT id FROM users WHERE email = $1', [email1]);
+
+        if (result.rows.length === 0) {
+            res.status(404).json({ message: "User not found. Please send an invitation email using the /api/send-invite endpoint." });
+        } else {
+            // If a file was uploaded, use its path and name
+            const filePath = req.file ? req.file.path : null;
+            const fileName = req.file ? req.file.filename : null;
+            // Send the incident report email if user exists
+            const mailOptions = {
+                from: incidentowner,
+                to: email1,
+                subject: `Incident Report: ${incidentname}`,
+                text: `Resolve this incident within the given time frame: ${timeFrame}.
+
+Incident Report: ${incidentname}
+
+Sector: ${sector}
+Incident Category: ${incidentcategory}
+Incident Name: ${incidentname}
+Incident Owner: ${incidentowner}
+Description: ${incidentdescription}
+Date: ${date}
+Current Address: ${currentaddress}
+GPS: ${gps}
+Raised to User: ${raisedtouser}
+Status: ${status}
+priority:${priority}
+Remarks:${remark}`, 
+attachments: filePath ? [
+    {
+        filename: fileName, // The uploaded file's name
+        path: filePath,     // The uploaded file's path
+        cid: 'incidentphoto@incidentemail'
+    }
+] : [] // No attachments if no file uploaded
+};
+
+            await transporter.sendMail(mailOptions);
+            res.status(200).json({ message: "Incident email sent successfully." });
+        }
+    } catch (error) {
+        console.error("Error in /incident-api/send-incident-email:", error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 

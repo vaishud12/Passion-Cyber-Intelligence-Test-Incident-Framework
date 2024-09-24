@@ -64,7 +64,7 @@ const FTable = ({ userId }) => {
 
   useEffect(() => {
     loadData();
-    
+   
   }, []);
 
   // Filter data based on search query and selected tag
@@ -72,16 +72,23 @@ const FTable = ({ userId }) => {
     const lowercasedQuery = searchQuery.toLowerCase();
     const filtered = data.filter((item) =>
       (selectedTag === '' || item.tags.includes(selectedTag)) &&
-      Object.values(item).some(value =>
-        String(value).toLowerCase().includes(lowercasedQuery)
+      (
+        // Search across all columns explicitly
+        (item.incidentName && item.incidentName.toLowerCase().includes(lowercasedQuery)) ||
+        (item.sector && item.sector.toLowerCase().includes(lowercasedQuery)) ||
+        (item.category && item.category.toLowerCase().includes(lowercasedQuery)) ||
+        (item.tags && item.tags.some(tag => tag.toLowerCase().includes(lowercasedQuery))) || // tags is an array
+        (item.priority && item.priority.toLowerCase().includes(lowercasedQuery)) ||
+        (item.status && item.status.toLowerCase().includes(lowercasedQuery)) ||
+        (item.description && item.description.toLowerCase().includes(lowercasedQuery)) ||
+        (item.date && String(item.date).toLowerCase().includes(lowercasedQuery)) || // Handle date as string
+        (item.gps && String(item.gps).toLowerCase().includes(lowercasedQuery)) ||
+        (item.raisedtouser && item.raisedtouser.toLowerCase().includes(lowercasedQuery))
       )
     );
     setFilteredData(filtered);
-  }, [searchQuery,  data]);
-
-  useEffect(() => {
-    filterData();
-  }, [searchQuery,  filterData]);
+  }, [searchQuery, selectedTag, data]);
+  
 
   const deleteObject = async (incidentid) => {
     if (window.confirm("Are you sure you want to delete this object?")) {
@@ -122,7 +129,12 @@ const FTable = ({ userId }) => {
     setResolutionVisible(false);
     document.body.style.overflow = 'auto'; // Restore scrolling when modal is closed
   };
-  
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+    filterData();
+    // You can call filterData here as well if you want immediate filtering without useEffect.
+    // filterData();
+  };
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -189,11 +201,11 @@ const FTable = ({ userId }) => {
       <input
         type="text"
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
+        onChange={handleSearchChange} // Updates searchQuery when user types
         placeholder="Search incidents..."
         className="search-input"
       />
-
+      
       
 
       <button

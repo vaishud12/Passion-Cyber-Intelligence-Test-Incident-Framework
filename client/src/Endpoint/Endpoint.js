@@ -1,7 +1,7 @@
 const BASE_URL = "http://localhost:5014/incident-api/";
 // const BASE_URL = "https://incidentmgmt.passionit.com/incident-api/incident-api/";
-const BASE_IMAGE_URL = "http://localhost:5014/uploads/";
-
+const BASE_IMAGE_URL = "http://localhost:5014/incident-api/uploads";
+//  const BASE_IMAGE_URL = "https://incidentmgmt.passionit.com/incident-api/incident-api/uploads"
 export const LOGIN = `${BASE_URL}login`;
 export const SIGNUP = `${BASE_URL}signup`;
 
@@ -17,6 +17,7 @@ export const DELETE_INCIDENT_CATEGORY = (incidentcategoryid) =>
 
 export const POST_INCIDENT_CATEGORY = `${BASE_URL}incidentcategorypost`;
 
+export const POST_INCIDENT_CATEGORY_EXCEL = `${BASE_URL}upload`;
 export const GET_SPECIFIC_INCIDENT_CATEGORY = (incidentcategoryid) =>
   `${BASE_URL}incidentcategoryget/${incidentcategoryid}`;
 
@@ -98,6 +99,8 @@ export const GET_USERID =
   export const POST_USERS = 
    `${BASE_URL}userspost`
 
+   export const POST_USERS_EXCEL = `${BASE_URL}upload-users`;
+
  export const DELETE_USERID =(id) =>
     `${BASE_URL}userdelete/${id}`;
 
@@ -117,5 +120,5 @@ export const GET_INCIDENTS_BY_PRIORITY = `${BASE_URL}priority`;
 export const GET_TRENDS = `${BASE_URL}trends`;
 
 export const GET_INCIDENT_LOCATION = `${BASE_URL}locations`;
-export const GET_IMAGE_URL = (filename) => `${BASE_IMAGE_URL}${filename}`;
+export const GET_IMAGE_URL = (filename) => `${BASE_IMAGE_URL}/${filename}`;
 

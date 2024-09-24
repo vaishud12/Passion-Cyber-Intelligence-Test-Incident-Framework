@@ -131,7 +131,7 @@ const IncidentCategory = () => {
             const jsonData = XLSX.utils.sheet_to_json(sheet);
 
             try {
-                const response = await axios.post('http://localhost:5014/incident-api/upload', jsonData);
+                const response = await axios.post(API.POST_INCIDENT_CATEGORY_EXCEL, jsonData);
                 if (response.status === 200) {
                     alert('Data uploaded successfully!');
                 }

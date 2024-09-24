@@ -21,11 +21,17 @@ const Home = () => {
 
       {/* Chatbot button */}
       <button 
-        className="fixed bottom-4 right-4 bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 focus:outline-none"
-        onClick={toggleChatbot}
-      >
-        💬 {/* You can use an icon instead of an emoji */}
-      </button>
+    className="fixed bottom-4 right-4 bg-blue-500 text-white p-4 rounded-full shadow-lg hover:bg-blue-600 focus:outline-none"
+    onClick={toggleChatbot}
+    style={{ 
+        width: '60px', // Set a specific width
+        height: '60px', // Set a specific height
+        fontSize: '24px' // Font size for the icon/emoji
+    }}
+>
+    💬 {/* You can use an icon instead of an emoji */}
+</button>
+
 
       {/* Chatbot modal */}
       {chatbotOpen && (

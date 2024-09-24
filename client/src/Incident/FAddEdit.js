@@ -282,47 +282,55 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
                 setState(initialState);
                 toast.success(`${editItem && editItem.incidentid ? 'Incident updated' : 'Incident added'} successfully`);
     
-                // Prepare and send email payload
-                const emailPayload = {
-                    email1: raisedtouser,
-                    from: incidentowner,
-                    sector,
-                    incidentcategory,
-                    incidentname,
-                    incidentowner,
-                    incidentdescription,
-                    date,
-                    currentaddress,
-                    gps,
-                    raisedtouser,
-                    status,
-                    tagss: tagNames,
-                    priority,
-                    remark,
-                    photo: photo ? photo.name : null, // Include photo name in email payload
-                };
-    
-                console.log("Email Payload:", emailPayload);
-    
-                try {
-                    const emailResponse = await axios.post(API.SEND_INCIDENT_EMAIL, emailPayload);
-                    console.log("Email response:", emailResponse);
-    
-                    if (emailResponse.status === 200) {
-                        toast.success('Email sent successfully');
-                        setEmailSent(true);
-                    }
-                } catch (emailError) {
-                    if (emailError.response && emailError.response.status === 404) {
-                        toast.warn(emailError.response.data.message || 'User not found.');
-                        setShowConfirmInvite(true);  // Show confirmation dialog
-                    } else {
-                        toast.error("An error occurred while sending the email.");
-                    }
+               // Prepare FormData object for email payload
+            const emailFormData = new FormData();
+            emailFormData.append('email1', raisedtouser);
+            emailFormData.append('from', incidentowner);
+            emailFormData.append('sector', sector);
+            emailFormData.append('incidentcategory', incidentcategory);
+            emailFormData.append('incidentname', incidentname);
+            emailFormData.append('incidentowner', incidentowner);
+            emailFormData.append('incidentdescription', incidentdescription);
+            emailFormData.append('date', date);
+            emailFormData.append('currentaddress', currentaddress);
+            emailFormData.append('gps', gps);
+            emailFormData.append('raisedtouser', raisedtouser);
+            emailFormData.append('status', status);
+            emailFormData.append('priority', priority);
+            emailFormData.append('remark', remark);
+
+            // Append photo if available
+            if (photo) {
+                emailFormData.append('photo', photo); // Attach the file for the email
+            }
+
+            console.log("Email FormData:", emailFormData);
+
+            // Send email with incident details
+            try {
+                const emailResponse = await axios.post(API.SEND_INCIDENT_EMAIL, emailFormData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                console.log("Email response:", emailResponse);
+
+                if (emailResponse.status === 200) {
+                    toast.success('Email sent successfully');
+                    setEmailSent(true);
                 }
+            } catch (emailError) {
+                if (emailError.response && emailError.response.status === 404) {
+                    toast.warn(emailError.response.data.message || 'User not found.');
+                    setShowConfirmInvite(true);  // Show confirmation dialog
+                } else {
+                    toast.error("An error occurred while sending the email.");
+                }
+            }
+
     
                 // Prepare and open WhatsApp URL
-                const message = `This Incident ${incidentname} Should be Resolved within ${timeFrame}!!!!! ... Sector: ${sector}, Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nIncident Description: ${incidentdescription}\nDate: ${date}\nCurrent Address: ${currentaddress}\nGPS: ${gps}\nRaised to User: ${raisedtouser}\nStatus: ${status}\ntags:${tagNames}, priority:${priority}`;
+                const message = `This Incident ${incidentname} Should be Resolved within ${timeFrame}!!!!! ... Sector: ${sector}, Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nIncident Description: ${incidentdescription}\nDate: ${date}\nCurrent Address: ${currentaddress}\nGPS: ${gps}\nRaised to User: ${raisedtouser}\nStatus: ${status}\ntags:${tagNames}\npriority:${priority}\nRemark:${remark}`;
                 const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
                 window.open(whatsappUrl, '_blank');
     
@@ -512,11 +520,11 @@ const handlePhotoChange = (e) => {
 
                     <label htmlFor="incidentowner">Incident Owner</label>
                     <input
-                        type="text"
+                        type="email"
                         id="incidentowner"
                         name="incidentowner"
                         value={incidentowner || ""}
-                        placeholder="Enter Incident Owner"
+                        placeholder="Enter Incident Owner email"
                         onChange={handleInputChange}
                     />
 
@@ -550,13 +558,13 @@ const handlePhotoChange = (e) => {
                     />
 
 <div>
-    <label htmlFor="raisedtouser">Raised to User</label>
+    <label htmlFor="raisedtouser">Raise to User</label>
     <input
-        type="text"
+        type="email"
         id="raisedtouser"
         name="raisedtouser"
         value={raisedtouser || ""}
-        placeholder="Enter User Email"
+        placeholder="Enter raise User Email"
         onChange={handleInputChange}
     />
     {!emailValidation.exists && <div style={{ color: 'red' }}>{emailValidation.message}</div>}

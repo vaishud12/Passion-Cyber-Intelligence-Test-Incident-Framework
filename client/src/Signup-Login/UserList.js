@@ -94,7 +94,7 @@ const UserList = () => {
         formData.append('file', file);
 
         try {
-            const response = await axios.post('http://localhost:5014/incident-api/upload-users', formData, {
+            const response = await axios.post(API.POST_USERS_EXCEL, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -104,7 +104,7 @@ const UserList = () => {
             setSuccessMessage('File uploaded successfully');
             setTimeout(() => setSuccessMessage(''), 3000);
         } catch (err) {
-            console.error('Error uploading file:', err);
+            console.error('Error uploading file: Check Email', err);
             setError('Error uploading file');
         }
     };

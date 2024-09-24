@@ -202,7 +202,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
 
                     <label htmlFor="incidentowner">Incident Owner:</label>
                     <input
-                        type="text"
+                        type="email"
                         id="incidentowner"
                         name="incidentowner"
                         placeholder="Enter Incident Owner Email"
@@ -230,10 +230,10 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
                     />
                     <label htmlFor="resolvedby">Resolved By:</label>
                     <input
-                        type="text"
+                        type="email"
                         id="resolvedby"
                         name="resolvedby"
-                        placeholder="Enter Resolved By"
+                        placeholder="Enter Resolved By email "
                         value={resolvedby}
                         onChange={handleInputChange}
                     />
