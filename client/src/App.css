@@ -1,5 +1,7 @@
+/* General App styling */
 .App {
   text-align: center;
+  padding-top: 60px; /* Add space at the top for the LanguageSwitcher */
 }
 
 .App-logo {
@@ -7,6 +9,7 @@
   pointer-events: none;
 }
 
+/* Animation for the logo */
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
@@ -22,12 +25,14 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  margin-top: 20px; /* Add margin to move the content down slightly */
 }
 
 .App-link {
   color: #61dafb;
 }
 
+/* Keyframes for the logo spin animation */
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -35,4 +40,12 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Styling for the LanguageSwitcher to ensure visibility */
+.LanguageSwitcher {
+  position: fixed; /* Fixed positioning to keep it always visible */
+  top: 10px; /* Place it at the top */
+  right: 20px; /* Align it to the right */
+  z-index: 1000; /* Ensure it's on top of other elements */
 }

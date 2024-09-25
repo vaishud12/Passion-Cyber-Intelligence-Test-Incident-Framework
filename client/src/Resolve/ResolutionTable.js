@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ResolutionTable.css';
 import ResolutionAddEdit from './ResolutionAddEdit';
+import { useTranslation } from 'react-i18next';
 import * as API from "../Endpoint/Endpoint";
 
 const ResolutionTable = () => {
   const [filteredData, setFilteredData] = useState([]);
-  
+  const { t } = useTranslation();
   const [resolutionsByUser, setResolutionsByUser] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -85,16 +86,16 @@ const ResolutionTable = () => {
 
   return (
     <div style={{ marginTop: '30px', position: 'relative' }}>
-  <button className="btn btn-contact" onClick={() => setModalVisible(true)}>Add Resolution</button>
+  <button className="btn btn-contact" onClick={() => setModalVisible(true)}>{t("resolutiond.add_resolution")}</button>
 
-  {modalVisible && (
+  {/* {modalVisible && (
     <div className="modal-overlay">
       <div className="modal-content">
         <span className="modal-close" onClick={closeModal}>&times;</span>
-        <ResolutionAddEdit onClose={closeModal} editItem={editItem} loadData={loadData} />
+        <ResolutionAddEdit onClose={closeModal}   />
       </div>
     </div>
-  )}
+  )} */}
 
   {resolutionsByUser.length === 0 ? (
     <p>No resolutions found.</p>
@@ -103,18 +104,18 @@ const ResolutionTable = () => {
       <table className="styled-table" style={{ width: '100%', height:'100%'  }} >
         <thead>
           <tr>
-            <th>Sr No</th> {/* Added serial number column */}
-            <th>User</th>
-            <th>Resolution ID</th>
-            <th>Incident ID</th>
-            <th>Sector</th>
-            <th>Incident Category</th>
-            <th>Incident Name</th>
-            <th>Incident Owner</th>
-            <th>Resolution Date</th>
-            <th>Resolution Remark</th>
-            <th>Resolved By</th>
-            <th>Action</th>
+            <th>{t("resolutiond.sr_no")}</th> {/* Added serial number column */}
+            <th>{t("resolutiond.user")}</th>
+            <th>{t("resolutiond.resolution_id")}</th>
+            <th>{t("resolutiond.incident_id")}</th>
+            <th>{t("resolutiond.sector")}</th>
+            <th>{t("resolutiond.incident_category")}</th>
+            <th>{t("resolutiond.incident_name")}</th>
+            <th>{t("resolutiond.incident_owner")}</th>
+            <th>{t("resolutiond.resolution_date")}</th>
+            <th>{t("resolutiond.resolution_remark")}</th>
+            <th>{t("resolutiond.resolved_by")}</th>
+            <th>{t("resolutiond.action")}</th>
           </tr>
         </thead>
         <tbody>
@@ -137,8 +138,8 @@ const ResolutionTable = () => {
                 <td>{resolution.resolutionremark || 'N/A'}</td>
                 <td>{resolution.resolvedby || 'N/A'}</td>
                 <td>
-                  <button className="btn btn-edit" onClick={() => handleEditClick(resolution)}>Edit</button>
-                  <button className="btn btn-delete" onClick={() => deleteObject(resolution.resolutionid)}>Delete</button>
+                  <button className="btn btn-edit" onClick={() => handleEditClick(resolution)}>{t("resolutiond.edit")}</button>
+                  <button className="btn btn-delete" onClick={() => deleteObject(resolution.resolutionid)}>{t("resolutiond.delete")}</button>
                 </td>
               </tr>
             ))

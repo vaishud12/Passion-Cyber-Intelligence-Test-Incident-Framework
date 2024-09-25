@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ResolutionTable.css'; // Make sure to style the table appropriately
 import ResolutionAddEdit from './ResolutionAddEdit'; // Adjust the path if necessary
+import { useTranslation } from 'react-i18next';
 import * as API from "../Endpoint/Endpoint";
 const ResolutionTableu = ({ userId }) => {
+  const { t } = useTranslation();
   const [filteredData, setFilteredData] = useState([]);
   const [resolutions, setResolutions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -101,18 +103,19 @@ const ResolutionTableu = ({ userId }) => {
       <div className="table-wrapperr">
       <table className="styled-table" style={{ width: '100%' }}>
         <thead>
-          <tr>
-            <th>Sr no</th>
-            <th>Resolution ID</th>
-            <th>Incident ID</th>
-            <th>Sector</th>
-            <th>Incident Category</th>
-            <th>Incident Name</th>
-            <th>Incident Owner</th>
-            <th>Resolution Date</th>
-            <th>Resolution Remark</th>
-            <th>Resolved By</th>
-            <th>Action</th>
+        <tr>
+            <th>{t("resolutiond.sr_no")}</th> {/* Added serial number column */}
+            
+            <th>{t("resolutiond.resolution_id")}</th>
+            <th>{t("resolutiond.incident_id")}</th>
+            <th>{t("resolutiond.sector")}</th>
+            <th>{t("resolutiond.incident_category")}</th>
+            <th>{t("resolutiond.incident_name")}</th>
+            <th>{t("resolutiond.incident_owner")}</th>
+            <th>{t("resolutiond.resolution_date")}</th>
+            <th>{t("resolutiond.resolution_remark")}</th>
+            <th>{t("resolutiond.resolved_by")}</th>
+            <th>{t("resolutiond.action")}</th>
           </tr>
         </thead>
         <tbody>
@@ -131,8 +134,8 @@ const ResolutionTableu = ({ userId }) => {
               <td>{item.resolutionremark}</td>
               <td>{item.resolvedby}</td>
               <td>
-                <button className="btn btn-edit" onClick={() => handleEditResolutionClick(item)}>Edit</button>
-                <button className="btn btn-delete" onClick={() => deleteResolution(item.resolutionid)}>Delete</button>
+                <button className="btn btn-edit" onClick={() => handleEditResolutionClick(item)}>{t("resolutiond.edit")}</button>
+                <button className="btn btn-delete" onClick={() => deleteResolution(item.resolutionid)}>{t("resolutiond.delete")}</button>
               </td>
             </tr>
           ))}

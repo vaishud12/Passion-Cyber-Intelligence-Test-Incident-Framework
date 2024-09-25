@@ -3,14 +3,14 @@ import axios from 'axios';
 import './FTable.css';
 import FAddEdit from './FAddEdit';
 import UFview from './UFview';
-import FView from './FView';
+import { useTranslation } from 'react-i18next';
 import ResolutionAddEdit from '../Resolve/ResolutionAddEdit';
 import * as API from "../Endpoint/Endpoint";
 
 const FTable = ({ userId }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 2;
   const [chatbotVisible, setChatbotVisible] = useState(false);
@@ -43,53 +43,33 @@ const FTable = ({ userId }) => {
         },
       });
       setData(response.data);
+      filterData(); // Add this line
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
-
-  // Fetch tags data
-  // const loadTags = async () => {
-  //   try {
-  //     const response = await axios.get(API.GET_TAGS, {
-  //       headers: {
-  //         Authorization: `Bearer ${localStorage.getItem('token')}`,
-  //       },
-  //     });
-  //     setTags(response.data.map(tagObj => tagObj.tag));
-  //   } catch (error) {
-  //     console.error("Error fetching tags:", error);
-  //   }
-  // };
-
-  useEffect(() => {
-    loadData();
-   
-  }, []);
 
   // Filter data based on search query and selected tag
   const filterData = useCallback(() => {
     const lowercasedQuery = searchQuery.toLowerCase();
     const filtered = data.filter((item) =>
       (selectedTag === '' || item.tags.includes(selectedTag)) &&
-      (
-        // Search across all columns explicitly
-        (item.incidentName && item.incidentName.toLowerCase().includes(lowercasedQuery)) ||
-        (item.sector && item.sector.toLowerCase().includes(lowercasedQuery)) ||
-        (item.category && item.category.toLowerCase().includes(lowercasedQuery)) ||
-        (item.tags && item.tags.some(tag => tag.toLowerCase().includes(lowercasedQuery))) || // tags is an array
-        (item.priority && item.priority.toLowerCase().includes(lowercasedQuery)) ||
-        (item.status && item.status.toLowerCase().includes(lowercasedQuery)) ||
-        (item.description && item.description.toLowerCase().includes(lowercasedQuery)) ||
-        (item.date && String(item.date).toLowerCase().includes(lowercasedQuery)) || // Handle date as string
-        (item.gps && String(item.gps).toLowerCase().includes(lowercasedQuery)) ||
-        (item.raisedtouser && item.raisedtouser.toLowerCase().includes(lowercasedQuery))
+      Object.values(item).some(value =>
+        String(value).toLowerCase().includes(lowercasedQuery)
       )
     );
     setFilteredData(filtered);
-  }, [searchQuery, selectedTag, data]);
-  
+  }, [searchQuery,  data]);
+ // Update useEffect to include searchQuery and selectedTag
+useEffect(() => {
+  loadData();
+}, [userId]); // Load data whenever userId changes
 
+// Call filterData whenever data, searchQuery, or selectedTag changes
+useEffect(() => {
+  filterData();
+}, [data, searchQuery, selectedTag]);
+  
   const deleteObject = async (incidentid) => {
     if (window.confirm("Are you sure you want to delete this object?")) {
       try {
@@ -129,12 +109,7 @@ const FTable = ({ userId }) => {
     setResolutionVisible(false);
     document.body.style.overflow = 'auto'; // Restore scrolling when modal is closed
   };
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-    filterData();
-    // You can call filterData here as well if you want immediate filtering without useEffect.
-    // filterData();
-  };
+  
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -201,7 +176,7 @@ const FTable = ({ userId }) => {
       <input
         type="text"
         value={searchQuery}
-        onChange={handleSearchChange} // Updates searchQuery when user types
+        onChange={(e) => setSearchQuery(e.target.value)} // Updates searchQuery when user types
         placeholder="Search incidents..."
         className="search-input"
       />
@@ -212,7 +187,7 @@ const FTable = ({ userId }) => {
         className="btn btn-contact"
         onClick={handleAddIncidentClick}
       >
-        Add Incident
+         {t("incidentd.add_incident")}
       </button>
 
       {chatbotVisible && (
@@ -254,35 +229,40 @@ const FTable = ({ userId }) => {
         <div className="table-wrapper">
       <table className="styled-table" style={{ width: '100%' }}>
         <thead>
-          <tr>
-            <th>S.No</th>
-            <th>IncidentID</th>
-            <th>Incident Category</th>
-            <th>Incident Name</th>
-            <th>Incident Owner</th>
-            <th>Incident Description</th>
-            <th>Date</th>
-            <th>Current Address</th>
-            <th>GPS</th>
-            <th>Raised to User</th>
-            
-            <th>Tags</th>
-            <th>Priority</th>
-            <th>Status</th>
-            <th>Remark</th>
-            <th>Image</th>
-            <th>Action</th>
-          </tr>
+        <tr>
+                            <th>{t("incidentd.s_no")}</th>
+                                
+                                <th>{t("incidentd.incident_id")}</th>
+                                <th>{t("incidentd.sector")}</th>
+                                <th>{t("incidentd.category")}</th>
+                                <th>{t("incidentd.incident_name")}</th>
+                                <th>{t("incidentd.description")}</th>
+                                <th>{t("incidentd.incident_owner")}</th>
+                                <th>{t("incidentd.date")}</th>
+
+                                <th>{t("incidentd.current_address")}</th>
+                                <th>{t("incidentd.gps")}</th>
+                                
+                                <th>{t("incidentd.raised_to_user")}</th>
+                                <th>{t("incidentd.tags")}</th>
+                                <th>{t("incidentd.priority")}</th>
+                                <th>{t("incidentd.status")}</th>
+                                <th>{t("incidentd.remark")}</th>
+                                <th>{t("incidentd.image")}</th>
+                                <th>{t("incidentd.action")}</th>
+                            </tr>
         </thead>
         <tbody>
           {currentItems.map((item, index) => (
             <tr key={item.incidentid}>
                <td>{index + 1}</td>
               <td>{item.incidentid}</td>
+              <td>{item.sector}</td>
               <td>{item.incidentcategory}</td>
               <td>{item.incidentname}</td>
-              <td><b>{item.incidentowner}</b></td>
+              
               <td>{item.incidentdescription}</td>
+              <td><b>{item.incidentowner}</b></td>
               <td>{item.date}</td>
               <td>{item.currentaddress}</td>
               <td>{item.gps}</td>
@@ -309,12 +289,12 @@ const FTable = ({ userId }) => {
                     className="btn btn-edit"
                     onClick={() => openFViewModal(item)}
                   >
-                    View
+                     {t("incidentd.view")}
                   </button>
                
-                <button className="btn btn-edit" onClick={() => handleEditUserClick(item)}>Edit</button>
+                <button className="btn btn-edit" onClick={() => handleEditUserClick(item)}>{t("incidentd.edit")}</button>
                 <button className="btn btn-edit" onClick={() => handleResolveClick(item)}>Resolve</button>
-                <button className="btn btn-delete" onClick={() => deleteObject(item.incidentid)}>Delete</button>
+                <button className="btn btn-delete" onClick={() => deleteObject(item.incidentid)}>{t("incidentd.delete")}</button>
               </td>
             </tr>
           ))}

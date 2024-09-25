@@ -8,7 +8,7 @@ import * as API from "../Endpoint/Endpoint";
 import 'react-quill/dist/quill.snow.css'; // Import the Quill styles
 import PlainTextQuillEditor from '../components/PlainTextQuillEditor';
 // import AgroSuggestions from '../components/AgroSuggestions'
-
+import { useTranslation } from 'react-i18next';
 const initialState = {
     sector:'', 
     incidentcategory: '',
@@ -27,6 +27,7 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
     const [state, setState] = useState(initialState);
     const [emailSent, setEmailSent] = useState(false);
     const [message, setMessage] = useState(false);
+    const { t } = useTranslation();
     const [sectors, setSectors] = useState([]);
     const [incidentCategories, setIncidentCategories] = useState([]);
     const [incidentNames, setIncidentNames] = useState([]);
@@ -438,7 +439,7 @@ const handlePhotoChange = (e) => {
                 <center><h1>{editItem && editItem.incidentid ? 'Edit Incident' : 'Add Incident'}</h1></center>
                 <form onSubmit={handleSubmit}>
                 <div>
-                        <label>Sector:</label>
+                        <label>{t("addincident.add_incident")}</label>
                         <select
                             style={{ fontFamily: "Poppins" }}
                             id="sector"
@@ -446,7 +447,7 @@ const handlePhotoChange = (e) => {
                             value={sector || ""}
                             onChange={handleInputChange}
                         >
-                            <option value="">Select Sector </option>
+                            <option value=""> {t("addincident.select_sector")}</option>
                             {sectors.map((sectory, index) => (
                                 <option
                                     key={sectory.incidentcategoryid}
@@ -458,7 +459,7 @@ const handlePhotoChange = (e) => {
                         </select>
                     </div>
                     <div>
-                        <label>Incident Category:</label>
+                        <label>{t("addincident.incident_category")}</label>
                         <select
                             style={{ fontFamily: "Poppins" }}
                             id="incidentcategory"
@@ -466,7 +467,7 @@ const handlePhotoChange = (e) => {
                             value={incidentcategory || ""}
                             onChange={handleInputChange}
                         >
-                            <option value="">Select Incident Category</option>
+                            <option value="">{t("addincident.select_incident_category")}</option>
                             {incidentCategories.map((category, index) => (
                                 <option
                                     key={category.incidentcategoryid}
@@ -478,7 +479,7 @@ const handlePhotoChange = (e) => {
                         </select>
                     </div>
                     <div>
-                        <label>Incident Name:</label>
+                        <label>{t("addincident.incident_name")}</label>
                         <select
                             style={{ fontFamily: "Poppins" }}
                             id="incidentname"
@@ -486,7 +487,7 @@ const handlePhotoChange = (e) => {
                             value={incidentname || ""}
                             onChange={handleInputChange}
                         >
-                            <option value="">Select Incident Name</option>
+                            <option value="">{t("addincident.select_incident_name")}</option>
                             {incidentNames.map((name, index) => (
                                 <option
                                     key={name.incidentnameid}
@@ -498,7 +499,7 @@ const handlePhotoChange = (e) => {
                         </select>
                     </div>
                     <div>
-                        <label>Incident Description:</label>
+                        <label>{t("addincident.incident_description")}</label>
                         <select
                             style={{ fontFamily: "Poppins" }}
                             id="incidentdescription"
@@ -506,7 +507,7 @@ const handlePhotoChange = (e) => {
                             value={incidentdescription || ""}
                             onChange={handleInputChange}
                         >
-                            <option value="">Select Incident Description</option>
+                            <option value="">{t("addincident.select_incident_description")}</option>
                             {incidentDescriptions.map((description, index) => (
                                 <option
                                     key={description.incidentdescriptionid}
@@ -518,17 +519,17 @@ const handlePhotoChange = (e) => {
                         </select>
                     </div>
 
-                    <label htmlFor="incidentowner">Incident Owner</label>
+                    <label htmlFor="incidentowner">{t("addincident.incident_owner")}</label>
                     <input
                         type="email"
                         id="incidentowner"
                         name="incidentowner"
                         value={incidentowner || ""}
-                        placeholder="Enter Incident Owner email"
+                        placeholder={t("addincident.enter_incident_owner_email")}
                         onChange={handleInputChange}
                     />
 
-                    <label htmlFor="date">Date</label>
+                    <label htmlFor="date">{t("addincident.date")}</label>
                     <input
                         type="date"
                         id="date"
@@ -537,34 +538,34 @@ const handlePhotoChange = (e) => {
                         onChange={handleInputChange}
                     />
 
-                    <label htmlFor="currentaddress">Current Address</label>
+                    <label htmlFor="currentaddress">{t("addincident.current_address")}</label>
                     <input
                         type="text"
                         id="currentaddress"
                         name="currentaddress"
                         value={currentaddress || ""}
-                        placeholder="Enter Current Address"
+                        placeholder={t("addincident.enter_current_address")}
                         onChange={handleInputChange}
                     />
 
-                    <label htmlFor="gps">GPS</label>
+                    <label htmlFor="gps">{t("addincident.gps")}</label>
                     <input
                         type="text"
                         id="gps"
                         name="gps"
                         value={gps || ""}
-                        placeholder="Enter GPS Coordinates"
+                        placeholder={t("addincident.enter_gps_coordinates")}
                         onChange={handleInputChange}
                     />
 
 <div>
-    <label htmlFor="raisedtouser">Raise to User</label>
+    <label htmlFor="raisedtouser">{t("addincident.raise_to_user")}</label>
     <input
         type="email"
         id="raisedtouser"
         name="raisedtouser"
         value={raisedtouser || ""}
-        placeholder="Enter raise User Email"
+        placeholder={t("addincident.enter_raise_user_email")}
         onChange={handleInputChange}
     />
     {!emailValidation.exists && <div style={{ color: 'red' }}>{emailValidation.message}</div>}
@@ -572,7 +573,7 @@ const handlePhotoChange = (e) => {
     {message && <div style={{ color: 'green' }}className="message">{message}</div>}
 </div>
 <div>
-      <p>Select or add tags below:</p>
+      <p>{t("addincident.select_or_add_tags")}.</p>
       <div className="tag-input-container">
         {tags.map((tag, index) => (
           <span key={index} className="tag">
@@ -596,24 +597,24 @@ const handlePhotoChange = (e) => {
           className="tag-input"
         />
       </div>
-      <p><b>Tag Names:</b></p>
+      <p><b>{t("addincident.tag_names")}</b></p>
       <pre><code>{JSON.stringify(tagNames, null, 2)}</code></pre>
 </div>             
-                    <label htmlFor="status">Status</label>
+                    <label htmlFor="status">{t("addincident.status")}</label>
                     <select
                         id="status"
                         name="status"
                         value={status || ""}
                         onChange={handleInputChange}
                     >
-                        <option value="">Select Status</option>
+                        <option value="">{t("addincident.select_status")}</option>
                         <option value="open">Open</option>
                         <option value="closed">Closed</option>
                         <option value="inprogress">In Progress</option>
                         <option value="onhold">On Hold</option>
                     </select>
 
-                    <label htmlFor="priority">Priority</label>
+                    <label htmlFor="priority">{t("addincident.priority")}</label>
 <div onChange={handleInputChange} style={{ margin: '10px 0' }}>
     <label style={{ display: 'flex', alignItems: 'center', marginBottom: '5px', cursor: 'pointer', color: '#ff0000' }}>
         <input
@@ -623,7 +624,7 @@ const handlePhotoChange = (e) => {
             checked={priority === "critical"}
             style={{ marginRight: '8px' }}
         />
-        Critical  
+       {t("addincident.critical")}  
     </label> 
     <label style={{ display: 'flex', alignItems: 'center', marginBottom: '5px', cursor: 'pointer', color: '#ff4500' }}>
         <input
@@ -633,7 +634,7 @@ const handlePhotoChange = (e) => {
             checked={priority === "veryhigh"}
             style={{ marginRight: '8px' }}
         />
-        Very High
+       {t("addincident.very_high")}
     </label>
     <label style={{ display: 'flex', alignItems: 'center', marginBottom: '5px', cursor: 'pointer', color: '#ff8c00' }}>
         <input
@@ -643,7 +644,7 @@ const handlePhotoChange = (e) => {
             checked={priority === "high"}
             style={{ marginRight: '8px' }}
         />
-        High
+        {t("addincident.high")}
     </label>
     <label style={{ display: 'flex', alignItems: 'center', marginBottom: '5px', cursor: 'pointer', color: '#ffd700' }}>
         <input
@@ -653,7 +654,7 @@ const handlePhotoChange = (e) => {
             checked={priority === "medium"}
             style={{ marginRight: '8px' }}
         />
-        Medium
+        {t("addincident.medium")}
     </label>
     <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#32cd32' }}>
         <input
@@ -663,7 +664,7 @@ const handlePhotoChange = (e) => {
             checked={priority === "low"}
             style={{ marginRight: '8px' }}
         />
-        Low
+        {t("addincident.low")}
     </label>
 </div>
 <input type="file" name="photo" onChange={handlePhotoChange} />

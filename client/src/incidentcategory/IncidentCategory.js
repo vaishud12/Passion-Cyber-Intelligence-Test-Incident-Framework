@@ -4,9 +4,11 @@ import '../Incident/Admin.css'; // Ensure this CSS file is created for styling
 import IncidentCategoryedit from './IncidentCategoryedit';
 import * as API from "../Endpoint/Endpoint";
 import * as XLSX from 'xlsx';
+import { useTranslation } from 'react-i18next';
 
 const IncidentCategory = () => {
     const [data, setData] = useState([]);
+    const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [filteredDatal, setFilteredDatal] = useState([]);
@@ -183,7 +185,7 @@ const IncidentCategory = () => {
                     }} 
                     onClick={handleAddClick}
                 >
-                    Add Incident Category
+                    {t("sectord.add_incident_category")}
                 </button>
 
                 <div style={{
@@ -199,7 +201,7 @@ const IncidentCategory = () => {
         margin: '0 0 10px 0', // Space below the text
         color: '#333' // Dark text color
     }}>
-        Select Excel file only to upload Categories
+        {t("sectord.select_excel_file")}
     </p>
     <input 
         type="file" 
@@ -230,7 +232,7 @@ const IncidentCategory = () => {
             marginBottom:'4px',
         }}
     >
-        Upload
+        {t("sectord.upload")}
     </button>
 </div>
 
@@ -260,12 +262,12 @@ const IncidentCategory = () => {
                         <thead>
                             <tr>
                                
-                                <th>Sector</th>
-                                <th>Incident Category</th>
-                                <th>Incident Name</th>
+                                <th>{t("sectord.sector")}</th>
+                                <th>{t("sectord.incident_category")}</th>
+                                <th>{t("sectord.incident_name")}</th>
                                 
-                                <th>Incident Description</th>
-                                <th>Action</th>
+                                <th>{t("sectord.incident_description")}</th>
+                                <th>{t("sectord.action")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -286,8 +288,8 @@ const IncidentCategory = () => {
                                         <td>{item.incidentname}</td>
                                         <td>{item.incidentdescription}</td>
                                         <td>
-                                            <button className="btn btn-edit" onClick={() => handleEditUserClick(item)}>Edit</button>
-                                            <button className="btn btn-delete" onClick={() => deleteObject(item.incidentcategoryid)}>Delete</button>
+                                            <button className="btn btn-edit" onClick={() => handleEditUserClick(item)}>{t("sectord.edit")}</button>
+                                            <button className="btn btn-delete" onClick={() => deleteObject(item.incidentcategoryid)}>{t("sectord.delete")}</button>
                                         </td>
                                     </tr>
                                 ))

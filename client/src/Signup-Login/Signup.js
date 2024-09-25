@@ -4,7 +4,10 @@ import logo from "./logo.jpeg"
 import { SocialIcon } from 'react-social-icons'
 import * as API from "../Endpoint/Endpoint";
 import loginimg from "./loginimg.png";
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from "../components/LanguageSwitcher";
 function Signup() {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,6 +43,12 @@ const handleSubmit = async (e) => {
   
   return (
     <>
+        
+      {/* Language Switcher at the top */}
+      <div className="w-full flex justify-end p-3 bg-gray-100">
+        <LanguageSwitcher />
+      </div>
+       
       <div className="flex flex-col lg:flex-row h-full lg:h-screen">
         {/* Text and Image Section */}
         <div className="flex-1 bg-gray-200 p-6">
@@ -47,25 +56,15 @@ const handleSubmit = async (e) => {
             {/* Text Content */}
             <div className="flex-1">
               <h1 className="text-center text-2xl lg:text-2xl font-bold text-blue-800 mb-6">
-                WELCOME TO THE PASSION INCIDENT FRAMEWORK
+                {t("signup.welcome")}
               </h1>
               <div className="lg:flex lg:space-x-5">
                 <div className="flex-1 mb-8 lg:mb-0">
                   <p className="mb-4">
-                    At PASSIONIT PCOMBINATOR, we believe in streamlining
-                    business operations to help organizations thrive. Our
-                    incident management tool is designed to provide a
-                    comprehensive solution for managing product defects,
-                    customer support issues, product repairs, and ongoing
-                    maintenance.
+                    {t("signup.description1")}
                   </p>
                   <p className="mb-4">
-                    Seamlessly integrating into any website as a bot, our tool
-                    is tailored for SMEs, MSMEs, cooperative banks, startups,
-                    and angel groups. We aim to move beyond the traditional
-                    "Contact Us" approach by offering a proactive, dynamic
-                    solution to help minimize risks and resolve business issues
-                    before they escalate.
+                    {t("signup.description2")}
                   </p>
                   
 
@@ -85,22 +84,14 @@ const handleSubmit = async (e) => {
           </div>
           <div className="mt-8 w-full">
                     <p className="mb-4">
-                      Leveraging our innovative PASSION Framework, we focus on
-                      ensuring smooth operations across various business units,
-                      reducing downtime, and improving customer satisfaction.
-                      Whether you're a growing startup or an established bank,
-                      PASSIONIT PCOMBINATOR empowers your organization with
-                      intelligent, reliable, and automated incident management.
+                      {t("signup.description3")}
                     </p>
                   </div>
           {/* Vision Section */}
           <div className="mt-8 w-full">
-            <h2 className="text-xl font-semibold mb-4">Vision</h2>
+            <h2 className="text-xl font-semibold mb-4">{t("signup.vision")}</h2>
             <p className="mb-4">
-              To empower organizations of all sizes with intelligent tools that
-              enhance operational efficiency, streamline incident management,
-              and create a seamless experience for both customers and internal
-              teams, leading to minimized risks and maximized productivity.
+              {t("signup.visiond")}
             </p>
           </div>
         </div>
@@ -123,12 +114,12 @@ const handleSubmit = async (e) => {
               <img src={logo} alt="Logo" className="h-12" />
             </div>
             <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">
-              Sign Up
+              {t("signup.sign_up_title")}
             </h2>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Name:
+                  {t("signup.name")}:
                 </label>
                 <input
                   type="text"
@@ -140,7 +131,7 @@ const handleSubmit = async (e) => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Email:
+                  {t("signup.email")}:
                 </label>
                 <input
                   type="email"
@@ -152,7 +143,7 @@ const handleSubmit = async (e) => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Password:
+                  {t("signup.password")}:
                 </label>
                 <input
                   type="password"
@@ -164,7 +155,7 @@ const handleSubmit = async (e) => {
               </div>
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2">
-                  Confirm Password:
+                  {t("signup.confirm_password")}:
                 </label>
                 <input
                   type="password"
@@ -178,13 +169,13 @@ const handleSubmit = async (e) => {
                 type="submit"
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               >
-                Sign Up
+                {t("signup.sign_up_button")}
               </button>
             </form>
             <p className="mt-4 text-sm">
-              Already have an account?{" "}
+              {t("signup.already_have_account")} 
               <Link to="/login" className="text-blue-500">
-                Log in
+                {t("signup.login_link")}
               </Link>
             </p>
           </div>
@@ -193,14 +184,9 @@ const handleSubmit = async (e) => {
 
       {/* Full-length Section */}
       <div className="w-full bg-gray-100 p-9">
-        <h2 className="text-xl font-semibold mb-4">Mission</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("signup.mission")}</h2>
         <p className="mb-4">
-          To revolutionize the way businesses handle incidents by providing an
-          easy-to-integrate, AI-driven solution that proactively identifies,
-          manages, and resolves product and service issues. We are committed to
-          using the PASSION Framework to guide businesses toward efficient
-          operations, risk reduction, and sustainable growth, enabling them to
-          focus on innovation and customer satisfaction.
+          {t("signup.missiond")}
         </p>
 
         <div className="flex justify-center mt-4">

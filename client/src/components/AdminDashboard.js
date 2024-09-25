@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bar, Line,  Doughnut, Chart } from 'react-chartjs-2';
+import { useTranslation } from 'react-i18next';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, ArcElement, Title, Tooltip, PointElement, Legend } from 'chart.js';
 import axios from 'axios';
  // Make sure to install and import this plugin
@@ -12,7 +13,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointEleme
 
 const AdminDashboard = () => {
   const [currentView, setCurrentView] = useState('category');
- 
+  const { t } = useTranslation();
   // const [map, setMap] = useState(null);
   // const [locations, setLocations] = useState([]);
   const [resolutionData, setResolutionData] = useState({ labels: [], datasets: [] });
@@ -302,29 +303,29 @@ const AdminDashboard = () => {
     className={`w-full md:w-auto py-2 px-4 text-white font-semibold rounded-lg shadow-md ${currentView === 'category' ? 'bg-blue-500' : 'bg-blue-300'}`}
     onClick={() => setCurrentView('category')}
   >
-    Incident Categories
+    {t("admind.incident_categories")}
   </button>
   <button
     className={`w-full md:w-auto py-2 px-4 text-white font-semibold rounded-lg shadow-md ${currentView === 'incident' ? 'bg-blue-500' : 'bg-blue-300'}`}
     onClick={() => setCurrentView('incident')}
   >
-    Incidents
+    {t("admind.incidents")}
   </button>
   <button
     className={`w-full md:w-auto py-2 px-4 text-white font-semibold rounded-lg shadow-md ${currentView === 'resolution' ? 'bg-blue-500' : 'bg-blue-300'}`}
     onClick={() => setCurrentView('resolution')}
   >
-    Resolutions
+    {t("admind.resolutions")}
   </button>
 </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <div className="bg-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">Total Incidents</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("admind.total_incidents")}</h2>
         <p className="text-3xl font-bold text-center">{totalIncidents}</p>
       </div>
       <div className="bg-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">Total Resolutions</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("admind.total_resolutions")}</h2>
         <p className="text-3xl font-bold text-center">{totalResolutions}</p>
       </div>
     </div>

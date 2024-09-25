@@ -8,8 +8,10 @@ import ResetPassword from './Signup-Login/ResetPassword';
 import PrivateRoute from './components/PrivateRoute';
 import AdminMain from './BotAnalysis/AdminMain';
 import Home from './Home';
-import FView from './Incident/FView';
+import "./App.css"
 
+
+import LanguageSwitcher from './components/LanguageSwitcher';
 
 
 const App = () => {
@@ -17,42 +19,27 @@ const App = () => {
 
   return (
     <div>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={
-                
-                  <Signup />
-          }
-               />
-          <Route path="/login" element={
-                  <Login />}/>
-                
-          <Route path="/Home" element={<PrivateRoute>
-                  <Home />
-                </PrivateRoute>} />
-          <Route path="/forgetPassword" element={
-                  <ForgetPassword />}/>
-                
-          <Route path="/reset-password/:token" element={
-                  <ResetPassword />
-                } />
-         
-          <Route path="/Adminmain" element={<PrivateRoute>
-                  <AdminMain />
-                </PrivateRoute>} />
+       <div className="LanguageSwitcher">
+    {/* <LanguageSwitcher /> */}
+  </div>
+  <Router>
+    
 
-         
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<Signup />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/Home" element={<PrivateRoute><Home /></PrivateRoute>} />
+      <Route path="/forgetPassword" element={<ForgetPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
+      <Route path="/Adminmain" element={<PrivateRoute><AdminMain /></PrivateRoute>} />
 
+      {/* Additional Routes */}
+      <Route path="/chatbot" element={<PrivateRoute><Chatbot /></PrivateRoute>} />
+    </Routes>
+  </Router>
+</div>
 
-          {/* Additional Routes */}
-          <Route path="/chatbot" element={<PrivateRoute>
-                  <Chatbot/>
-                </PrivateRoute>} />
-               
-        </Routes>
-      </Router>
-    </div>
   );
 };
 

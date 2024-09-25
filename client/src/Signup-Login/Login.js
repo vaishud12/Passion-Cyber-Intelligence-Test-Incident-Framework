@@ -4,8 +4,11 @@ import * as API from "../Endpoint/Endpoint";
 import logo from "./logo.jpeg"
 import loginimg from "./loginimg.png";
 import { SocialIcon } from 'react-social-icons';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 function Login() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isAdmin, setIsAdmin] = useState(null); // Initial state is null
@@ -58,6 +61,9 @@ function Login() {
 
   return (
 <>
+<div className="w-full flex justify-end p-3 bg-gray-100">
+        <LanguageSwitcher />
+      </div>
 <div className="flex flex-col lg:flex-row h-full lg:h-screen">
         {/* Text and Image Section */}
         <div className="flex-1 bg-gray-200 p-6">
@@ -65,25 +71,15 @@ function Login() {
             {/* Text Content */}
             <div className="flex-1">
               <h1 className="text-center text-2xl lg:text-2xl font-bold text-blue-800 mb-6">
-                WELCOME TO THE PASSION INCIDENT FRAMEWORK
+                {t("login.welcome")}
               </h1>
               <div className="lg:flex lg:space-x-5">
                 <div className="flex-1 mb-8 lg:mb-0">
                   <p className="mb-4">
-                    At PASSIONIT PCOMBINATOR, we believe in streamlining
-                    business operations to help organizations thrive. Our
-                    incident management tool is designed to provide a
-                    comprehensive solution for managing product defects,
-                    customer support issues, product repairs, and ongoing
-                    maintenance.
+                    {t("login.description1")}
                   </p>
                   <p className="mb-4">
-                    Seamlessly integrating into any website as a bot, our tool
-                    is tailored for SMEs, MSMEs, cooperative banks, startups,
-                    and angel groups. We aim to move beyond the traditional
-                    "Contact Us" approach by offering a proactive, dynamic
-                    solution to help minimize risks and resolve business issues
-                    before they escalate.
+                    {t("login.description2")}
                   </p>
                   
 
@@ -103,22 +99,14 @@ function Login() {
           </div>
           <div className="mt-8 w-full">
                     <p className="mb-4">
-                      Leveraging our innovative PASSION Framework, we focus on
-                      ensuring smooth operations across various business units,
-                      reducing downtime, and improving customer satisfaction.
-                      Whether you're a growing startup or an established bank,
-                      PASSIONIT PCOMBINATOR empowers your organization with
-                      intelligent, reliable, and automated incident management.
+                     {t("login.description3")}
                     </p>
                   </div>
           {/* Vision Section */}
           <div className="mt-8 w-full">
-            <h2 className="text-xl font-semibold mb-4">Vision</h2>
+            <h2 className="text-xl font-semibold mb-4">{t("login.vision")}</h2>
             <p className="mb-4">
-              To empower organizations of all sizes with intelligent tools that
-              enhance operational efficiency, streamline incident management,
-              and create a seamless experience for both customers and internal
-              teams, leading to minimized risks and maximized productivity.
+              {t("login.visiond")}
             </p>
           </div>
         </div>
@@ -128,10 +116,10 @@ function Login() {
       <div className="flex justify-center mb-4">
           <img src={logo} alt="Logo" className="h-12" />
         </div>
-        <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">Login</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">{t("login.login_title")}</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">Email:</label>
+            <label className="block text-gray-700 text-sm font-bold mb-2">{t("login.email")}:</label>
             <input
               type="email"
               value={email}
@@ -141,7 +129,7 @@ function Login() {
             />
           </div>
           <div className="mb-4">
-      <label className="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+      <label className="block text-gray-700 text-sm font-bold mb-2">{t("login.password")}:</label>
       <input
         type={showPassword ? "text" : "password"}
         value={password}
@@ -157,7 +145,7 @@ function Login() {
             onChange={() => setShowPassword(!showPassword)}
             className="mr-2"
           />
-          Show Password
+          {t("login.show_password")}
         </label>
       </div>
     </div>
@@ -171,10 +159,10 @@ function Login() {
           </button>
         </form>
         <p className="mt-4 text-sm">
-          Don't have an account? <Link to="/" className="text-blue-500">Sign up</Link>
+          {t("login.no_account")} <Link to="/" className="text-blue-500">Sign up</Link>
         </p>
         <p className="mt-4 text-sm">
-          <Link to="/forgetPassword" className="text-blue-500">Forget Password</Link>
+          <Link to="/forgetPassword" className="text-blue-500">{t("login.forgot_password")}</Link>
         </p>
       </div>
     </div>
@@ -182,14 +170,9 @@ function Login() {
 
 {/* Full-length Section */}
 <div className="w-full bg-gray-100 p-9">
-        <h2 className="text-xl font-semibold mb-4">Mission</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("login.mission")}</h2>
         <p className="mb-4">
-          To revolutionize the way businesses handle incidents by providing an
-          easy-to-integrate, AI-driven solution that proactively identifies,
-          manages, and resolves product and service issues. We are committed to
-          using the PASSION Framework to guide businesses toward efficient
-          operations, risk reduction, and sustainable growth, enabling them to
-          focus on innovation and customer satisfaction.
+          {t("login.missiond")}
         </p>
 
         <div className="flex justify-center mt-4">

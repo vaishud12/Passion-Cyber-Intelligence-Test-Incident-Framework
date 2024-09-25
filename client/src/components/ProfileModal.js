@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import * as API from "../Endpoint/Endpoint";
 const ProfileModal = ({ isOpen, onClose, email }) => {
   const [userDetails, setUserDetails] = useState(null);
-
+  const { t } = useTranslation();
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -28,15 +29,29 @@ const ProfileModal = ({ isOpen, onClose, email }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-30">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-xl font-semibold mb-4">Profile Details</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("details")}</h2>
         <div className="mb-4">
-          <strong>Name:</strong> {userDetails.name}
+          <strong>{t("profile.name")}:</strong> {userDetails.name}
         </div>
         <div className="mb-4">
-          <strong>Role:</strong> {userDetails.role}
+          <strong>{t("profile.email")}:</strong> {userDetails.email}
         </div>
         <div className="mb-4">
-          <strong>Email:</strong> {userDetails.email}
+          <strong>{t("profile.role")}:</strong> {userDetails.role}
+        </div>
+
+        <div className="mb-4">
+          <strong>{t("profile.roletype")}:</strong> {userDetails.roletype}
+        </div>
+        <div className="mb-4">
+          <strong>{t("profile.company_name")}:</strong> {userDetails.companyname}
+        </div>
+        
+        <div className="mb-4">
+          <strong>{t("profile.designation")}:</strong> {userDetails.designation}
+        </div>
+        <div className="mb-4">
+          <strong>{t("profile.emp_code")}:</strong> {userDetails.empcode}
         </div>
         <button 
           onClick={onClose} 

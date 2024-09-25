@@ -527,7 +527,7 @@ app.get("/incident-api/user-resolutions/:userId", authenticateToken, (req, res) 
     }
   
     try {
-      const result = await db.query('SELECT email, isAdmin, role, name FROM users WHERE email = $1', [email]);
+      const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
   
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'User not found' });

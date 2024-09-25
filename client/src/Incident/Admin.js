@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Admin.css'; // Ensure this CSS file is created for styling
 import FAddEdit from './FAddEdit';
-
+import { useTranslation } from 'react-i18next';
 import * as API from "../Endpoint/Endpoint";
 import FView from './FView';
 const Admin = () => {
@@ -11,7 +11,7 @@ const Admin = () => {
     const [loading, setLoading] = useState(true);
     const [tags, setTags] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
-
+    const { t } = useTranslation();
     const [selectedTag, setSelectedTag] = useState('');
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -230,11 +230,11 @@ const Admin = () => {
                     }} 
                     onClick={openModal}
                 >
-                    Add Incident
+                    {t("incidentd.add_incident")}
                 </button>
                 <div className="priority-container">
                     <form onSubmit={handlePriorityTimesSubmit} className="priority-form">
-                        <h3 className="priority-heading">Set Priority Times</h3>
+                        <h3 className="priority-heading">{t("incidentd.set_priority_times")}</h3>
                         <div className="priority-inputs">
                             {Object.keys(priorityTimes).map(priority => (
                                 <div key={priority} className="priority-input-wrapper">
@@ -253,7 +253,7 @@ const Admin = () => {
                                 </div>
                             ))}
                         </div>
-                        <button type="submit" className="priority-button">Save Priority Times</button>
+                        <button type="submit" className="priority-button">{t("incidentd.save_priority_times")}</button>
                     </form>
                 </div>
 
@@ -285,7 +285,7 @@ const Admin = () => {
                     onChange={(e) => setSelectedTag(e.target.value)} 
                     className="tag-select"
                 >
-                    <option value="">All Tags</option>
+                    <option value="">{t("incidentd.all_tags")}</option>
                     {tags.length > 0 ? (
                         tags.map((tag, index) => (
                             <option key={index} value={tag}>{tag}</option>
@@ -315,24 +315,24 @@ const Admin = () => {
                     <table className="styled-table">
                         <thead>
                             <tr>
-                            <th>S.No</th>
-                                <th>User Email</th>
-                                <th>Incident id</th>
-                                <th>Sector</th>
-                                <th>Category</th>
-                                <th>Incident Name</th>
-                                <th>Description</th>
-                                <th>Date</th>
-                                <th>GPS</th>
-                                <th>Current Address</th>
-                                <th>Incident Owner</th>
-                                <th>Raised To User</th>
-                                <th>Tags</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                                <th>Remark</th>
-                                <th>Image</th>
-                                <th>Action</th>
+                            <th>{t("incidentd.s_no")}</th>
+                                <th>{t("incidentd.user_email")}</th>
+                                <th>{t("incidentd.incident_id")}</th>
+                                <th>{t("incidentd.sector")}</th>
+                                <th>{t("incidentd.category")}</th>
+                                <th>{t("incidentd.incident_name")}</th>
+                                <th>{t("incidentd.description")}</th>
+                                <th>{t("incidentd.date")}</th>
+                                <th>{t("incidentd.gps")}</th>
+                                <th>{t("incidentd.current_address")}</th>
+                                <th>{t("incidentd.incident_owner")}</th>
+                                <th>{t("incidentd.raised_to_user")}</th>
+                                <th>{t("incidentd.tags")}</th>
+                                <th>{t("incidentd.priority")}</th>
+                                <th>{t("incidentd.status")}</th>
+                                <th>{t("incidentd.remark")}</th>
+                                <th>{t("incidentd.image")}</th>
+                                <th>{t("incidentd.action")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -376,7 +376,7 @@ const Admin = () => {
                                                 onClick={() => openFViewModal(incident)}
                                                 className="btn btn-view"
                                             >
-                                                View
+                                                {t("incidentd.view")}
                                             </button>
                 {fViewVisible && selectedIncident && (
     <div className="backdrop">
@@ -390,8 +390,8 @@ const Admin = () => {
     </div>
 )}
      
-                    <button className="btn btn-edit" onClick={() => handleEditUserClick(incident)}>Edit</button>
-                    <button className="btn btn-delete" onClick={() => deleteObject(incident.incidentid)}>Delete</button>
+                    <button className="btn btn-edit" onClick={() => handleEditUserClick(incident)}>{t("incidentd.edit")}</button>
+                    <button className="btn btn-delete" onClick={() => deleteObject(incident.incidentid)}>{t("incidentd.delete")}</button>
                 </td>
             </tr>
         ))

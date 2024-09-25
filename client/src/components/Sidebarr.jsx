@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState } from "react";
-import { LayoutDashboard, Home, StickyNote, Layers, Calendar, ChevronFirst, ChevronLast } from "lucide-react";
+import { useTranslation } from 'react-i18next';
+import { LayoutDashboard, Home, StickyNote, Layers, ChevronFirst, ChevronLast } from "lucide-react";
 import { FaUser } from 'react-icons/fa';
 const SidebarContext = createContext();
 
+
 export default function Sidebarr({ setExpanded, onMenuItemClick }) {
     const [expanded, setSidebarExpanded] = useState(true);
-    
+    const { t } = useTranslation();
     const toggleSidebar = () => {
         const newState = !expanded;
         setSidebarExpanded(newState);
@@ -32,11 +34,11 @@ export default function Sidebarr({ setExpanded, onMenuItemClick }) {
 
                 <SidebarContext.Provider value={{ expanded }}>
                     <ul className="flex-1 px-3">
-                        <SidebarItem icon={<Home size={20} />} text="Dashboard" onClick={() => onMenuItemClick('dashboard')} />
-                        <SidebarItem icon={<LayoutDashboard size={20} />} text="Incident" onClick={() => onMenuItemClick('fTable')} />
-                        <SidebarItem icon={<StickyNote size={20} />} text="Resolutions" onClick={() => onMenuItemClick('rtable')} />
-                        <SidebarItem icon={<FaUser size={20} />} text="Users" onClick={() => onMenuItemClick('userTable')} />
-                        <SidebarItem icon={<Layers size={20} />} text="Incident Sectors" onClick={() => onMenuItemClick('incidentCategory')} />
+                        <SidebarItem icon={<Home size={20} />} text={t("sidebar.dashboard")} onClick={() => onMenuItemClick('dashboard')} />
+                        <SidebarItem icon={<LayoutDashboard size={20} />} text={t("sidebar.incident")} onClick={() => onMenuItemClick('fTable')} />
+                        <SidebarItem icon={<StickyNote size={20} />} text={t("sidebar.resolutions")} onClick={() => onMenuItemClick('rtable')} />
+                        <SidebarItem icon={<FaUser size={20} />} text={t("sidebar.users")} onClick={() => onMenuItemClick('userTable')} />
+                        <SidebarItem icon={<Layers size={20} />} text={t("sidebar.incidentSectors")} onClick={() => onMenuItemClick('incidentCategory')} />
                     </ul>
                 </SidebarContext.Provider>
             </nav>
