@@ -85,6 +85,8 @@
 /* Pagination styles */
 .pagination {
   display: inline-block;
+  white-space: nowrap; /* Ensure buttons stay on one line */
+  overflow-x: auto; /* Add horizontal scrolling for small screens */
 }
 
 .pagination button {
@@ -97,6 +99,7 @@
   cursor: pointer;
   font-size: 9px;
   border-radius: 3px;
+  min-width: 30px; /* Fixed min-width to prevent buttons from widening */
 }
 
 .pagination button.active {
@@ -119,12 +122,12 @@
 }
 
 /* Adjustments for smaller screens */
-@media (max-width: 768px) {
+@media (max-width: 823px) {
   .table-wrapper {
     margin-top: 4px;
-    max-height: 39vh; /* Increase max-height for better visibility */
-    overflow-y: auto; /* Enables vertical scrolling */
-    overflow-x: auto; /* Enables horizontal scrolling */
+    max-height: 40vh; /* Ensure table is visible */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: auto; /* Enable horizontal scrolling */
   }
 
   .styled-table {
@@ -132,12 +135,20 @@
     table-layout: auto;
   }
 
+  .pagination {
+    white-space: nowrap; /* Ensure buttons stay on one line */
+    overflow-x: auto; /* Ensure pagination is scrollable on smaller screens */
+  }
+
   .pagination button {
-    font-size: 8px;
+    font-size: 7px;
     padding: 2px 4px;
+    margin: 0 1px;
+    min-width: 25px; /* Set a smaller width to prevent button widening */
   }
 }
 
+/* Further adjustments for very small screens */
 @media (max-width: 480px) {
   .table-wrapper {
     margin-top: 5px;
@@ -151,9 +162,16 @@
     table-layout: auto;
   }
 
+  .pagination {
+    white-space: nowrap; /* Ensure buttons stay on one line */
+    overflow-x: auto; /* Ensure pagination is scrollable */
+  }
+
   .pagination button {
-    font-size: 7px;
-    padding: 1px 3px;
+    font-size: 5px;
+    padding: 1px 2px;
+    margin: 0 1px;
+    min-width: 20px; /* Smaller width for mobile screens */
   }
 
   .styled-table th, .styled-table td {

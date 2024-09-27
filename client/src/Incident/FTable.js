@@ -303,17 +303,27 @@ useEffect(() => {
       </div>
 
       <center>
-        <div className="pagination">
-          {Array.from(
-            { length: Math.ceil(filteredData.length / itemsPerPage) },
-            (_, i) => (
-              <button key={i + 1} onClick={() => paginate(i + 1)}>
-                {i + 1}
-              </button>
-            )
-          )}
-        </div>
-      </center>
+  <div className="pagination">
+    {/* Backward Arrow */}
+    <button
+      onClick={() => paginate(currentPage - 1)}
+      disabled={currentPage === 1}
+      className="p-2"
+    >
+      &#x2039; {/* Left arrow */}
+    </button>
+
+    {/* Forward Arrow */}
+    <button
+      onClick={() => paginate(currentPage + 1)}
+      disabled={currentPage === Math.ceil(filteredData.length / itemsPerPage)}
+      className="p-2"
+    >
+      &#x203A; {/* Right arrow */}
+    </button>
+  </div>
+</center>
+
     </div>
   );
 };
