@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import './FAddEdit.css';
-
+import MapComponent from '../components/MapComponent';
 import * as API from "../Endpoint/Endpoint";
 import 'react-quill/dist/quill.snow.css'; // Import the Quill styles
 import PlainTextQuillEditor from '../components/PlainTextQuillEditor';
@@ -17,7 +17,7 @@ const initialState = {
     incidentdescription: '',
     date: '',
     currentaddress: '',
-    gps: '',
+  
     raisedtouser: '',
     
     status: ''
@@ -33,17 +33,24 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
     const [incidentNames, setIncidentNames] = useState([]);
     const [priority, setPriority] = useState('');
     const [incidentDescriptions, setIncidentDescriptions] = useState([]);
-    const {sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status} = state;
+    const {sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress,  raisedtouser, status} = state;
     const { incidentid } = useParams();
     const userId = localStorage.getItem("user_id");
     console.log(userId);
+    const email = localStorage.getItem("email"); // Get the email from local storage
+console.log(email);
     const [tags, setTags] = useState([]);
     const [query, setQuery] = useState('');
     const [remark, setRemark] = useState('');
-    const [emailValidation, setEmailValidation] = useState({ exists: true, message: '' });
-    const [showConfirmInvite, setShowConfirmInvite] = useState(false);
-
+   
+    
     const [photo, setPhoto] = useState(null);
+
+    const [gps, setGps] = useState("");
+    const handlePlaceSelect = (coordinates) => {
+        const { lat, lng } = coordinates; // Destructure latitude and longitude
+        setGps(`${lat}, ${lng}`); // Update state with coordinates
+      };
     // console.log(editItem.incidentid)
     // Constant variable for tag names
     const tagNames = tags.map(tag => tag.name);
@@ -85,40 +92,8 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
       }
     };
 
-    const checkEmailExists = async (email) => {
-        try {
-            const response = await axios.get(API.CHECK_EMAIL(email));
-            setEmailValidation({
-                exists: response.data.exists,
-                message: response.data.exists ? '' : 'Email not found',
-            });
-    
-            // If the email is not found, trigger the popup
-            if (!response.data.exists) {
-                setShowConfirmInvite(true);
-            }
-        } catch (error) {
-            console.error('Error checking email:', error);
-            setEmailValidation({
-                exists: false,
-                message: 'Error checking email',
-            });
-    
-            // Optionally, you might want to show a popup if there's an error with the request
-            setShowConfirmInvite(true);
-        }
-    };
     
     
-    useEffect(() => {
-        if (raisedtouser) {
-            const debounceCheck = setTimeout(() => {
-                checkEmailExists(raisedtouser);
-            }, 500); // Debounce time to prevent excessive API calls
-    
-            return () => clearTimeout(debounceCheck);
-        }
-    }, [raisedtouser]);
 
 
     useEffect(() => {
@@ -192,9 +167,29 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
         e.preventDefault();
     
         console.log("Form submitted");
-        console.log("Form data:", { sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser });
+        console.log("Form data:", {
+            sector,
+            incidentcategory,
+            incidentname,
+            incidentowner,
+            incidentdescription,
+            date,
+            currentaddress,
+            gps,
+            raisedtouser,
+        });
     
-        if (!sector || !incidentcategory || !incidentname || !incidentowner || !incidentdescription || !date || !currentaddress || !gps || !raisedtouser) {
+        if (
+            !sector ||
+            !incidentcategory ||
+            !incidentname ||
+            !incidentowner ||
+            !incidentdescription ||
+            !date ||
+            !currentaddress ||
+            !gps ||
+            !raisedtouser
+        ) {
             alert("Please provide a value for each input field");
             return;
         }
@@ -226,64 +221,56 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
                     break;
             }
     
-            // Fetch user data
-            const userResponse = await axios.get(API.GET_USERBYID_API(raisedtouser));
-            console.log("User response:", userResponse.data);
+            // Create FormData object
+            const formData = new FormData();
+            formData.append('sector', sector);
+            formData.append('incidentcategory', incidentcategory);
+            formData.append('incidentname', incidentname);
+            formData.append('incidentowner', incidentowner);
+            formData.append('incidentdescription', incidentdescription);
+            formData.append('date', date);
+            formData.append('currentaddress', currentaddress);
+            formData.append('gps', gps);
+            formData.append('raisedtouser', raisedtouser);
+            formData.append('status', status);
+            formData.append('tagss', tagNames); // Assuming `tagNames` is defined elsewhere
+            formData.append('priority', priority);
+            formData.append('remark', remark);
     
-            if (userResponse.data && userResponse.data.userid) {
-                const raisedToUserId = userResponse.data.userid;
-                console.log('Raised to User ID:', raisedToUserId);
+            if (Array.isArray(tagNames)) {
+                tagNames.forEach(tag => {
+                    formData.append('tagss[]', tag); // Add each tag separately
+                });
+            }
     
-                // Create FormData object
-                const formData = new FormData();
-                formData.append('sector', sector);
-                formData.append('incidentcategory', incidentcategory);
-                formData.append('incidentname', incidentname);
-                formData.append('incidentowner', incidentowner);
-                formData.append('incidentdescription', incidentdescription);
-                formData.append('date', date);
-                formData.append('currentaddress', currentaddress);
-                formData.append('gps', gps);
-                formData.append('raisedtouser', raisedtouser);
-                formData.append('status', status);
-                formData.append('userid', raisedToUserId);
-                formData.append('id', userId);
-                formData.append('tagss', tagNames); // Assuming `tagNames` is defined elsewhere
-                formData.append('priority', priority);
-                formData.append('remark', remark);
-                if (Array.isArray(tagNames)) {
-                    tagNames.forEach(tag => {
-                        formData.append('tagss[]', tag); // Add each tag separately
-                    });
-                }
-                // Append photo if available
-                if (photo) {
-                    formData.append('photo', photo);
-                }
+            // Append photo if available
+            if (photo) {
+                formData.append('photo', photo);
+            }
     
-                console.log("Form Data:", formData);
+            console.log("Form Data:", formData);
     
-                // Submit data
-                if (editItem && editItem.incidentid) {
-                    // For updating an existing record
-                    await axios.put(API.UPDATE_SPECIFIC_INCIDENT(editItem.incidentid), formData, {
-                        headers: {
-                            'Content-Type': 'multipart/form-data'
-                        }
-                    });
-                } else {
-                    // For creating a new record
-                    await axios.post(API.POST_INCIDENT, formData, {
-                        headers: {
-                            'Content-Type': 'multipart/form-data'
-                        }
-                    });
-                }
+            // Submit data
+            if (editItem && editItem.incidentid) {
+                // For updating an existing record
+                await axios.put(API.UPDATE_SPECIFIC_INCIDENT(editItem.incidentid), formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+            } else {
+                // For creating a new record
+                await axios.post(API.POST_INCIDENT, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+            }
     
-                setState(initialState);
-                toast.success(`${editItem && editItem.incidentid ? 'Incident updated' : 'Incident added'} successfully`);
+            setState(initialState);
+            toast.success(`${editItem && editItem.incidentid ? 'Incident updated' : 'Incident added'} successfully`);
     
-               // Prepare FormData object for email payload
+            // Prepare FormData object for email payload
             const emailFormData = new FormData();
             emailFormData.append('email1', raisedtouser);
             emailFormData.append('from', incidentowner);
@@ -299,51 +286,39 @@ const FAddEdit = ({ visible, onClose, editItem, loadData}) => {
             emailFormData.append('status', status);
             emailFormData.append('priority', priority);
             emailFormData.append('remark', remark);
-
+    
             // Append photo if available
             if (photo) {
                 emailFormData.append('photo', photo); // Attach the file for the email
             }
-
+    
             console.log("Email FormData:", emailFormData);
-
+    
             // Send email with incident details
-            try {
-                const emailResponse = await axios.post(API.SEND_INCIDENT_EMAIL, emailFormData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                });
-                console.log("Email response:", emailResponse);
-
-                if (emailResponse.status === 200) {
-                    toast.success('Email sent successfully');
-                    setEmailSent(true);
-                }
-            } catch (emailError) {
-                if (emailError.response && emailError.response.status === 404) {
-                    toast.warn(emailError.response.data.message || 'User not found.');
-                    setShowConfirmInvite(true);  // Show confirmation dialog
-                } else {
-                    toast.error("An error occurred while sending the email.");
-                }
-            }
-
+            const emailResponse = await axios.post(API.SEND_INCIDENT_EMAIL, emailFormData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            console.log("Email response:", emailResponse);
     
-                // Prepare and open WhatsApp URL
-                const message = `This Incident ${incidentname} Should be Resolved within ${timeFrame}!!!!! ... Sector: ${sector}, Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nIncident Description: ${incidentdescription}\nDate: ${date}\nCurrent Address: ${currentaddress}\nGPS: ${gps}\nRaised to User: ${raisedtouser}\nStatus: ${status}\ntags:${tagNames}\npriority:${priority}\nRemark:${remark}`;
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                window.open(whatsappUrl, '_blank');
-    
-                loadData();
-            } else {
-                toast.error("User not found.");
+            if (emailResponse.status === 200) {
+                toast.success('Email sent successfully');
+                setEmailSent(true);
             }
+    
+            // Prepare and open WhatsApp URL
+            const message = `This Incident ${incidentname} Should be Resolved within ${timeFrame}!!!!! ... Sector: ${sector}, Incident Category: ${incidentcategory}\nIncident Name: ${incidentname}\nIncident Owner: ${incidentowner}\nIncident Description: ${incidentdescription}\nDate: ${date}\nCurrent Address: ${currentaddress}\nGPS: ${gps}\nRaised to User: ${raisedtouser}\nStatus: ${status}\ntags:${tagNames}\npriority:${priority}\nRemark:${remark}`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+    
+            loadData();
         } catch (error) {
             console.error("Submit error:", error);
             toast.error("An error occurred while processing the request.");
         }
     };
+    
     
     
 const handlePhotoChange = (e) => {
@@ -368,6 +343,9 @@ const handlePhotoChange = (e) => {
             ...prevState,
             [name]: value
         }));
+        if (name === "gps") {
+            setGps(value); // Assuming setCoordinates is defined to manage GPS state
+        }
         
         // const handleEmailChange = (e) => {
         //     const email = e.target.value;
@@ -378,16 +356,16 @@ const handlePhotoChange = (e) => {
         // };
         
         // Handle input change
-        if (name === "raisedtouser") {
-            // Update email value in the state
-            setState(prevState => ({
-                ...prevState,
-                raisedtouser: value
-            }));
+        // if (name === "raisedtouser") {
+        //     // Update email value in the state
+        //     setState(prevState => ({
+        //         ...prevState,
+        //         raisedtouser: value
+        //     }));
     
-            // Trigger email existence check
-            checkEmailExists(value);
-        }
+        //     // Trigger email existence check
+        //     checkEmailExists(value);
+        // }
         // Fetch incident names and descriptions when category or name changes
         if (name === 'sector') {
             setState(prevState => ({
@@ -413,25 +391,25 @@ const handlePhotoChange = (e) => {
         }
     };
   console.log(tags);
-  const handleInviteConfirmation = async (confirm) => {
-    if (confirm) {
-        const invitePayload = {
-            email: raisedtouser,
+//   const handleInviteConfirmation = async (confirm) => {
+//     if (confirm) {
+//         const invitePayload = {
+//             email: raisedtouser,
            
-        };
-        try {
-            await axios.post(API.SEND_INVITE_EMAIL, invitePayload);
-            toast.success('Invitation sent successfully');
-            setMessage("Invitation sent successfully");
-        } catch (error) {
-            toast.error("Failed to send invitation.");
-            setMessage("Failed to send invitation.");
-        }
-    } else {
-        toast.error("User was not found and invitation was not sent.");
-    }
-    setShowConfirmInvite(false);  // Close the confirmation dialog
-};
+//         };
+//         try {
+//             await axios.post(API.SEND_INVITE_EMAIL, invitePayload);
+//             toast.success('Invitation sent successfully');
+//             setMessage("Invitation sent successfully");
+//         } catch (error) {
+//             toast.error("Failed to send invitation.");
+//             setMessage("Failed to send invitation.");
+//         }
+//     } else {
+//         toast.error("User was not found and invitation was not sent.");
+//     }
+//     setShowConfirmInvite(false);  // Close the confirmation dialog
+// };
 
     return (
         <div className={`modal ${visible ? 'show' : 'hide'}`} style={{ marginTop: "20px" }}>
@@ -548,15 +526,16 @@ const handlePhotoChange = (e) => {
                         onChange={handleInputChange}
                     />
 
-                    <label htmlFor="gps">{t("addincident.gps")}</label>
-                    <input
-                        type="text"
-                        id="gps"
-                        name="gps"
-                        value={gps || ""}
-                        placeholder={t("addincident.enter_gps_coordinates")}
-                        onChange={handleInputChange}
-                    />
+<label htmlFor="gps">{t("addincident.gps")}</label>
+      <MapComponent onPlaceSelect={handlePlaceSelect} />
+      <input
+        type="text"
+        id="gps"
+        name="gps"
+        value={gps || ""}
+        placeholder={t("addincident.enter_gps_coordinates")}
+        onChange={handleInputChange}
+      />
 
 <div>
     <label htmlFor="raisedtouser">{t("addincident.raise_to_user")}</label>
@@ -568,9 +547,9 @@ const handlePhotoChange = (e) => {
         placeholder={t("addincident.enter_raise_user_email")}
         onChange={handleInputChange}
     />
-    {!emailValidation.exists && <div style={{ color: 'red' }}>{emailValidation.message}</div>}
+    {/* {!emailValidation.exists && <div style={{ color: 'red' }}>{emailValidation.message}</div>} */}
 
-    {message && <div style={{ color: 'green' }}className="message">{message}</div>}
+    {/* {message && <div style={{ color: 'green' }}className="message">{message}</div>} */}
 </div>
 <div>
       <p>{t("addincident.select_or_add_tags")}.</p>
@@ -677,13 +656,7 @@ const handlePhotoChange = (e) => {
                 <button onClick={handleGoBack}>Go Back</button>
                 
             </div>
-            {showConfirmInvite && (
-            <div className="confirmation-dialog">
-                <p>The email address is not registered. Do you want to send an invitation?</p>
-                <button onClick={() => handleInviteConfirmation(true)}>Yes</button>
-                <button onClick={() => handleInviteConfirmation(false)}>No</button>
-            </div>
-        )}
+            
         </div>
     );
 };

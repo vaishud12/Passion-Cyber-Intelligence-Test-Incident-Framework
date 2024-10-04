@@ -5,41 +5,30 @@ import Signup from './Signup-Login/Signup';
 import Login from './Signup-Login/Login';
 import ForgetPassword from './Signup-Login/ForgetPassword';
 import ResetPassword from './Signup-Login/ResetPassword';
-import PrivateRoute from './components/PrivateRoute';
 import AdminMain from './BotAnalysis/AdminMain';
 import Home from './Home';
-import "./App.css"
-
-
+import './App.css';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
-
 const App = () => {
-  // const isAuthenticated = !!localStorage.getItem('token'); // Check if token exists in localStorage
-
   return (
     <div>
-       <div className="LanguageSwitcher">
-    {/* <LanguageSwitcher /> */}
-  </div>
-  <Router>
-    
-
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<Signup />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/Home" element={<PrivateRoute><Home /></PrivateRoute>} />
-      <Route path="/forgetPassword" element={<ForgetPassword />} />
-      <Route path="/reset-password/:token" element={<ResetPassword />} />
-      <Route path="/Adminmain" element={<PrivateRoute><AdminMain /></PrivateRoute>} />
-
-      {/* Additional Routes */}
-      <Route path="/chatbot" element={<PrivateRoute><Chatbot /></PrivateRoute>} />
-    </Routes>
-  </Router>
-</div>
-
+      <div className="LanguageSwitcher">
+        {/* <LanguageSwitcher /> */}
+      </div>
+      <Router>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/forgetPassword" element={<ForgetPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/Adminmain" element={<AdminMain />} />
+          <Route path="/chatbot" element={<Chatbot />} />
+        </Routes>
+      </Router>
+    </div>
   );
 };
 

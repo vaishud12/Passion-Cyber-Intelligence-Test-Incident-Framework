@@ -102,14 +102,14 @@ const Chatbot = () => {
                 {showPopup && (
                     <div></div>
                 )}
-                <div className={`fixed top-4 right-4 ${minimized ? 'hidden' : ''} w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl`}>
-                    <div className="bg-white p-4 sm:p-6 md:p-8 lg:p-10 rounded-lg border border-[#e5e7eb] h-[90vh] sm:h-[95vh] md:h-[100vh] lg:h-[89vh] xl:h-[98vh] relative">
-                        <div className="flex flex-col space-y-1.5 pb-6 pt-6">
+                <div className={`fixed top-6 right-4 ${minimized ? 'hidden' : ''} w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl`}>
+                    <div className="bg-white p-2 sm:p-6 md:p-8 lg:p-10 rounded-lg border border-[#e5e7eb] h-[70vh] sm:h-[70vh] md:h-[80vh] lg:h-[80vh] xl:h-[85vh] 2xl:h-[90vh] relative">
+                        <div className="flex flex-col space-y-1 pb-6 pt-6">
                             <h2 className="p-2 text-lg font-bold tracking-tight text-white bg-blue-800 rounded">Virtual Assistant (ChatBot)</h2>
                             <p className="text-sm text-[#6b7280] leading-3 bg-gray-200 p-2 rounded">WELCOME TO AI GOVERNANCE BOT</p>
                         </div>
 
-                        <div className="absolute flex flex-row items-center justify-center gap-3 p-2 top-2 right-2">
+                        <div className="absolute flex flex-row items-center justify-center gap-3 p-2 top-1 right-2">
                             <div className="text-white hover:text-red text-lg pr-2 rounded-md bg-blue-800 hover:bg-blue-600 h-7 px-2 py-2" onClick={handleMinimize}>
                                 <GoScreenNormal />
                             </div>

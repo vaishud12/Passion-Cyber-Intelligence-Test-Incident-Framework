@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import ResolutionAddEdit from '../Resolve/ResolutionAddEdit';
 import * as API from "../Endpoint/Endpoint";
 
-const FTable = ({ userId }) => {
+const FTable = ({ email }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const { t } = useTranslation();
@@ -35,19 +35,30 @@ const FTable = ({ userId }) => {
     const isSmallScreen = window.innerWidth <= 768;
     const isVerySmallScreen = window.innerWidth <= 480;
   // Fetch incidents data
+ 
+
   const loadData = async () => {
     try {
-      const response = await axios.get(API.GET_USER_INCIDENTS(userId), {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      setData(response.data);
-      filterData(); // Add this line
+        const email = localStorage.getItem("email"); // Get email from localStorage
+        if (!email) {
+            console.error("User email is undefined");
+            return; // Exit the function if email is not found
+        }
+        
+        const response = await axios.get(API.GET_USER_INCIDENTS(email), {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+        });
+
+        setData(response.data);
+        filterData(); // Call filterData only after the data has been successfully set
     } catch (error) {
-      console.error("Error fetching data:", error);
+        console.error("Error fetching data:", error);
     }
-  };
+};
+// Call loadData where appropriate
+
 
   // Filter data based on search query and selected tag
   const filterData = useCallback(() => {
@@ -63,7 +74,7 @@ const FTable = ({ userId }) => {
  // Update useEffect to include searchQuery and selectedTag
 useEffect(() => {
   loadData();
-}, [userId]); // Load data whenever userId changes
+},[email]); // Load data whenever userId changes
 
 // Call filterData whenever data, searchQuery, or selectedTag changes
 useEffect(() => {

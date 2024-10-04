@@ -223,12 +223,14 @@ const Main = () => {
                 if (token) {
                     const decoded = jwtDecode(token);
                     const userId = parseInt(decoded.userId, 10);
+                    const email = decoded.email;
                     setUserId(userId);
                     localStorage.setItem('user_id', userId);
+                    localStorage.setItem('email', email);
 
                     console.log('Decoded token:', decoded); // Debug decoded token
                     console.log('User ID:', userId); // Debug user ID
-
+                    console.log('Email:', email);
                     // Fetch user data to check if the user is an admin
                     // try {
                     //     const response = await axios.get(`http://localhost:5000/api/users/${userId}`);
@@ -276,7 +278,7 @@ const Main = () => {
                 <button
                     className="w-full px-4 py-2 text-white transition duration-300 bg-green-500 rounded-md hover:bg-green-600"
                     onClick={() => handleTable('fTable')}
-                    disabled={!isLoggedIn} // Disable button if not logged in
+                     // Disable button if not logged in
                 >
                     Incident
                 </button>

@@ -341,7 +341,7 @@ const Admin = () => {
             <tr key={`${userIndex}-${incidentIndex}`}>
                 <td>{(currentPage - 1) * itemsPerPage + incidentIndex + 1}</td> {/* Serial number */}
                 {incidentIndex === 0 && (
-                    <td rowSpan={user.incidents.length}><b>{user.email}</b></td>
+                    <td rowSpan={user.incidents.length}><b>{incident.incidentowner}</b></td>
                 )}
                 <td>{incident.incidentid || 'N/A'}</td>
                 <td>{incident.sector || 'N/A'}</td>

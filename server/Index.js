@@ -22,7 +22,7 @@ const JWT_SECRET = "Hjkl2345Olkj0987Ooiuyhjnb0987Nbvcty12fgh675redf23"; // Defin
 const db = new pg.Pool({
     user: "postgres",
     host: "34.71.87.187",
-    database: "BotGrm",
+    database: "IncidentManagement",
     password: "India@5555",
     port: 5432,
 });
@@ -32,7 +32,7 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 /* USER AUTH ****************** */
-const sequelize = new Sequelize("BotGrm", "postgres", "India@5555", {
+const sequelize = new Sequelize("IncidentManagement", "postgres", "India@5555", {
     host: "34.71.87.187",
     dialect: "postgres",
 });
@@ -266,18 +266,26 @@ app.get("/protected", (req, res) => {
 });
 //Admin
 
-//Login route
+// Login route
 app.post("/incident-api/login", async (req, res) => {
     const { email, password } = req.body;
     try {
+        // Find the user by email
         const user = await User.findOne({ where: { email } });
         if (!user) return res.status(400).send("User not found");
 
+        // Compare the provided password with the stored hashed password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).send("Invalid credentials");
 
-        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "1h" });
+        // Include both userId and email in the JWT token
+        const token = jwt.sign(
+            { userId: user.id, email: user.email },  // Add email here
+            JWT_SECRET,
+            { expiresIn: "1h" }
+        );
 
+        // Return the token along with user email and isAdmin status
         res.json({
             token,
             email: user.email,
@@ -288,6 +296,7 @@ app.post("/incident-api/login", async (req, res) => {
         res.status(500).send("Error logging in");
     }
 });
+
 
   
 
@@ -347,7 +356,7 @@ const transporter = nodemailer.createTransport({
   
   // Function to send reset email
   const sendResetEmail = (email,name,token) => {
-    const baseURL = process.env.BASE_URL
+    const baseURL = process.env.RP_BASE_URL
     const mailOptions = {
       from: 'vaishnavisd23@gmail.com',
       to: email,
@@ -493,12 +502,12 @@ app.put("/incident-api/userupdate/:id", (req, res) => {
     });
 });
 // Route to get user incidents
-app.get("/incident-api/user-incidents/:userId", authenticateToken, (req, res) => {
-    const userId = req.params.userId; // Correctly access userId from req.params
+app.get("/incident-api/user-incidents/:email", authenticateToken, (req, res) => {
+    const email = req.params.email; // Correctly access email from req.params
 
-    const sqlGet = "SELECT * FROM incident WHERE userid = $1";
+    const sqlGet = "SELECT * FROM incident WHERE raisedtouser = $1";
 
-    db.query(sqlGet, [userId], (error, result) => {
+    db.query(sqlGet, [email], (error, result) => {
         if (error) {
             console.error("Error fetching incidents:", error);
             return res.status(500).json({ error: "Internal server error" });
@@ -506,6 +515,7 @@ app.get("/incident-api/user-incidents/:userId", authenticateToken, (req, res) =>
         res.json(result.rows);
     });
 });
+
 app.get("/incident-api/user-resolutions/:userId", authenticateToken, (req, res) => {
     const userId = req.params.userId; // Correctly access userId from req.params
   
@@ -751,7 +761,7 @@ app.post("/incident-api/send-invite", async (req, res) => {
             text: ``,
             html: `<p>Hi,</p>
              <p>It appears that you are not registered with our system. Please use the following link to register and join our platform:</p>
-             <a href="${inviteLink}">Join Passion Incident</a>
+             <a href="${inviteLink}">Join Passion Cyber Intelligence Team (CIT) Incident</a>
              <p>Thank you!</p>`,
         };
 
@@ -766,21 +776,21 @@ app.post("/incident-api/send-invite", async (req, res) => {
 });
 
 // Check if email exists
-app.get('/incident-api/check-email/:email', async (req, res) => {
-    const { email } = req.params;
+// app.get('/incident-api/check-email/:email', async (req, res) => {
+//     const { email } = req.params;
 
-    try {
-        const result = await db.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [email.toLowerCase()]);
-        if (result.rows.length > 0) {
-            res.json({ exists: true });
-        } else {
-            res.json({ exists: false });
-        }
-    } catch (error) {
-        console.error('Error checking email:', error);
-        res.status(500).json({ exists: false, message: 'Server error' });
-    }
-});
+//     try {
+//         const result = await db.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [email.toLowerCase()]);
+//         if (result.rows.length > 0) {
+//             res.json({ exists: true });
+//         } else {
+//             res.json({ exists: false });
+//         }
+//     } catch (error) {
+//         console.error('Error checking email:', error);
+//         res.status(500).json({ exists: false, message: 'Server error' });
+//     }
+// });
 
 app.delete("/incident-api/userdelete/:id", (req, res) => {
     const {id} = req.params;
@@ -947,23 +957,8 @@ app.get('/incident-api/get-priority-times', async (req, res) => {
 app.get("/incident-api/incidentget", (req, res) => {
     const sqlGet = `
         SELECT
-            a.email,
-            b.incidentid,
-            b.sector,
-            b.incidentname,
-            b.incidentcategory,
-            b.incidentdescription,
-            b.date,
-            b.gps,
-            b.currentaddress,
-            b.incidentowner,
-            b.raisedtouser,
-            b.tagss,
-            b.priority,
-            b.status,
-            b.remark,b.photo 
-        FROM users a
-        JOIN incident b ON a.id = b.id
+            *
+        FROM incident
     `;
 
     db.query(sqlGet, (error, result) => {
@@ -993,7 +988,7 @@ const storagi = multer.diskStorage({
 const uploading = multer({ storage: storagi });
 
 app.post('/incident-api/incidentpost', uploading.single('photo'), (req, res) => {
-    const { sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid, id, tagss, priority, remark } = req.body;
+    const { sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority, remark } = req.body;
 
     // Extract the filename from the uploaded file
     const photo = req.file ? req.file.filename : null;
@@ -1006,11 +1001,11 @@ app.post('/incident-api/incidentpost', uploading.single('photo'), (req, res) => 
         INSERT INTO incident (
             sector, incidentcategory, incidentname, incidentowner, incidentdescription, 
             date, currentaddress, gps, raisedtouser, status, 
-            userid, id, tagss, priority, remark, photo
+            tagss, priority, remark, photo
         ) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14 )
     `;
-    const values = [sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, userid, id, tagss, priority, remark, photo];
+    const values = [sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status,  tagss, priority, remark, photo];
 
     db.query(sqlInsert, values, (error, result) => {
         if (error) {
@@ -1030,7 +1025,8 @@ app.post("/incident-api/send-incident-email", uploading.single('photo'), async (
                 pass: "pyxo oadt rfcu lcxg",
             },
         });
-
+         // Create an invite link
+         const inviteLink = process.env.BASE_URL;
         const {
             email1,
             sector,
@@ -1052,48 +1048,43 @@ app.post("/incident-api/send-incident-email", uploading.single('photo'), async (
         const priorityTimes = priorityResult.rows[0];
         const timeFrame = priorityTimes[priority] || "24 hours"; // Default to "24 hours" if priority is not found
 
-        // Check if the user exists
-        const result = await db.query('SELECT id FROM users WHERE email = $1', [email1]);
+        // If a file was uploaded, use its path and name
+        const filePath = req.file ? req.file.path : null;
+        const fileName = req.file ? req.file.filename : null;
 
-        if (result.rows.length === 0) {
-            res.status(404).json({ message: "User not found. Please send an invitation email using the /api/send-invite endpoint." });
-        } else {
-            // If a file was uploaded, use its path and name
-            const filePath = req.file ? req.file.path : null;
-            const fileName = req.file ? req.file.filename : null;
-            // Send the incident report email if user exists
-            const mailOptions = {
-                from: incidentowner,
-                to: email1,
-                subject: `Incident Report: ${incidentname}`,
-                text: `Resolve this incident within the given time frame: ${timeFrame}.
+        // Send the incident report email directly
+        const mailOptions = {
+            from: incidentowner,
+            to: email1,
+            subject: `Incident Report: ${incidentname}`,
+            html: `
+                <p>Resolve this incident within the given time frame: <strong>${timeFrame}</strong>.</p>
+                <p>To solve this incident, <a href="${inviteLink}"> Join Passion Cyber Intelligence Team (CIT) Incident Framework</a>.</p>
+                <h3>Incident Report: ${incidentname}</h3>
+                <p><strong>Sector:</strong> ${sector}</p>
+                <p><strong>Incident Category:</strong> ${incidentcategory}</p>
+                <p><strong>Incident Name:</strong> ${incidentname}</p>
+                <p><strong>Incident Owner:</strong> ${incidentowner}</p>
+                <p><strong>Description:</strong> ${incidentdescription}</p>
+                <p><strong>Date:</strong> ${date}</p>
+                <p><strong>Current Address:</strong> ${currentaddress}</p>
+                <p><strong>GPS:</strong> ${gps}</p>
+                <p><strong>Raised to User:</strong> ${raisedtouser}</p>
+                <p><strong>Status:</strong> ${status}</p>
+                <p><strong>Priority:</strong> ${priority}</p>
+                <p><strong>Remarks:</strong> ${remark}</p>
+            `,
+            attachments: filePath ? [
+                {
+                    filename: fileName, // The uploaded file's name
+                    path: filePath,     // The uploaded file's path
+                    cid: 'incidentphoto@incidentemail'
+                }
+            ] : [] // No attachments if no file uploaded
+        };
 
-Incident Report: ${incidentname}
-
-Sector: ${sector}
-Incident Category: ${incidentcategory}
-Incident Name: ${incidentname}
-Incident Owner: ${incidentowner}
-Description: ${incidentdescription}
-Date: ${date}
-Current Address: ${currentaddress}
-GPS: ${gps}
-Raised to User: ${raisedtouser}
-Status: ${status}
-priority:${priority}
-Remarks:${remark}`, 
-attachments: filePath ? [
-    {
-        filename: fileName, // The uploaded file's name
-        path: filePath,     // The uploaded file's path
-        cid: 'incidentphoto@incidentemail'
-    }
-] : [] // No attachments if no file uploaded
-};
-
-            await transporter.sendMail(mailOptions);
-            res.status(200).json({ message: "Incident email sent successfully." });
-        }
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({ message: "Incident email sent successfully." });
     } catch (error) {
         console.error("Error in /incident-api/send-incident-email:", error);
         res.status(500).json({ error: error.message });
@@ -1202,21 +1193,21 @@ app.post('/incident-api/set-priority-times', async (req, res) => {
     }
 });
 
-app.post('/incident-api/transliterate', async (req, res) => {
-    const { text, languageCode } = req.body;
+// app.post('/incident-api/transliterate', async (req, res) => {
+//     const { text, languageCode } = req.body;
 
-    try {
-        const response = await axios.post(`https://translation.googleapis.com/language/translate/v2?key=YOUR_API_KEY`, {
-            q: text,
-            target: languageCode,
-            format: 'text'
-        });
-        res.json({ transliteratedText: response.data.data.translations[0].translatedText });
-    } catch (error) {
-        console.error('Error during transliteration:', error);
-        res.status(500).send('Error during transliteration');
-    }
-});
+//     try {
+//         const response = await axios.post(`https://translation.googleapis.com/language/translate/v2?key=YOUR_API_KEY`, {
+//             q: text,
+//             target: languageCode,
+//             format: 'text'
+//         });
+//         res.json({ transliteratedText: response.data.data.translations[0].translatedText });
+//     } catch (error) {
+//         console.error('Error during transliteration:', error);
+//         res.status(500).send('Error during transliteration');
+//     }
+// });
 // app.put("/api/incidentupdate/:incidentid", (req, res) => {
 //     const {incidentid} = req.params;
 //     const {incidentcategory,incidentname,incidentowner,description,date,currentaddress,gps,raisedtouser} = req.body;
@@ -1583,8 +1574,8 @@ app.use((err, req, res, next) => {
   });
   
 
-app.listen(5014,()=>{
-    console.log("server is running on port 5014");
+app.listen(5017,()=>{
+    console.log("server is running on port 5017");
 })
 
 

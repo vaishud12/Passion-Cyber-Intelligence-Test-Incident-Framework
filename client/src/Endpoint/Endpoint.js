@@ -1,7 +1,7 @@
-const BASE_URL = "http://localhost:5014/incident-api/";
-// const BASE_URL = "https://incidentmgmt.passionit.com/incident-api/incident-api/";
-const BASE_IMAGE_URL = "http://localhost:5014/incident-api/uploads";
-//  const BASE_IMAGE_URL = "https://incidentmgmt.passionit.com/incident-api/incident-api/uploads"
+const BASE_URL = "http://localhost:5017/incident-api/";
+// const BASE_URL = "https://citincidentmgmt.passionit.com/incident-api/incident-api/";
+const BASE_IMAGE_URL = "http://localhost:5017/incident-api/uploads";
+//  const BASE_IMAGE_URL = "https://citincidentmgmt.passionit.com/incident-api/incident-api/uploads"
 export const LOGIN = `${BASE_URL}login`;
 export const SIGNUP = `${BASE_URL}signup`;
 
@@ -61,8 +61,8 @@ export const GET_INCIDENT_NAME_BASEDON_INCIDENTCATEGORY =
   export const SEND_INVITE_EMAIL = 
   `${BASE_URL}send-invite`;
  
-  export const GET_USER_INCIDENTS = (userId) =>
-    `${BASE_URL}user-incidents/${userId}`;
+  export const GET_USER_INCIDENTS = (email) =>
+    `${BASE_URL}user-incidents/${email}`;
 
   export const DELETE_INCIDENT = (incidentid) =>
     `${BASE_URL}incidentdelete/${incidentid}`;
