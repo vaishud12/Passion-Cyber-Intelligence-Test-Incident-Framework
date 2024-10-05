@@ -70,7 +70,7 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ dest: 'uploads/' });
-app.post('/incident-api/upload-users', upload.single('file'), async (req, res) => {
+app.post('/citincident-api/upload-users', upload.single('file'), async (req, res) => {
     const filePath = path.join(__dirname, 'uploads', req.file.filename);
     const users = [];
 
@@ -177,7 +177,7 @@ app.post('/incident-api/upload-users', upload.single('file'), async (req, res) =
 });
 
 // Signup route
-app.post("/incident-api/signup", async (req, res) => {
+app.post("/citincident-api/signup", async (req, res) => {
     const { name, email, password } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -194,7 +194,7 @@ app.post("/incident-api/signup", async (req, res) => {
 });
 app.use(bodyParser.json());
 
-app.post('/incident-api/upload', async (req, res) => {
+app.post('/citincident-api/upload', async (req, res) => {
     const data = req.body;
   
     // Insert data into the database
@@ -267,7 +267,7 @@ app.get("/protected", (req, res) => {
 //Admin
 
 // Login route
-app.post("/incident-api/login", async (req, res) => {
+app.post("/citincident-api/login", async (req, res) => {
     const { email, password } = req.body;
     try {
         // Find the user by email
@@ -315,7 +315,7 @@ const authenticateToken = (req, res, next) => {
 
 // Route to check if the user is an admin
 // Route to check if the user is an admin
-app.get('/incident-api/isAdmin', authenticateToken, async (req, res) => {
+app.get('/citcitincident-api/isAdmin', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.userId;
         const result = await db.query('SELECT isadmin FROM users WHERE id = $1', [userId]); // Updated column name
@@ -376,7 +376,7 @@ const transporter = nodemailer.createTransport({
       }
     });
   };
-app.post('/incident-api/forget-password', async (req, res) => {
+app.post('/citincident-api/forget-password', async (req, res) => {
     const { email } = req.body;
     try {
         const userResult = await db.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -395,7 +395,7 @@ app.post('/incident-api/forget-password', async (req, res) => {
     }
 });
 
-app.post('/incident-api/reset-password', async (req, res) => {
+app.post('/citincident-api/reset-password', async (req, res) => {
     const { token, password } = req.body;
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
@@ -416,7 +416,7 @@ app.post('/incident-api/reset-password', async (req, res) => {
   //get users data
 
   // Route to get all users with their passwords
-app.get('/incident-api/users', async (req, res) => {
+app.get('/citincident-api/users', async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM users');
         res.json(result.rows);
@@ -427,7 +427,7 @@ app.get('/incident-api/users', async (req, res) => {
 });
  //to Add User through Admin screen
  const saltRounds = 10;
-app.post("/incident-api/userspost", async (req, res) => {
+app.post("/citincident-api/userspost", async (req, res) => {
     const {
         name, email, password, role, roletype, companyname, designation, empcode
     } = req.body;
@@ -462,7 +462,7 @@ app.post("/incident-api/userspost", async (req, res) => {
 
 //get user
 
-app.get("/incident-api/userget/:id", async (req, res) => {
+app.get("/citincident-api/userget/:id", async (req, res) => {
     try {
         const { id } = req.params;
         // Convert regid to a number
@@ -476,7 +476,7 @@ app.get("/incident-api/userget/:id", async (req, res) => {
         res.status(500).send("An error occurred while fetching the object type");
     }
 });
-app.put("/incident-api/userupdate/:id", (req, res) => {
+app.put("/citincident-api/userupdate/:id", (req, res) => {
     const { id } = req.params;
     const {name,email,
         password,
@@ -502,7 +502,7 @@ app.put("/incident-api/userupdate/:id", (req, res) => {
     });
 });
 // Route to get user incidents
-app.get("/incident-api/user-incidents/:email", authenticateToken, (req, res) => {
+app.get("/citincident-api/user-incidents/:email", authenticateToken, (req, res) => {
     const email = req.params.email; // Correctly access email from req.params
 
     const sqlGet = "SELECT * FROM incident WHERE raisedtouser = $1";
@@ -516,7 +516,7 @@ app.get("/incident-api/user-incidents/:email", authenticateToken, (req, res) => 
     });
 });
 
-app.get("/incident-api/user-resolutions/:userId", authenticateToken, (req, res) => {
+app.get("/citincident-api/user-resolutions/:userId", authenticateToken, (req, res) => {
     const userId = req.params.userId; // Correctly access userId from req.params
   
     const sqlGetResolutions = "SELECT * FROM resolution WHERE id = $1";
@@ -529,7 +529,7 @@ app.get("/incident-api/user-resolutions/:userId", authenticateToken, (req, res) 
       res.json(result.rows);
     });
   });
-  app.get('/incident-api/userid', async (req, res) => {
+  app.get('/citincident-api/userid', async (req, res) => {
     const { email } = req.query;
   
     if (!email) {
@@ -550,7 +550,7 @@ app.get("/incident-api/user-resolutions/:userId", authenticateToken, (req, res) 
     }
   });
 //Route for incident category
-app.get("/incident-api/agroincidentcategoryget", (req, res) => {
+app.get("/citincident-api/agroincidentcategoryget", (req, res) => {
         const sqlGet = "SELECT * FROM agroincidentcategorym";
         db.query(sqlGet, (error, result) => {
             if (error) {
@@ -562,7 +562,7 @@ app.get("/incident-api/agroincidentcategoryget", (req, res) => {
     });
 
     //add a query
-app.post("/incident-api/incidentcategorypost", (req, res) => {
+app.post("/citincident-api/incidentcategorypost", (req, res) => {
     const {sector,incidentcategory,incidentname,incidentdescription} = req.body;
     const sqlInsert = "INSERT INTO agroincidentcategorym (sector,incidentcategory,incidentname,incidentdescription) VALUES ($1, $2, $3, $4)";
     const values=[sector,incidentcategory,incidentname,incidentdescription];
@@ -576,7 +576,7 @@ app.post("/incident-api/incidentcategorypost", (req, res) => {
     } );
 });
 /******delete *******/
-app.delete("/incident-api/incidentcategorydelete/:incidentcategoryid", (req, res) => {
+app.delete("/citincident-api/incidentcategorydelete/:incidentcategoryid", (req, res) => {
     const {incidentcategoryid} = req.params;
     const sqlRemove="DELETE FROM agroincidentcategorym where incidentcategoryid=$1";
     db.query(sqlRemove ,[incidentcategoryid],(error,result)=>{
@@ -587,7 +587,7 @@ app.delete("/incident-api/incidentcategorydelete/:incidentcategoryid", (req, res
         res.send("object type deleted successfully")
     } );
 });
-app.get("/incident-api/incidentcategoryget/:incidentcategoryid", async (req, res) => {
+app.get("/citincident-api/incidentcategoryget/:incidentcategoryid", async (req, res) => {
     try {
         const { incidentcategoryid } = req.params;
         // Convert regid to a number
@@ -601,7 +601,7 @@ app.get("/incident-api/incidentcategoryget/:incidentcategoryid", async (req, res
         res.status(500).send("An error occurred while fetching the object type");
     }
 });
-app.put("/incident-api/incidentcategoryupdate/:incidentcategoryid", (req, res) => {
+app.put("/citincident-api/incidentcategoryupdate/:incidentcategoryid", (req, res) => {
     const { incidentcategoryid } = req.params;
     const { sector, incidentcategory, incidentname, incidentdescription } = req.body;
 
@@ -616,7 +616,7 @@ app.put("/incident-api/incidentcategoryupdate/:incidentcategoryid", (req, res) =
 });
 //incident category tagging
 
-app.get("/incident-api/agroincidentsectorgets", (req, res) => {
+app.get("/citincident-api/agroincidentsectorgets", (req, res) => {
     const sqlGet = "SELECT DISTINCT sector FROM agroincidentcategorym";
     db.query(sqlGet, (error, result) => {
         if (error) {
@@ -626,7 +626,7 @@ app.get("/incident-api/agroincidentsectorgets", (req, res) => {
         res.json(result.rows);
     });
 });
-app.get("/incident-api/agroincidentcategorygets", (req, res) => {
+app.get("/citincident-api/agroincidentcategorygets", (req, res) => {
     // Extract the sector from the query parameters
     const sector = req.query.sector;
 
@@ -647,7 +647,7 @@ app.get("/incident-api/agroincidentcategorygets", (req, res) => {
         res.json(result.rows);
     });
 });
-app.get("/incident-api/agroincidentnamegets", (req, res) => {
+app.get("/citincident-api/agroincidentnamegets", (req, res) => {
     const { incidentcategory } = req.query; // Extract incidentcategory from query parameters
 
     if (!incidentcategory) {
@@ -664,7 +664,7 @@ app.get("/incident-api/agroincidentnamegets", (req, res) => {
         res.json(result.rows);
     });
 });
-app.get("/incident-api/agroincidentdescriptiongets", (req, res) => {
+app.get("/citincident-api/agroincidentdescriptiongets", (req, res) => {
     const { incidentname } = req.query; // Extract incidentname from query parameters
 
     if (!incidentname) {
@@ -739,7 +739,7 @@ app.get("/incident-api/agroincidentdescriptiongets", (req, res) => {
 // Serve static files from the uploads directory
 
 
-app.post("/incident-api/send-invite", async (req, res) => {
+app.post("/citincident-api/send-invite", async (req, res) => {
     try {
         const { email} = req.body;
 
@@ -776,7 +776,7 @@ app.post("/incident-api/send-invite", async (req, res) => {
 });
 
 // Check if email exists
-// app.get('/incident-api/check-email/:email', async (req, res) => {
+// app.get('/citincident-api/check-email/:email', async (req, res) => {
 //     const { email } = req.params;
 
 //     try {
@@ -792,7 +792,7 @@ app.post("/incident-api/send-invite", async (req, res) => {
 //     }
 // });
 
-app.delete("/incident-api/userdelete/:id", (req, res) => {
+app.delete("/citincident-api/userdelete/:id", (req, res) => {
     const {id} = req.params;
     const sqlRemove="DELETE FROM users where id=$1";
     db.query(sqlRemove ,[id],(error,result)=>{
@@ -804,7 +804,7 @@ app.delete("/incident-api/userdelete/:id", (req, res) => {
     } );
 });
 // for Admin sert priority
-app.post('/incident-api/set-priority-times', async (req, res) => {
+app.post('/citincident-api/set-priority-times', async (req, res) => {
     const { critical, veryhigh, high, medium, low } = req.body;
 
     // Input validation (optional)
@@ -827,7 +827,7 @@ app.post('/incident-api/set-priority-times', async (req, res) => {
         res.status(500).json({ message: 'Failed to update priority times.' });
     }
 });
-app.get('/incident-api/get-priority-times', async (req, res) => {
+app.get('/citincident-api/get-priority-times', async (req, res) => {
     try {
         // Query to fetch priority times
         const result = await db.query('SELECT * FROM priority_times WHERE id = 1');
@@ -954,7 +954,7 @@ app.get('/incident-api/get-priority-times', async (req, res) => {
 //     });
 // });
 
-app.get("/incident-api/incidentget", (req, res) => {
+app.get("/citincident-api/incidentget", (req, res) => {
     const sqlGet = `
         SELECT
             *
@@ -975,7 +975,7 @@ app.get("/incident-api/incidentget", (req, res) => {
 
 
 // Middleware to serve static files
-app.use('/incident-api/uploads', express.static('uploads'));
+app.use('/citincident-api/uploads', express.static('uploads'));
 const storagi = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/');
@@ -987,7 +987,7 @@ const storagi = multer.diskStorage({
 
 const uploading = multer({ storage: storagi });
 
-app.post('/incident-api/incidentpost', uploading.single('photo'), (req, res) => {
+app.post('/citincident-api/incidentpost', uploading.single('photo'), (req, res) => {
     const { sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority, remark } = req.body;
 
     // Extract the filename from the uploaded file
@@ -1016,7 +1016,7 @@ app.post('/incident-api/incidentpost', uploading.single('photo'), (req, res) => 
         }
     });
 });
-app.post("/incident-api/send-incident-email", uploading.single('photo'), async (req, res) => {
+app.post("/citincident-api/send-incident-email", uploading.single('photo'), async (req, res) => {
     try {
         const transporter = nodemailer.createTransport({
             service: "Gmail",
@@ -1086,7 +1086,7 @@ app.post("/incident-api/send-incident-email", uploading.single('photo'), async (
         await transporter.sendMail(mailOptions);
         res.status(200).json({ message: "Incident email sent successfully." });
     } catch (error) {
-        console.error("Error in /incident-api/send-incident-email:", error);
+        console.error("Error in /citincident-api/send-incident-email:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -1094,7 +1094,7 @@ app.post("/incident-api/send-incident-email", uploading.single('photo'), async (
 
 
 /******delete *******/
-app.delete("/incident-api/incidentdelete/:incidentid", (req, res) => {
+app.delete("/citincident-api/incidentdelete/:incidentid", (req, res) => {
     const {incidentid} = req.params;
     const sqlRemove="DELETE FROM incident where incidentid=$1";
     db.query(sqlRemove ,[incidentid],(error,result)=>{
@@ -1106,7 +1106,7 @@ app.delete("/incident-api/incidentdelete/:incidentid", (req, res) => {
     } );
 });
 
-app.put("/incident-api/incidentupdate/:incidentid", (req, res) => {
+app.put("/citincident-api/incidentupdate/:incidentid", (req, res) => {
     const { incidentid } = req.params;
     const { sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority } = req.body;
     const sqlUpdate = "UPDATE incident SET sector=$1, incidentcategory=$2, incidentname=$3, incidentowner=$4, incidentdescription=$5, date=$6, currentaddress=$7, gps=$8, raisedtouser=$9, status=$10, tagss=$11, priority=$12 WHERE incidentid = $13";
@@ -1119,7 +1119,7 @@ app.put("/incident-api/incidentupdate/:incidentid", (req, res) => {
         res.status(200).json({ message: "Incident updated successfully" });
     });
 });
-app.get("/incident-api/incidentget/:incidentid", async (req, res) => {
+app.get("/citincident-api/incidentget/:incidentid", async (req, res) => {
     try {
         const { incidentid } = req.params;
         // Convert regid to a number
@@ -1134,7 +1134,7 @@ app.get("/incident-api/incidentget/:incidentid", async (req, res) => {
     }
 });
 // Assume you have a `users` table with a `userid` and `email` column
-app.get("/incident-api/getUserByEmail/:email", (req, res) => {
+app.get("/citincident-api/getUserByEmail/:email", (req, res) => {
     const email = req.params.email;
     const sqlSelect = "SELECT id FROM users WHERE email = $1";
 
@@ -1152,7 +1152,7 @@ app.get("/incident-api/getUserByEmail/:email", (req, res) => {
     });
 });
 //fetch tags
-app.get('/incident-api/tags', (req, res) => {
+app.get('/citincident-api/tags', (req, res) => {
     const sqlGet = "SELECT tagss FROM incident";
     db.query(sqlGet, (error, result) => {
         if (error) {
@@ -1169,7 +1169,7 @@ app.get('/incident-api/tags', (req, res) => {
     });
 });
 
-app.post('/incident-api/set-priority-times', async (req, res) => {
+app.post('/citincident-api/set-priority-times', async (req, res) => {
     const { critical, veryhigh, high, medium, low } = req.body;
 
     // Input validation (optional)
@@ -1193,7 +1193,7 @@ app.post('/incident-api/set-priority-times', async (req, res) => {
     }
 });
 
-// app.post('/incident-api/transliterate', async (req, res) => {
+// app.post('/citincident-api/transliterate', async (req, res) => {
 //     const { text, languageCode } = req.body;
 
 //     try {
@@ -1237,7 +1237,7 @@ app.post('/incident-api/set-priority-times', async (req, res) => {
 
 //--------Resolution---------------
 // Resolution Routes
-app.get("/incident-api/resolutionget", (req, res) => {
+app.get("/citincident-api/resolutionget", (req, res) => {
     const sqlGet = "SELECT * FROM resolution";
     db.query(sqlGet, (error, result) => {
         if (error) {
@@ -1247,7 +1247,7 @@ app.get("/incident-api/resolutionget", (req, res) => {
         res.json(result.rows);
     });
 });
-app.get("/incident-api/adminresolutionget", (req, res) => {
+app.get("/citincident-api/adminresolutionget", (req, res) => {
     const sqlGet = `
         SELECT 
             r.incidentid,
@@ -1288,7 +1288,7 @@ app.get("/incident-api/adminresolutionget", (req, res) => {
 //         res.status(200).json({ message: "Resolution inserted successfully" });
 //     });
 // });
-app.post("/incident-api/resolutionpost", (req, res) => {
+app.post("/citincident-api/resolutionpost", (req, res) => {
     // Destructure fields from the request body
     const { incidentid, sector, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby,id } = req.body;
 
@@ -1311,7 +1311,7 @@ app.post("/incident-api/resolutionpost", (req, res) => {
     });
 });
 
-app.delete("/incident-api/resolutiondelete/:resolutionid", (req, res) => {
+app.delete("/citincident-api/resolutiondelete/:resolutionid", (req, res) => {
     const { resolutionid } = req.params;
     const sqlRemove = "DELETE FROM resolution WHERE resolutionid = $1";
     db.query(sqlRemove, [resolutionid], (error, result) => {
@@ -1334,7 +1334,7 @@ app.delete("/incident-api/resolutiondelete/:resolutionid", (req, res) => {
 //         res.json(result.rows);
 //     });
 // });
-app.get("/incident-api/incidentget/:incidentid", (req, res) => {
+app.get("/citincident-api/incidentget/:incidentid", (req, res) => {
     const { incidentid } = req.params;
 
     if (!incidentid) {
@@ -1360,7 +1360,7 @@ app.get("/incident-api/incidentget/:incidentid", (req, res) => {
 });
 
 
-app.put("/incident-api/resolutionupdate/:resolutionid", (req, res) => {
+app.put("/citincident-api/resolutionupdate/:resolutionid", (req, res) => {
     const { resolutionid } = req.params;
     const { resolutiondate, resolutionremark, resolvedby } = req.body;
     const sqlUpdate = "UPDATE resolution SET resolutiondate = $1, resolutionremark = $2, resolvedby = $3 WHERE resolutionid = $4";
@@ -1373,7 +1373,7 @@ app.put("/incident-api/resolutionupdate/:resolutionid", (req, res) => {
         res.status(200).json({ message: "Resolution updated successfully" });
     });
 });
-app.post("/incident-api/send-emailforresolved", async (req, res) => {
+app.post("/citincident-api/send-emailforresolved", async (req, res) => {
     try {
         const transporter = nodemailer.createTransport({
             service: "Gmail",
@@ -1425,7 +1425,7 @@ app.post("/incident-api/send-emailforresolved", async (req, res) => {
 });
 
 //Admin dashboard
-app.get('/incident-api/incidentsuser-count', async (req, res) => {
+app.get('/citincident-api/incidentsuser-count', async (req, res) => {
     try {
       const results = await db.query(`
         SELECT u.email, COUNT(i.id) AS incident_count
@@ -1440,7 +1440,7 @@ app.get('/incident-api/incidentsuser-count', async (req, res) => {
     }
   });
 
-  app.get('/incident-api/resolution-statuses', async (req, res) => {
+  app.get('/citincident-api/resolution-statuses', async (req, res) => {
     try {
       // Fetch resolutions based on users
       const result = await pool.query(`
@@ -1463,7 +1463,7 @@ app.get('/incident-api/incidentsuser-count', async (req, res) => {
     }
   });
 
-  app.get('/incident-api/priority', (req, res) => {
+  app.get('/citincident-api/priority', (req, res) => {
     // SQL query to get incidents with priority and user info
     const sqlGet = `
       SELECT
@@ -1493,7 +1493,7 @@ app.get('/incident-api/incidentsuser-count', async (req, res) => {
     });
   });
 
-  app.get('/incident-api/trends', async (req, res) => {
+  app.get('/citincident-api/trends', async (req, res) => {
     try {
       // SQL query to fetch trends with category and priority
       const sqlQuery = `
@@ -1528,7 +1528,7 @@ app.get('/incident-api/incidentsuser-count', async (req, res) => {
     }
   });
 
-  app.get('/incident-api/locations', async (req, res) => {
+  app.get('/citincident-api/locations', async (req, res) => {
     try {
       const sqlQuery = `
         SELECT

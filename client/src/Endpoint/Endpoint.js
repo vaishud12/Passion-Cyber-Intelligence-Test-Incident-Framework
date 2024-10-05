@@ -1,7 +1,7 @@
-const BASE_URL = "http://localhost:5017/incident-api/";
-// const BASE_URL = "https://citincidentmgmt.passionit.com/incident-api/incident-api/";
-const BASE_IMAGE_URL = "http://localhost:5017/incident-api/uploads";
-//  const BASE_IMAGE_URL = "https://citincidentmgmt.passionit.com/incident-api/incident-api/uploads"
+const BASE_URL = "http://localhost:5017/citincident-api/";
+// const BASE_URL = "https://citincidentmgmt.passionit.com/citincident-api/citincident-api/";
+const BASE_IMAGE_URL = "http://localhost:5017/citincident-api/uploads";
+//  const BASE_IMAGE_URL = "https://citincidentmgmt.passionit.com/citincident-api/citincident-api/uploads"
 export const LOGIN = `${BASE_URL}login`;
 export const SIGNUP = `${BASE_URL}signup`;
 
