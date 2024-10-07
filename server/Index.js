@@ -356,7 +356,7 @@ const transporter = nodemailer.createTransport({
   
   // Function to send reset email
   const sendResetEmail = (email,name,token) => {
-    const baseURL = process.env.RP_BASE_URL
+    const baseURL = process.env.BASE_URL
     const mailOptions = {
       from: 'vaishnavisd23@gmail.com',
       to: email,
@@ -1059,7 +1059,7 @@ app.post("/citincident-api/send-incident-email", uploading.single('photo'), asyn
             subject: `Incident Report: ${incidentname}`,
             html: `
                 <p>Resolve this incident within the given time frame: <strong>${timeFrame}</strong>.</p>
-                <p>To solve this incident, <a href="${inviteLink}"> Join Passion Cyber Intelligence Team (CIT) Incident Framework</a>.</p>
+                <p>To solve this incident, <a href="${inviteLink}signup"> Join Passion Cyber Intelligence Team (CIT) Incident Framework</a>.</p>
                 <h3>Incident Report: ${incidentname}</h3>
                 <p><strong>Sector:</strong> ${sector}</p>
                 <p><strong>Incident Category:</strong> ${incidentcategory}</p>
