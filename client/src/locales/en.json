@@ -1,11 +1,11 @@
 {
     "signup": {
       "welcome": "Welcome to the Passion Cyber Intelligence Team (CIT) Incident Framework",
-      "description1": "At PASSIONIT PCOMBINATOR, we believe in streamlining business operations to help organizations thrive. Our incident management tool is designed to provide a comprehensive solution for managing product defects, customer support issues, product repairs, and ongoing maintenance.",
-      "description2": "Seamlessly integrating into any website as a bot, our tool is tailored for SMEs, MSMEs, cooperative banks, startups, and angel groups. We aim to move beyond the traditional 'Contact Us' approach by offering a proactive, dynamic solution to help minimize risks and resolve business issues before they escalate.",
-      "description3": "Leveraging our innovative PASSION Framework, we focus on ensuring smooth operations across various business units, reducing downtime, and improving customer satisfaction. Whether you're a growing startup or an established bank, PASSIONIT PCOMBINATOR empowers your organization with intelligent, reliable, and automated incident management.",
+      "description1": "IMCIT (I am Cyber Intelligence Testimony) is a Taskforce dedicated to uncovering the truth behind cyber scams and abuses,ensuring Trust and Transparency in the digital world. We intend to act as a Tribune for victims and whistleblowers, standing up for justice and championing their causes.",
+      "description2": "Through various Touchpoints, we engage with the community, delivering insights that reflect the core Tenets of our organization. Our findings are crafted into a coherent Thesis that educates the public and informs policy. We strive to reshape the tides of cybercrime by influencing trends and practices.",
+      "description3": "With IMCIT, you stand at the Threshold of a safer digital environment, where vgilance meets action, and collective efforts transform the fight against cybercrime. Join us as we use our Telescope to identify emerging threats and foster a resilient, informed community ready to confront the challenges of the cyber world.",
       "vision":"Vision",
-      "visiond": "We empower organizations of all sizes with intelligent tools that enhance operational efficiency, streamline incident management, and create a seamless experience for both customers and internal teams, leading to minimized risks and maximized productivity.",
+      "visiond": "To create a globally trusted and resilient digital environment where individuals and organizations can protect themselves against cyber threats, ensuring safety for all, including vulnerable populations like senior citizens.",
       
       "sign_up_title": "Sign Up",
       "name": "Name:",
@@ -16,15 +16,15 @@
       "already_have_account": "Already have an account?",
       "login_link": "Log in",
       "mission": "Mission",
-      "missiond": "To revolutionize the way businesses handle incidents by providing an easy-to-integrate, AI-driven solution that proactively identifies, manages, and resolves product and service issues. We are committed to using the PASSION Framework to guide businesses toward efficient operations, risk reduction, and sustainable growth, enabling them to focus on innovation and customer satisfaction."
+      "missiond": "Our mission is to meticulously Track and Trace the digital footprints of scammers, employing cutting edge Technology to continuously monitor threats. With a skilled team of cyber experts, we develop strategic Tactics to combat cybercrime effectively."
     },
     "login": {
-    "welcome": "Welcome to the Passion Cyber Intelligence Team (CIT) Incident Framework",
-    "description1": "At PASSIONIT PCOMBINATOR, we believe in streamlining business operations to help organizations thrive. Our incident management tool is designed to provide a comprehensive solution for managing product defects, customer support issues, product repairs, and ongoing maintenance.",
-    "description2": "Seamlessly integrating into any website as a bot, our tool is tailored for SMEs, MSMEs, cooperative banks, startups, and angel groups. We aim to move beyond the traditional 'Contact Us' approach by offering a proactive, dynamic solution to help minimize risks and resolve business issues before they escalate.",
-    "description3": "Leveraging our innovative PASSION Framework, we focus on ensuring smooth operations across various business units, reducing downtime, and improving customer satisfaction. Whether you're a growing startup or an established bank, PASSIONIT PCOMBINATOR empowers your organization with intelligent, reliable, and automated incident management.",
+      "welcome": "Welcome to the Passion Cyber Intelligence Team (CIT) Incident Framework",
+    "description1": "IMCIT (I am Cyber Intelligence Testimony) is a Taskforce dedicated to uncovering the truth behind cyber scams and abuses,ensuring Trust and Transparency in the digital world. We intend to act as a Tribune for victims and whistleblowers, standing up for justice and championing their causes.",
+      "description2": "Through various Touchpoints, we engage with the community, delivering insights that reflect the core Tenets of our organization. Our findings are crafted into a coherent Thesis that educates the public and informs policy. We strive to reshape the tides of cybercrime by influencing trends and practices.",
+      "description3": "With IMCIT, you stand at the Threshold of a safer digital environment, where vgilance meets action, and collective efforts transform the fight against cybercrime. Join us as we use our Telescope to identify emerging threats and foster a resilient, informed community ready to confront the challenges of the cyber world.",
     "vision": "Vision",
-    "visiond": "We empower organizations of all sizes with intelligent tools that enhance operational efficiency, streamline incident management, and create a seamless experience for both customers and internal teams, leading to minimized risks and maximized productivity.",
+    "visiond": "To create a globally trusted and resilient digital environment where individuals and organizations can protect themselves against cyber threats, ensuring safety for all, including vulnerable populations like senior citizens.",
     "login_title": "Login",
     "name": "Name",
     "email": "Email",
@@ -34,7 +34,7 @@
     "no_account": "Don't have an account?",
     "forgot_password": "Forget Password",
     "mission": "Mission",
-    "missiond": "To revolutionize the way businesses handle incidents by providing an easy-to-integrate, AI-driven solution that proactively identifies, manages, and resolves product and service issues. We are committed to using the PASSION Framework to guide businesses toward efficient operations, risk reduction, and sustainable growth, enabling them to focus on innovation and customer satisfaction."
+    "missiond": "Our mission is to meticulously Track and Trace the digital footprints of scammers, employing cutting edge Technology to continuously monitor threats. With a skilled team of cyber experts, we develop strategic Tactics to combat cybercrime effectively."
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -175,10 +175,14 @@
   "offer6": "Collaboration with global entities to create a more secure and aware digital community.",
     "strategicFocusAreas": {
       "title": "Strategic Focus Areas",
-      "areas1": "Research and Development",
-      "areas2":"Product Launch",
-      "areas3": "Business Development",
-      "areas4":"Skills Development"
+      "areas1": "Cyber Intelligence Research and Development",
+      "areas2":"Product Launch and Innovation",
+      "areas3": "Business Development and Partnerships",
+      "areas4":"Skills Development and Training",
+      "desc1": "Invest in innovative research to understand emerging cyber threats, develop cutting-edge tools, and enhance incident detection methodologies.",
+  "desc2": "Create and deploy new cybersecurity products and services that address current gaps in the market, focusing on user-friendly solutions for diverse users.",
+  "desc3": "Forge strategic partnerships with businesses, NGOs, and government agencies to foster collaboration in cybersecurity efforts and expand service offerings.",
+  "desc4": "Implement comprehensive training programs to enhance cybersecurity skills among individuals and organizations, particularly for vulnerable populations."
       
     },
     "futureLandscape": "Eager to Explore the Future Landscape of Startup Support?",
@@ -197,12 +201,20 @@
     "services": {
       "title": "OUR SERVICES",
        
-        "list1":"Management Research",
-        "list2":"Business Intelligence",
-        "list3":"Operational Research",
-        "list4":"Startup Acceleration",
-       "list5": "Market Research",
-       "list6": "Financial Management"
+        "list1":"Incident Management and Response",
+        
+        "list2":"Awareness and Advocacy",
+        "list3":"Policy Development and Compliance",
+        "list4":"Market Analysis and Strategy",
+       "list5": "Community Engagement and Support",
+       "list6": "Sustainability and Scalability",
+
+       "desc1": "Develop effective frameworks and protocols for incident management, ensuring organizations can respond quickly and efficiently to cyber threats.",
+  "desc2": "Promote awareness campaigns and educational initiatives to inform the public about cyber threats, best practices, and the importance of cybersecurity.",
+  "desc3": "Work on creating policies and guidelines that ensure organizations comply with cybersecurity regulations and adopt best practices for protecting digital assets.",
+  "desc4": "Conduct in-depth market analysis to identify trends and opportunities in the cybersecurity landscape, helping organizations make informed decisions.",
+  "desc5": "Foster community engagement through workshops, webinars, and resources to build a knowledgeable network focused on cybersecurity.",
+  "desc6": "Develop sustainable and scalable cybersecurity solutions that can grow with the needs of organizations while maintaining effectiveness in combating threats."
       
     },
     "pCombinator": {

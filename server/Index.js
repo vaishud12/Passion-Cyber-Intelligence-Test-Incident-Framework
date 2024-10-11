@@ -1288,28 +1288,98 @@ app.get("/citincident-api/adminresolutionget", (req, res) => {
 //         res.status(200).json({ message: "Resolution inserted successfully" });
 //     });
 // });
+
+// Endpoint to check if an incident is resolved
+app.get("/citincident-api/check-resolution-status/:incidentId", (req, res) => {
+    const { incidentId } = req.params;
+
+    // Query to check the resolution table for the incident ID
+    const sqlCheck = "SELECT EXISTS(SELECT 1 FROM resolution WHERE incidentid = $1) AS exists";
+    
+    db.query(sqlCheck, [incidentId], (error, result) => {
+        if (error) {
+            console.error("Error checking resolution status:", error);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+
+        // Check if the incident exists in the resolution table
+        const incidentExists = result.rows[0].exists;
+
+        // Send response based on the check
+        if (incidentExists) {
+            // Update the resolved status in the incidents table
+            const sqlUpdate = "UPDATE incident SET resolved = TRUE WHERE incidentid = $1";
+            db.query(sqlUpdate, [incidentId], (error) => {
+                if (error) {
+                    console.error("Error updating resolved status:", error);
+                    return res.status(500).json({ error: "Internal server error" });
+                }
+                return res.json({ resolved: true });
+            });
+        } else {
+            return res.json({ resolved: false });
+        }
+    });
+});
+
 app.post("/citincident-api/resolutionpost", (req, res) => {
-    // Destructure fields from the request body
-    const { incidentid, sector, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby,id } = req.body;
+    const {
+        incidentid,
+        sector,
+        incidentcategory,
+        incidentname,
+        incidentowner,
+        resolutiondate,
+        resolutionremark,
+        resolvedby,
+        id
+    } = req.body;
 
     // Basic validation
-    if (!incidentid || !sector || !incidentcategory || !incidentname ||  !incidentowner || !resolutiondate || !resolutionremark || !resolvedby) {
+    if (!incidentid || !sector || !incidentcategory || !incidentname || !incidentowner || !resolutiondate || !resolutionremark || !resolvedby) {
         return res.status(400).json({ error: "All fields are required" });
     }
 
-    // SQL Insert query
-    const sqlInsert = "INSERT INTO resolution (incidentid, sector, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby,id) VALUES ($1, $2, $3, $4, $5, $6, $7,$8,$9)";
-    const values = [incidentid, sector, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby,id];
-
-    // Execute the query
-    db.query(sqlInsert, values, (error, result) => {
-        if (error) {
-            console.error("Error inserting resolution:", error);
+    // Check if the incident already exists in the resolution table
+    const sqlCheck = "SELECT EXISTS(SELECT 1 FROM resolution WHERE incidentid = $1) AS exists";
+    db.query(sqlCheck, [incidentid], (checkError, checkResult) => {
+        if (checkError) {
+            console.error("Error checking resolution:", checkError);
             return res.status(500).json({ error: "Internal server error" });
         }
-        res.status(200).json({ message: "Resolution inserted successfully" });
+
+        // If incident already has a resolution
+        if (checkResult.rows[0].exists) {
+            return res.status(400).json({ error: "This incident ID already has a resolution." });
+        }
+
+        // SQL Insert query
+        const sqlInsert = "INSERT INTO resolution (incidentid, sector, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby, id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
+        const values = [incidentid, sector, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby];
+
+        // Execute the insert query
+        db.query(sqlInsert, values, (insertError, insertResult) => {
+            if (insertError) {
+                console.error("Error inserting resolution:", insertError);
+                return res.status(500).json({ error: "Internal server error" });
+            }
+
+            // Update resolved status in the incidents table
+            const sqlUpdate = "UPDATE incident SET resolved = TRUE WHERE incidentid = $1";
+            db.query(sqlUpdate, [incidentid], (updateError) => {
+                if (updateError) {
+                    console.error("Error updating incident status:", updateError);
+                    return res.status(500).json({ error: "Internal server error" });
+                }
+
+                // Successfully inserted resolution and updated the incident
+                return res.status(200).json({ message: "Resolution inserted successfully, incident marked as resolved." });
+            });
+        });
     });
 });
+
+
 
 app.delete("/citincident-api/resolutiondelete/:resolutionid", (req, res) => {
     const { resolutionid } = req.params;
@@ -1400,21 +1470,55 @@ app.post("/citincident-api/send-emailforresolved", async (req, res) => {
         const mailOptions = {
             from: fromEmail,
             to: [email1].filter(email => email !== ""),
-            subject: `The Incident Resolved Report: ${incidentname}`, // Use backticks for template literals
-            text: `
-
-                This Query has been resolved by ${resolvedby}
-                
-                Incident id: ${incidentid},
-                Sector:${sector},
-                Incident Category:${incidentcategory},
-                Incident name: ${incidentname},
-                Incident Owner: ${incidentowner},
-                Resolution Date: ${resolutiondate},
-                Resolution Remark: ${resolutionremark},
-                Resolved By: ${resolvedby}
-            ` // Use backticks for multi-line template literals
+            subject: `The Incident Resolved Report: ${incidentname}`,
+            html: `
+                <html>
+                    <body>
+                        <h2>Incident Resolved Report</h2>
+                        <p>This Query has been resolved by <strong>${resolvedby}</strong></p>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Field</th>
+                                <th style="border: 1px solid #ddd; padding: 8px;">Details</th>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Incident ID</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${incidentid}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Sector</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${sector}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Incident Category</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${incidentcategory}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Incident Name</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${incidentname}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Incident Owner</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${incidentowner}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Resolution Date</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${resolutiondate}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Resolution Remark</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${resolutionremark}</td>
+                            </tr>
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px;">Resolved By</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">${resolvedby}</td>
+                            </tr>
+                        </table>
+                    </body>
+                </html>
+            `
         };
+        
 
         await transporter.sendMail(mailOptions);
         res.status(200).json({ message: "Email sent successfully" });

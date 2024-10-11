@@ -43,35 +43,45 @@ const Admin = () => {
   // Function to handle viewing an incident in the modal
   
     
-    useEffect(() => {
-        const fetchIncidents = async () => {
-            try {
-                const response = await axios.get(API.GET_INCIDENT);
-                const incidents = response.data;
+  useEffect(() => {
+    const fetchIncidents = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get(API.GET_INCIDENT);
+            const incidents = response.data;
 
-                // Group incidents by user email
-                const groupedIncidents = incidents.reduce((acc, incident) => {
-                    if (!acc[incident.email]) {
-                        acc[incident.email] = [];
-                    }
-                    acc[incident.email].push(incident);
-                    return acc;
-                }, {});
+            // Group incidents by user email
+            const groupedIncidents = incidents.reduce((acc, incident) => {
+                if (!acc[incident.email]) {
+                    acc[incident.email] = [];
+                }
+                acc[incident.email].push(incident);
+                return acc;
+            }, {});
 
-                setIncidentsByUser(Object.entries(groupedIncidents).map(([email, incidents]) => ({
-                    email,
-                    incidents,
-                })));
-                setLoading(false);
-            } catch (err) {
-                console.error('Error fetching incidents:', err);
-                setError('Failed to fetch incidents.');
-                setLoading(false);
+            const incidentsByUser = Object.entries(groupedIncidents).map(([email, incidents]) => ({
+                email,
+                incidents,
+            }));
+            setIncidentsByUser(incidentsByUser);
+
+            // Check resolved status for each incident
+            for (const user of incidentsByUser) {
+                for (const incident of user.incidents) {
+                    await checkResolvedStatus(incident.incidentid); // Update resolved status if needed
+                }
             }
-        };
+        } catch (err) {
+            console.error('Error fetching incidents:', err);
+            setError('Failed to fetch incidents.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        fetchIncidents();
-    }, []);
+    fetchIncidents();
+}, []);
+
 
     const loadData = async () => {
         try {
@@ -115,6 +125,23 @@ const Admin = () => {
         loadTags();
     }, []);
     
+    const checkResolvedStatus = async (incidentId) => {
+        try {
+            const response = await axios.get(`${API.CHECK_RESOLUTION_STATUS}/${incidentId}`);
+            const isResolved = response.data.resolved; // Assuming the API returns { resolved: true/false }
+    
+            // Update the state if resolved
+            setIncidentsByUser((prev) => prev.map(user => ({
+                email: user.email,
+                incidents: user.incidents.map(incident => ({
+                    ...incident,
+                    resolved: incident.incidentid === incidentId ? isResolved : incident.resolved,
+                }))
+            })));
+        } catch (err) {
+            console.error('Error checking resolved status:', err);
+        }
+    };
     
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -332,7 +359,9 @@ const Admin = () => {
                                 <th>{t("incidentd.status")}</th>
                                 <th>{t("incidentd.remark")}</th>
                                 <th>{t("incidentd.image")}</th>
+                                <th>Resolved</th>
                                 <th>{t("incidentd.action")}</th>
+                                
                             </tr>
                         </thead>
                         <tbody>
@@ -357,6 +386,7 @@ const Admin = () => {
                 <td>{incident.priority || 'N/A'}</td>
                 <td>{incident.status || 'N/A'}</td>
                 <td>{incident.remark || 'N/A'}</td>
+                
                 <td>
                 {incident.photo ? (
                                 <img
@@ -369,6 +399,9 @@ const Admin = () => {
                             )}
                            
             </td>
+            <td style={{ color: incident.resolved ? 'red' : 'green', fontWeight: 'bold' }}>
+            {incident.resolved ? 'Inactive (Resolved)' : 'Active (Unresolved)'}
+        </td>
                       
                 <td>
                 

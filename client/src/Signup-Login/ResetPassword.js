@@ -1,5 +1,7 @@
 import React, { useRef, useState } from 'react';
 import axios from 'axios';
+import logo from "./logo.jpeg"
+import bg from "./bg.jpeg"
 import { useParams, useNavigate } from 'react-router-dom';
 import * as API from "../Endpoint/Endpoint";
 const ResetPassword = () => {
@@ -34,7 +36,23 @@ const ResetPassword = () => {
 
   return (
     <div className="flex flex-col justify-center min-h-screen py-12 sm:px-6 lg:px-8">
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="absolute inset-0 bg-black opacity-60 z-0"></div>
+  
+  {/* Background Image */}
+  <div
+    className="absolute inset-0 z-0"
+    style={{
+      backgroundImage: `url(${bg})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      opacity:'0.4',
+    }}
+  ></div>
+
+<div className="relative z-10 mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="flex justify-center mb-4">
+        <img src={logo} alt="Logo" className="h-12" />
+      </div>
         <div className="px-4 py-8 bg-white shadow sm:rounded-lg sm:px-10">
           <h2 className="mb-6 text-3xl font-extrabold text-center text-gray-900">Reset Password</h2>
           {alertMessage && (

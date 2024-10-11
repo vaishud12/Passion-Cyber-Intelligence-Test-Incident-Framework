@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "./logo.jpeg"
+import img from "../imcit-imgs/cyber-img.jpg"
 import { SocialIcon } from 'react-social-icons'
 import * as API from "../Endpoint/Endpoint";
 import loginimg from "./loginimg.png";
@@ -67,7 +68,7 @@ const handleSubmit = async (e) => {
           {/* Image */}
           <div className="flex-1 mt-4 lg:mt-0 lg:w-1/2">
             <img
-              src={loginimg}
+              src={img}
               alt="Welcome"
               className="w-full max-w-xs lg:max-w-md h-auto rounded-lg shadow-lg"
             />

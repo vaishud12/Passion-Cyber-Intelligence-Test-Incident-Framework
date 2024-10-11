@@ -20,6 +20,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
     const [state, setState] = useState(initialState);
     const { incidentid, sector, incidentcategory, incidentname,  incidentowner, resolutiondate, resolutionremark, resolvedby } = state;
     const [emailSent, setEmailSent] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     
     const userId = localStorage.getItem("user_id");
     const { resolutionid } = useParams();
@@ -112,10 +113,16 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
             window.open(whatsappUrl, '_blank');
     
             // Close the form/modal
-            onClose();
+            
         } catch (error) {
             console.error("Error during submission:", error);
-            toast.error(error.response?.data?.error || 'An error occurred');
+            
+            // Set error message based on backend response
+            if (error.response?.data?.error) {
+                setErrorMessage(error.response.data.error); // Set the error message state
+            } else {
+                setErrorMessage('An error occurred'); // Generic error message
+            }
         }
     };
     
@@ -240,6 +247,7 @@ const ResolutionAddEdit = ({ visible, editItem, onClose }) => {
 
                     <input type="submit" value={editItem && editItem.resolutionid ? "Submit" : "Save"} />
                     {emailSent && <div style={{ color: 'green', marginTop: '10px' }}>Incident email sent successfully to user!</div>}
+                    {errorMessage && <div style={{ color: 'red', marginTop: '10px' }}>{errorMessage}</div>} {/* Display error message */}
                     <button type="button" onClick={handleGoBack}>Go back</button>
                 </form>
             </div>

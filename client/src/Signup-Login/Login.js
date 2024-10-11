@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import * as API from "../Endpoint/Endpoint";
 import logo from "./logo.jpeg"
-import loginimg from "./loginimg.png";
+import img from "../imcit-imgs/cyber-img.jpg"
 import { SocialIcon } from 'react-social-icons';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from "../components/LanguageSwitcher";
@@ -89,7 +89,7 @@ function Login() {
                 {/* Image */}
                 <div className="flex-1 mt-4 lg:mt-0 lg:w-1/2">
                   <img
-                    src={loginimg}
+                    src={img}
                     alt="Welcome"
                     className="w-full max-w-xs lg:max-w-md h-auto rounded-lg shadow-lg"
                   />

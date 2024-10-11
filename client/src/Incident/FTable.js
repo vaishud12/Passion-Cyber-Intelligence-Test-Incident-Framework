@@ -51,12 +51,35 @@ const FTable = ({ email }) => {
             },
         });
 
-        setData(response.data);
+        const incidents = response.data;
+
+        // Update each incident's resolved status based on the resolution table
+        const updatedIncidents = await Promise.all(incidents.map(async (incident) => {
+            const isResolved = await checkResolvedStatus(incident.incidentid); // Check resolved status
+            return {
+                ...incident,
+                resolved: isResolved,
+            };
+        }));
+
+        setData(updatedIncidents); // Set the updated data
         filterData(); // Call filterData only after the data has been successfully set
     } catch (error) {
         console.error("Error fetching data:", error);
     }
 };
+
+const checkResolvedStatus = async (incidentId) => {
+    try {
+        const response = await axios.get(`${API.CHECK_RESOLUTION_STATUS}/${incidentId}`);
+        return response.data.resolved; // Assuming the API returns { resolved: true/false }
+    } catch (err) {
+        console.error('Error checking resolved status:', err);
+        return false; // Return false in case of error
+    }
+};
+
+
 // Call loadData where appropriate
 
 
@@ -260,6 +283,7 @@ useEffect(() => {
                                 <th>{t("incidentd.status")}</th>
                                 <th>{t("incidentd.remark")}</th>
                                 <th>{t("incidentd.image")}</th>
+                                <th>Resolved Status</th>
                                 <th>{t("incidentd.action")}</th>
                             </tr>
         </thead>
@@ -294,6 +318,9 @@ useEffect(() => {
                             )}
                            
             </td>
+            <td style={{ color: item.resolved ? 'red' : 'green', fontWeight: 'bold' }}>
+                        {item.resolved ? 'Inactive (Resolved)' : 'Active (Unresolved)'}
+                    </td>
               
               <td>
               <button

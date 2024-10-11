@@ -1,19 +1,80 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import Chatbot from './BotAnalysis/Chatbot';
 import { motion } from 'framer-motion';
-import img1 from "./Incident/img1.jpg";
-import { Slide } from 'react-awesome-reveal';
+
 import img4 from "./Incident/img4.png"
 import img5 from "./Incident/img5.png"
 import img6 from "./Incident/img6.png"
 import logo from "./Signup-Login/logo.jpeg"
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import ci from "./imcit-imgs/cyber-intelligence.png";
+import pl from "./imcit-imgs/productlaunch.png";
+import bd from "./imcit-imgs/business.png";
+import sd from "./imcit-imgs/skills.png";
+import im from "./imcit-imgs/incident-management.png";
+import ma from "./imcit-imgs/market-analysis.png";
+import p from "./imcit-imgs/policy.png";
+import c from "./imcit-imgs/community.png";
+import a from "./imcit-imgs/awareness.png";
+import sus from "./imcit-imgs/sustainability.png";
+import img from "./imcit-imgs/cyber-img.jpg";
+
+const words = [
+  "POSH - Prevention of Sexual Harassment",
+  "SISP - Social Influence and Scam Prevention",
+  "CIST - Cyber and Identity Support Threats",
+  "OMFR - online Marketplace Fraud Risks",
+  "CCFD - Charity and Crowdfunding Description",
+  "CRFT - Cryptocurrency Fraud and Threats",
+  "CDST - Courier and delivery Scam Threats",
+  "INTS - International Scam Scenarios",
+];
+
+const TypingText = () => {
+  const [index, setIndex] = useState(0);  // Current word index
+  const [subIndex, setSubIndex] = useState(0);  // Current letter index
+  const [isDeleting, setIsDeleting] = useState(false);  // Typing or Deleting
+  const [typingSpeed, setTypingSpeed] = useState(150);  // Speed of typing
+  const { t } = useTranslation();
+  
+  useEffect(() => {
+    if (subIndex === words[index].length + 1 && !isDeleting) {
+      // Pause before deleting
+      setTimeout(() => setIsDeleting(true), 1000);
+    } else if (subIndex === 0 && isDeleting) {
+      // Move to the next word
+      setIsDeleting(false);
+      setIndex((prev) => (prev + 1) % words.length);
+    }
+
+    const timeout = setTimeout(() => {
+      setSubIndex((prev) =>
+        isDeleting ? prev - 1 : prev + 1
+      );
+      setTypingSpeed(isDeleting ? 50 : 150);
+    }, typingSpeed);
+
+    return () => clearTimeout(timeout);
+  }, [subIndex, index, isDeleting, typingSpeed]);
+
+  return (
+    <h1 className="text-2xl md:text-4xl font-bold text-gray-800 leading-tight">
+      <span className="text-gray-800">{t("content.intro")}</span>{" "}
+      <span className="inline-block text-red-600">
+        {`${words[index].substring(0, subIndex)}`}
+      </span>
+    </h1>
+  );
+};
+
 const Home = () => {
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const navigate = useNavigate(); // Get the navigate function
   const { t } = useTranslation();
+  
+  
   const toggleChatbot = () => {
     setChatbotOpen((prevState) => !prevState);
   };
@@ -35,61 +96,46 @@ const Home = () => {
     },
   };
   
-  const words = [
-    "POSH,",
-    "SISP,",
-    "CIST,",
-    "OMFR,",
-    "CCFD,",
-    "CRFT,",
-    "CDST,",
-    "INTS,",
-  ];
+  
   return (
     <>
       <div className="relative min-h-screen">
         <Navbar />
         
-        <section className="bg-gray-100 py-16 max-w-full"> {/* Adjusted padding to py-4 */}
-  <div className="max-w-100vh mx-auto px-8"> {/* Removed padding on sides */}
-    <div className="flex flex-col md:flex-row justify-between items-center">
-      {/* Left Column */}
-      <div className="w-full md:w-1/2 text-center md:text-left mb-8 md:mb-0">
-        <h1 className="text-2xl md:text-4xl font-bold text-gray-800 leading-tight">
-          <span className="text-gray-800">{t("content.intro")} </span>
-          {words.map((word, index) => (
-            <motion.span
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
+        <section className="bg-gray-100 py-16 max-w-full">
+      <div className="max-w-100vh mx-auto px-8">
+        <div className="flex flex-col md:flex-row justify-between items-center">
+          {/* Left Column */}
+          <div className="w-full md:w-1/2 text-center md:text-left mb-8 md:mb-0">
+            <TypingText /> {/* Typing text effect */}
+            <div className="mt-4">
+              <button className="w-full sm:w-auto bg-red-600 text-white px-6 py-2 rounded mr-4 hover:bg-red-700">
+              {t("content.getInTouch")}
+              </button>
+              <button
+                onClick={handleJoinNowClick}
+                className="w-full sm:w-auto bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
+              >
+                {t("content.joinNow")}
+              </button>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="w-full md:w-1/2 flex justify-center">
+            <motion.img
+              src={img}  // Replace this with your image source
+              alt="Person working on a laptop"
+              className="max-w-full h-auto rounded-full"
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.2, delay: index * 0.4, ease: 'easeOut' }}
-              className="inline-block text-red-600"
-            >
-              {word}{" "}
-            </motion.span>
-          ))}
-        </h1>
-        <div className="mt-4"> {/* Reduced margin to mt-4 */}
-          <button className="w-full sm:w-auto bg-red-600 text-white px-6 py-2 rounded mr-4 hover:bg-red-700">{t("content.getInTouch")}</button>
-          <button onClick={handleJoinNowClick} className="w-full sm:w-auto bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700">{t("content.joinNow")}</button>
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              style={{ width: "30vw", height: "auto" }}
+            />
+          </div>
         </div>
       </div>
-      
-      {/* Right Column */}
-      <div className="w-full md:w-1/2 flex justify-center">
-        <motion.img
-          src={img1}
-          alt="Person working on a laptop"
-          className="max-w-full h-auto rounded-full"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: words.length * 0.2 + 0.2, ease: 'easeOut' }}
-          style={{ width: '40vw', height: 'auto' }} 
-        />
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
 <section className="bg-white py-16">
   <div className="container mx-auto text-center px-8">
@@ -116,52 +162,260 @@ const Home = () => {
       <div className="container mx-auto text-center">
         <h2 className="text-3xl font-bold text-red-600">{t("content.strategicFocusAreas.title")}</h2>
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <motion.div
-            className="bg-white p-6 rounded shadow"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.8 }}
-            variants={cardVariants}
-          >
-            <i className="fas fa-flask text-red-600 text-4xl mb-4"></i>
-            <h3 className="text-xl font-bold text-gray-800">{t("content.strategicFocusAreas.areas1")}</h3>
-          </motion.div>
 
-          <motion.div
-            className="bg-white p-6 rounded shadow"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.8 }}
-            variants={cardVariants}
-            transition={{ delay: 0.2 }}  // Add delay for a staggered effect
-          >
-            <i className="fas fa-rocket text-red-600 text-4xl mb-4"></i>
+        <div className="scene" style={{ perspective: '1000px' }}>
+        <motion.div
+        className="card"
+        style={{
+          width: '240px',
+          height: '300px',
+          position: 'relative',
+          transformStyle: 'preserve-3d',
+          transition: 'transform 1s',
+          cursor: 'pointer',
+        }}
+        whileHover={{ rotateY: 180 }} // Flip effect on hover
+      >
+        {/* Front of the card */}
+        <motion.div
+          className="card__face card__face--front"
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            backfaceVisibility: 'hidden',
+            backgroundColor: 'white',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '20px',
+            borderRadius: '8px',
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+          
+          <img src={ci} alt="logo" style={{ height: 'auto', width: '60%', maxWidth: '70px' }} />
+
+
+          <h3 className="text-xl font-bold text-gray-800">
+            {t("content.strategicFocusAreas.areas1")}
+          </h3>
+        </motion.div>
+
+        {/* Back of the card */}
+        <motion.div
+          className="card__face card__face--back"
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            backfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            backgroundColor: 'white',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '20px',
+            borderRadius: '8px',
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+          <h3 className="text-xl font-bold text-gray-800">
+            {t("content.strategicFocusAreas.areas1")}
+          </h3>
+          <p className="text-gray-800 text-center">
+          {t("content.strategicFocusAreas.desc1")}
+          </p>
+        </motion.div>
+      </motion.div>
+    </div>
+
+
+    <div className="scene" style={{ perspective: '1000px' }}>
+    <motion.div
+        className="card"
+        style={{
+          width: '240px',
+          height: '300px',
+          position: 'relative',
+          transformStyle: 'preserve-3d',
+          transition: 'transform 1s',
+          cursor: 'pointer',
+        }}
+        whileHover={{ rotateY: 180 }} // Flip effect on hover
+      >
+        {/* Front of the card */}
+        <motion.div
+          className="card__face card__face--front"
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            backfaceVisibility: 'hidden',
+            backgroundColor: 'white',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '20px',
+            borderRadius: '8px',
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+            <img src={pl} alt="logo" style={{ height: 'auto', width: '60%', maxWidth: '70px' }} />
             <h3 className="text-xl font-bold text-gray-800">{t("content.strategicFocusAreas.areas2")}</h3>
-          </motion.div>
+            </motion.div>
 
-          <motion.div
-            className="bg-white p-6 rounded shadow"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.8 }}
-            variants={cardVariants}
-            transition={{ delay: 0.4 }}  // Add delay for a staggered effect
-          >
-            <i className="fas fa-briefcase text-red-600 text-4xl mb-4"></i>
+{/* Back of the card */}
+<motion.div
+  className="card__face card__face--back"
+  style={{
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    backfaceVisibility: 'hidden',
+    transform: 'rotateY(180deg)',
+    backgroundColor: 'white',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)'
+  }}
+>
+  <h3 className="text-xl font-bold text-gray-800">{t("content.strategicFocusAreas.areas2")}</h3>
+  <p className="text-gray-800 text-center">
+  {t("content.strategicFocusAreas.desc2")}
+  </p>
+</motion.div>
+</motion.div>
+</div>
+
+<div className="scene" style={{ perspective: '1000px' }}>
+<motion.div
+        className="card"
+        style={{
+          width: '240px',
+          height: '300px',
+          position: 'relative',
+          transformStyle: 'preserve-3d',
+          transition: 'transform 1s',
+          cursor: 'pointer',
+        }}
+        whileHover={{ rotateY: 180 }} // Flip effect on hover
+      >
+        {/* Front of the card */}
+        <motion.div
+          className="card__face card__face--front"
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            backfaceVisibility: 'hidden',
+            backgroundColor: 'white',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '20px',
+            borderRadius: '8px',
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+           <img src={bd} alt="logo" style={{ height: 'auto', width: '60%', maxWidth: '70px' }} />
             <h3 className="text-xl font-bold text-gray-800">{t("content.strategicFocusAreas.areas3")}</h3>
           </motion.div>
-
           <motion.div
-            className="bg-white p-6 rounded shadow"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.8 }}
-            variants={cardVariants}
-            transition={{ delay: 0.6 }}  // Add delay for a staggered effect
-          >
-            <i className="fas fa-cogs text-red-600 text-4xl mb-4"></i>
+  className="card__face card__face--back"
+  style={{
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    backfaceVisibility: 'hidden',
+    transform: 'rotateY(180deg)',
+    backgroundColor: 'white',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)'
+  }}
+>
+  <h3 className="text-xl font-bold text-gray-800">{t("content.strategicFocusAreas.areas3")}</h3>
+  <p className="text-gray-800 text-center">
+  {t("content.strategicFocusAreas.desc3")}
+  </p>
+</motion.div>
+</motion.div>
+</div>
+
+
+<div className="scene" style={{ perspective: '1000px' }}>
+<motion.div
+        className="card"
+        style={{
+          width: '240px',
+          height: '300px',
+          position: 'relative',
+          transformStyle: 'preserve-3d',
+          transition: 'transform 1s',
+          cursor: 'pointer',
+        }}
+        whileHover={{ rotateY: 180 }} // Flip effect on hover
+      >
+        {/* Front of the card */}
+        <motion.div
+          className="card__face card__face--front"
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            backfaceVisibility: 'hidden',
+            backgroundColor: 'white',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '20px',
+            borderRadius: '8px',
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)'
+          }}
+        >
+           <img src={sd} alt="logo" style={{ height: 'auto', width: '60%', maxWidth: '70px' }} />
             <h3 className="text-xl font-bold text-gray-800">{t("content.strategicFocusAreas.areas4")}</h3>
           </motion.div>
+          <motion.div
+  className="card__face card__face--back"
+  style={{
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    backfaceVisibility: 'hidden',
+    transform: 'rotateY(180deg)',
+    backgroundColor: 'white',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)'
+  }}
+>
+  <h3 className="text-lg font-bold text-gray-800 mb-4">{t("content.strategicFocusAreas.areas4")}</h3>
+  <p className="text-gray-800 text-center">
+  {t("content.strategicFocusAreas.desc4")}
+
+  </p>
+</motion.div>
+</motion.div>
+</div>
         </div>
       </div>
     </section>
@@ -169,7 +423,7 @@ const Home = () => {
                 <section className="bg-white py-16">
                     <div className="container mx-auto flex flex-col md:flex-row items-center px-8">
                         <div className="md:w-1/2 text-center md:text-left">
-                            <h2 className="text-3xl font-bold text-gray-800">Eager to Explore the Future Landscape of <span className="text-red-600">Startup Support?</span></h2>
+                            <h2 className="text-3xl font-bold text-gray-800">Eager to Explore the Future Landscape of <span className="text-red-600">Cyber Intelligence</span></h2>
                             <p className="mt-4 text-gray-600">{t("content.efficiency")}</p>
                             <button className="mt-8 bg-red-600 text-white px-6 py-3 rounded">Learn More</button>
                         </div>
@@ -203,61 +457,386 @@ const Home = () => {
                 </section>
 
                 <section className="bg-gray-100 py-16">
-      <div className="container mx-auto text-center px-8">
-        <h2 className="text-3xl font-bold text-red-600">{t("content.services.title")}</h2>
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+  <div className="container mx-auto text-center px-8">
+    <h2 className="text-3xl font-bold text-red-600">{t("content.services.title")}</h2>
+    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 
-          {/* Slide in from the left */}
-          <Slide direction="left">
-            <div className="bg-white p-6 rounded shadow">
-              <i className="fas fa-search text-red-600 text-4xl mb-4"></i>
-              <h3 className="text-xl font-bold text-gray-800">{t("content.services.list1")}</h3>
-            </div>
-          </Slide>
+       {/* Card 1 */}
+  <div style={{ perspective: '1000px', marginBottom: '1rem' }}>
+    <div
+       style={{
+        width: '240px',
+        height: '300px',
+        position: 'relative',
+        transformStyle: 'preserve-3d',
+        transition: 'transform 1s',
+        cursor: 'pointer',
+        transform: 'rotateY(0deg)', // Initial rotation
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.transform = 'rotateY(180deg)'} // Flip on mouse enter
+      onMouseLeave={(e) => e.currentTarget.style.transform = 'rotateY(0deg)'} // Flip back on mouse leave
+    >
+      {/* Front Side */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          backfaceVisibility: 'hidden',
+          backgroundColor: 'white',
+          padding: '1.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+       <img src={im} alt="logo" style={{ height: 'auto', width: '60%', maxWidth: '70px' }} />
 
-          {/* Slide in from the right */}
-          <Slide direction="right">
-            <div className="bg-white p-6 rounded shadow">
-              <i className="fas fa-chart-line text-red-600 text-4xl mb-4"></i>
-              <h3 className="text-xl font-bold text-gray-800">{t("content.services.list2")}</h3>
-            </div>
-          </Slide>
 
-          {/* Slide in from the left */}
-          <Slide direction="left">
-            <div className="bg-white p-6 rounded shadow">
-              <i className="fas fa-cogs text-red-600 text-4xl mb-4"></i>
-              <h3 className="text-xl font-bold text-gray-800">{t("content.services.list3")}</h3>
-            </div>
-          </Slide>
-
-          {/* Slide in from the right */}
-          <Slide direction="right">
-            <div className="bg-white p-6 rounded shadow">
-              <i className="fas fa-rocket text-red-600 text-4xl mb-4"></i>
-              <h3 className="text-xl font-bold text-gray-800">{t("content.services.list4")}</h3>
-            </div>
-          </Slide>
-
-          {/* Slide in from the left */}
-          <Slide direction="left">
-            <div className="bg-white p-6 rounded shadow">
-              <i className="fas fa-chart-bar text-red-600 text-4xl mb-4"></i>
-              <h3 className="text-xl font-bold text-gray-800">{t("content.services.list5")}</h3>
-            </div>
-          </Slide>
-
-          {/* Slide in from the right */}
-          <Slide direction="right">
-            <div className="bg-white p-6 rounded shadow">
-              <i className="fas fa-money-bill-wave text-red-600 text-4xl mb-4"></i>
-              <h3 className="text-xl font-bold text-gray-800">{t("content.services.list6")}</h3>
-            </div>
-          </Slide>
-
-        </div>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2d3748' }}>{t("content.services.list1")}</h3>
       </div>
-    </section>
+
+      {/* Back Side */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          backfaceVisibility: 'hidden',
+          backgroundColor: '#f8f8f8',
+          color: 'black',
+          transform: 'rotateY(180deg)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '1.5rem',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+         <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2d3748' }}>{t("content.services.list1")}</h3>
+        <p style={{ fontSize: '1rem', fontWeight: '500', color: '#4a5568' }}>{t("content.services.desc1")}</p>
+      </div>
+    </div>
+  </div>
+
+      {/* Card 2 */}
+  <div style={{ perspective: '1000px', marginBottom: '1rem' }}>
+    <div
+       style={{
+        width: '240px',
+        height: '300px',
+        position: 'relative',
+        transformStyle: 'preserve-3d',
+        transition: 'transform 1s',
+        cursor: 'pointer',
+        transform: 'rotateY(0deg)', // Initial rotation
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.transform = 'rotateY(180deg)'} // Flip on mouse enter
+      onMouseLeave={(e) => e.currentTarget.style.transform = 'rotateY(0deg)'} // Flip back on mouse leave
+    >
+      {/* Front Side */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          backfaceVisibility: 'hidden',
+          backgroundColor: 'white',
+          padding: '1.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+         <img src={a} alt="logo" style={{ height: 'auto', width: '60%', maxWidth: '70px' }} />
+
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2d3748' }}>{t("content.services.list2")}</h3>
+      </div>
+
+      {/* Back Side */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          backfaceVisibility: 'hidden',
+          backgroundColor: '#f8f8f8',
+          color: 'black',
+          transform: 'rotateY(180deg)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '1.5rem',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2d3748' }}>{t("content.services.list2")}</h3>
+        <p style={{ fontSize: '1rem', fontWeight: '500', color: '#4a5568' }}>{t("content.services.desc2")}</p>
+      </div>
+    </div>
+  </div>
+
+      {/* Card 3 */}
+  <div style={{ perspective: '1000px', marginBottom: '1rem' }}>
+    <div
+       style={{
+        width: '240px',
+        height: '300px',
+        position: 'relative',
+        transformStyle: 'preserve-3d',
+        transition: 'transform 1s',
+        cursor: 'pointer',
+        transform: 'rotateY(0deg)', // Initial rotation
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.transform = 'rotateY(180deg)'} // Flip on mouse enter
+      onMouseLeave={(e) => e.currentTarget.style.transform = 'rotateY(0deg)'} // Flip back on mouse leave
+    >
+      {/* Front Side */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          backfaceVisibility: 'hidden',
+          backgroundColor: 'white',
+          padding: '1.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+       <img src={p} alt="logo" style={{ height: 'auto', width: '60%', maxWidth: '70px' }} />
+
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2d3748' }}>{t("content.services.list3")}</h3>
+      </div>
+
+      {/* Back Side */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          backfaceVisibility: 'hidden',
+          backgroundColor: '#f8f8f8',
+          color: 'black',
+          transform: 'rotateY(180deg)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '1.5rem',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2d3748' }}>{t("content.services.list3")}</h3>
+        <p style={{ fontSize: '1rem', fontWeight: '500', color: '#4a5568' }}>{t("content.services.desc3")}</p>
+      </div>
+    </div>
+  </div>
+
+      {/* Card 4 */}
+  <div style={{ perspective: '1000px', marginBottom: '1rem' }}>
+    <div
+       style={{
+        width: '240px',
+        height: '300px',
+        position: 'relative',
+        transformStyle: 'preserve-3d',
+        transition: 'transform 1s',
+        cursor: 'pointer',
+        transform: 'rotateY(0deg)', // Initial rotation
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.transform = 'rotateY(180deg)'} // Flip on mouse enter
+      onMouseLeave={(e) => e.currentTarget.style.transform = 'rotateY(0deg)'} // Flip back on mouse leave
+    >
+      {/* Front Side */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          backfaceVisibility: 'hidden',
+          backgroundColor: 'white',
+          padding: '1.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+        <img src={ma} alt="logo" style={{ height: 'auto', width: '60%', maxWidth: '70px' }} />
+
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2d3748' }}>{t("content.services.list4")}</h3>
+      </div>
+
+      {/* Back Side */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          backfaceVisibility: 'hidden',
+          backgroundColor: '#f8f8f8',
+          color: 'black',
+          transform: 'rotateY(180deg)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '1.5rem',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+         <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2d3748' }}>{t("content.services.list4")}</h3>
+        <p style={{ fontSize: '1rem', fontWeight: '500', color: '#4a5568' }}>{t("content.services.desc4")}</p>
+      </div>
+    </div>
+  </div>
+      {/* Card 5 */}
+  <div style={{ perspective: '1000px', marginBottom: '1rem' }}>
+    <div
+       style={{
+        width: '240px',
+        height: '300px',
+        position: 'relative',
+        transformStyle: 'preserve-3d',
+        transition: 'transform 1s',
+        cursor: 'pointer',
+        transform: 'rotateY(0deg)', // Initial rotation
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.transform = 'rotateY(180deg)'} // Flip on mouse enter
+      onMouseLeave={(e) => e.currentTarget.style.transform = 'rotateY(0deg)'} // Flip back on mouse leave
+    >
+      {/* Front Side */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          backfaceVisibility: 'hidden',
+          backgroundColor: 'white',
+          padding: '1.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+       <img src={c} alt="logo" style={{ height: 'auto', width: '60%', maxWidth: '70px' }} />
+
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2d3748' }}>{t("content.services.list5")}</h3>
+      </div>
+
+      {/* Back Side */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          backfaceVisibility: 'hidden',
+          backgroundColor: '#f8f8f8',
+          color: 'black',
+          transform: 'rotateY(180deg)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '1.5rem',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2d3748' }}>{t("content.services.list5")}</h3>
+        <p style={{ fontSize: '1rem', fontWeight: '500', color: '#4a5568' }}>{t("content.services.desc5")}</p>
+      </div>
+    </div>
+  </div>
+
+      {/* Card 6*/}
+  <div style={{ perspective: '1000px', marginBottom: '1rem' }}>
+    <div
+       style={{
+        width: '240px',
+        height: '300px',
+        position: 'relative',
+        transformStyle: 'preserve-3d',
+        transition: 'transform 1s',
+        cursor: 'pointer',
+        transform: 'rotateY(0deg)', // Initial rotation
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.transform = 'rotateY(180deg)'} // Flip on mouse enter
+      onMouseLeave={(e) => e.currentTarget.style.transform = 'rotateY(0deg)'} // Flip back on mouse leave
+    >
+      {/* Front Side */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          backfaceVisibility: 'hidden',
+          backgroundColor: 'white',
+          padding: '1.5rem',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+        <img src={sus} alt="logo" style={{ height: 'auto', width: '60%', maxWidth: '70px' }} />
+
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2d3748' }}>{t("content.services.list6")}</h3>
+      </div>
+
+      {/* Back Side */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          backfaceVisibility: 'hidden',
+          backgroundColor: '#f8f8f8',
+          color: 'black',
+          transform: 'rotateY(180deg)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '1.5rem',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2d3748' }}>{t("content.services.list6")}</h3>
+        <p style={{ fontSize: '1rem', fontWeight: '500', color: '#4a5568' }}>{t("content.services.desc6")}</p>
+      </div>
+    </div>
+  </div>
+
+    </div>
+  </div>
+</section>
+
                 <section className="bg-white py-16">
                     <div className="container mx-auto flex flex-col md:flex-row items-center px-8">
                         <div className="md:w-1/2 text-center md:text-left">

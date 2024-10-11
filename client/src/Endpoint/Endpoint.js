@@ -28,6 +28,8 @@ export const POST_INCIDENT = `${BASE_URL}incidentpost`;
 
 export const GET_INCIDENT = `${BASE_URL}incidentget`;
 
+export const CHECK_RESOLUTION_STATUS = `${BASE_URL}check-resolution-status`;
+
 export const SET_PRIORITY_TIMES = 
   `${BASE_URL}set-priority-times`;
 
