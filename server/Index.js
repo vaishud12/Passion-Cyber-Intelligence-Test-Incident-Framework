@@ -988,13 +988,41 @@ const storagi = multer.diskStorage({
 const uploading = multer({ storage: storagi });
 
 app.post('/citincident-api/incidentpost', uploading.single('photo'), (req, res) => {
-    const { sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority, remark } = req.body;
+    const { 
+        sector, 
+        incidentcategory, 
+        incidentname, 
+        incidentowner, 
+        incidentdescription, 
+        date, 
+        currentaddress, 
+        gps, 
+        raisedtouser, 
+        status, 
+        tagss, 
+        priority, 
+        remark 
+    } = req.body;
+
+    // Debug: Log raw incoming tags
+    console.log('Raw tags received:', tagss);
+
+    // Ensure tags are properly handled
+    // If tagss is a single string, split it into an array
+    const tagsArray = typeof tagss === 'string' ? tagss.split(',') : tagss;
+
+    // Remove duplicates using a Set and convert back to an array
+    const uniqueTagsArray = Array.from(new Set(tagsArray.map(tag => tag.trim()))); // Trim whitespace
+
+    // Convert the unique tags array into a PostgreSQL array format
+    const formattedTags = `{${uniqueTagsArray.join(',')}}`; // Converts to {tag1,tag2}
 
     // Extract the filename from the uploaded file
     const photo = req.file ? req.file.filename : null;
 
-    console.log('Received file:', photo); // Check if this logs the file name
-    console.log('Received remark:', remark);
+    // Debug: Log the unique tags and the formatted version
+    console.log('Unique tags:', uniqueTagsArray);
+    console.log('Formatted tags for database:', formattedTags);
 
     // Insert data into the database
     const sqlInsert = `
@@ -1003,9 +1031,9 @@ app.post('/citincident-api/incidentpost', uploading.single('photo'), (req, res) 
             date, currentaddress, gps, raisedtouser, status, 
             tagss, priority, remark, photo
         ) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14 )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
     `;
-    const values = [sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status,  tagss, priority, remark, photo];
+    const values = [sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, formattedTags, priority, remark, photo];
 
     db.query(sqlInsert, values, (error, result) => {
         if (error) {
@@ -1016,6 +1044,7 @@ app.post('/citincident-api/incidentpost', uploading.single('photo'), (req, res) 
         }
     });
 });
+
 app.post("/citincident-api/send-incident-email", uploading.single('photo'), async (req, res) => {
     try {
         const transporter = nodemailer.createTransport({
@@ -1332,7 +1361,7 @@ app.post("/citincident-api/resolutionpost", (req, res) => {
         resolutiondate,
         resolutionremark,
         resolvedby,
-        id
+        id // Ensure this is properly defined if needed
     } = req.body;
 
     // Basic validation
@@ -1353,12 +1382,12 @@ app.post("/citincident-api/resolutionpost", (req, res) => {
             return res.status(400).json({ error: "This incident ID already has a resolution." });
         }
 
-        // SQL Insert query
-        const sqlInsert = "INSERT INTO resolution (incidentid, sector, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby, id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
-        const values = [incidentid, sector, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby];
+        // SQL Insert query (update as needed)
+        const sqlInsert = "INSERT INTO resolution (incidentid, sector, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby, id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
+        const values = [incidentid, sector, incidentcategory, incidentname, incidentowner, resolutiondate, resolutionremark, resolvedby, id]; // Ensure id is included if necessary
 
         // Execute the insert query
-        db.query(sqlInsert, values, (insertError, insertResult) => {
+        db.query(sqlInsert, values, (insertError) => {
             if (insertError) {
                 console.error("Error inserting resolution:", insertError);
                 return res.status(500).json({ error: "Internal server error" });
@@ -1532,10 +1561,11 @@ app.post("/citincident-api/send-emailforresolved", async (req, res) => {
 app.get('/citincident-api/incidentsuser-count', async (req, res) => {
     try {
       const results = await db.query(`
-        SELECT u.email, COUNT(i.id) AS incident_count
-        FROM users u
-        JOIN incident i ON u.id = i.id
-        GROUP BY u.email;
+       SELECT incidentowner AS email, incidentid, COUNT(incidentid) AS incident_count
+FROM incident
+WHERE incidentowner IS NOT NULL  
+GROUP BY incidentid
+
       `);
       res.json(results.rows);  // Return the result as JSON
     } catch (error) {
@@ -1543,6 +1573,7 @@ app.get('/citincident-api/incidentsuser-count', async (req, res) => {
       res.status(500).send('Server Error');
     }
   });
+  
 
   app.get('/citincident-api/resolution-statuses', async (req, res) => {
     try {
@@ -1568,14 +1599,14 @@ app.get('/citincident-api/incidentsuser-count', async (req, res) => {
   });
 
   app.get('/citincident-api/priority', (req, res) => {
-    // SQL query to get incidents with priority and user info
+    // SQL query to get incidents with priority and user info, joining based on raisedtouser email
     const sqlGet = `
       SELECT
         i.priority,
         u.email AS user,
         COUNT(*) AS count
       FROM incident i
-      JOIN users u ON i.id = u.id
+      JOIN users u ON i.raisedtouser = u.email  -- Join based on raisedtouser email
       GROUP BY i.priority, u.email
       ORDER BY i.priority, u.email;
     `;
@@ -1596,7 +1627,7 @@ app.get('/citincident-api/incidentsuser-count', async (req, res) => {
       res.status(200).json(formattedResult);
     });
   });
-
+  
   app.get('/citincident-api/trends', async (req, res) => {
     try {
       // SQL query to fetch trends with category and priority

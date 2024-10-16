@@ -159,7 +159,7 @@ const Home = () => {
 
 
         <section className="bg-gray-100 py-16">
-      <div className="container mx-auto text-center">
+      <div className="container mx-auto text-center px-10">
         <h2 className="text-3xl font-bold text-red-600">{t("content.strategicFocusAreas.title")}</h2>
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 
@@ -167,7 +167,7 @@ const Home = () => {
         <motion.div
         className="card"
         style={{
-          width: '240px',
+          width: '250px',
           height: '300px',
           position: 'relative',
           transformStyle: 'preserve-3d',
@@ -237,7 +237,7 @@ const Home = () => {
     <motion.div
         className="card"
         style={{
-          width: '240px',
+          width: '250px',
           height: '300px',
           position: 'relative',
           transformStyle: 'preserve-3d',
@@ -299,7 +299,7 @@ const Home = () => {
 <motion.div
         className="card"
         style={{
-          width: '240px',
+          width: '250px',
           height: '300px',
           position: 'relative',
           transformStyle: 'preserve-3d',
@@ -360,7 +360,7 @@ const Home = () => {
 <motion.div
         className="card"
         style={{
-          width: '240px',
+          width: '250px',
           height: '300px',
           position: 'relative',
           transformStyle: 'preserve-3d',
@@ -465,7 +465,7 @@ const Home = () => {
   <div style={{ perspective: '1000px', marginBottom: '1rem' }}>
     <div
        style={{
-        width: '240px',
+        width: '250px',
         height: '300px',
         position: 'relative',
         transformStyle: 'preserve-3d',
@@ -528,7 +528,7 @@ const Home = () => {
   <div style={{ perspective: '1000px', marginBottom: '1rem' }}>
     <div
        style={{
-        width: '240px',
+        width: '250px',
         height: '300px',
         position: 'relative',
         transformStyle: 'preserve-3d',
@@ -590,7 +590,7 @@ const Home = () => {
   <div style={{ perspective: '1000px', marginBottom: '1rem' }}>
     <div
        style={{
-        width: '240px',
+        width: '250px',
         height: '300px',
         position: 'relative',
         transformStyle: 'preserve-3d',
@@ -652,7 +652,7 @@ const Home = () => {
   <div style={{ perspective: '1000px', marginBottom: '1rem' }}>
     <div
        style={{
-        width: '240px',
+        width: '250px',
         height: '300px',
         position: 'relative',
         transformStyle: 'preserve-3d',
@@ -713,7 +713,7 @@ const Home = () => {
   <div style={{ perspective: '1000px', marginBottom: '1rem' }}>
     <div
        style={{
-        width: '240px',
+        width: '250px',
         height: '300px',
         position: 'relative',
         transformStyle: 'preserve-3d',
@@ -775,7 +775,7 @@ const Home = () => {
   <div style={{ perspective: '1000px', marginBottom: '1rem' }}>
     <div
        style={{
-        width: '240px',
+        width: '250px',
         height: '300px',
         position: 'relative',
         transformStyle: 'preserve-3d',

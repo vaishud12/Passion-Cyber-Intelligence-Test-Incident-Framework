@@ -105,10 +105,10 @@ const AdminDashboard = () => {
       try {
         const response = await axios.get(API.GET_INCIDENTS_COUNT_BY_USER);
         const incidentData = response.data || [];
-
+  
         const userLabels = incidentData.map(incident => incident.email);
         const incidentCounts = incidentData.map(incident => incident.incident_count);
-
+  
         setUserIncidentData({
           labels: userLabels,
           datasets: [{
@@ -119,12 +119,11 @@ const AdminDashboard = () => {
             borderWidth: 1,
           }],
         });
-
+  
       } catch (error) {
         console.error('Error fetching incident count by user:', error);
       }
     };
-
   
     // Function to fetch incident categories separately
     const fetchIncidentCategoryData = async () => {
@@ -432,38 +431,46 @@ const AdminDashboard = () => {
             </div>
             
             <div className="bg-white p-6 rounded-lg shadow-lg col-span-1 md:col-span-2 w-full max-w-4xl mx-auto">
-          <Bar
-            data={userIncidentData}
-            options={{
-              responsive: true,
-              scales: {
-                x: {
-                  title: {
-                    display: true,
-                    text: 'User Email'
-                  }
-                },
-                y: {
-                  beginAtZero: true,
-                  title: {
-                    display: true,
-                    text: 'Incident Count'
-                  }
-                }
-              },
-              plugins: {
-                legend: {
-                  position: 'top',
-                },
-                tooltip: {
-                  callbacks: {
-                    label: (context) => `${context.dataset.label}: ${context.raw}`,
-                  },
-                },
-              },
-            }}
-          />
-        </div>
+  <Bar
+    data={userIncidentData}
+    options={{
+      responsive: true,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'User Email',
+          },
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Incident Count',
+          },
+          ticks: {
+            stepSize: 5, // Show every number at an interval of 5
+            // Optionally add this to ensure no ticks are skipped:
+            callback: (value) => value, // This shows every tick without modification
+          },
+          // Optional: You can define a max value if you want to limit the Y-axis
+          // max: <some maximum value>, 
+        },
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        tooltip: {
+          callbacks: {
+            label: (context) => `${context.dataset.label}: ${context.raw}`,
+          },
+        },
+      },
+    }}
+  />
+</div>
+
 
         
           </div>

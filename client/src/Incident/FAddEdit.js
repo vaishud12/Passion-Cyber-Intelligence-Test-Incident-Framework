@@ -238,8 +238,10 @@ console.log(email);
             formData.append('remark', remark);
     
             if (Array.isArray(tagNames)) {
-                tagNames.forEach(tag => {
-                    formData.append('tagss[]', tag); // Add each tag separately
+                const uniqueTags = Array.from(new Set(tagNames)); // Create an array of unique tags
+        
+                uniqueTags.forEach(tag => {
+                    formData.append('tagss[]', tag); // Append each unique tag
                 });
             }
     
