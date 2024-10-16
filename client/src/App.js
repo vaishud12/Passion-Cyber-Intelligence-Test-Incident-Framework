@@ -19,7 +19,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
         <Route path="/forgetPassword" element={<ForgetPassword />} />
-        <Route path="/reset-password/:token" element={<PrivateRoute><ResetPassword /></PrivateRoute>} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/Adminmain" element={<PrivateRoute><AdminMain /></PrivateRoute>} />
         
       </Routes>
