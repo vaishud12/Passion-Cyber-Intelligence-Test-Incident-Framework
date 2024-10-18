@@ -1135,19 +1135,75 @@ app.delete("/citincident-api/incidentdelete/:incidentid", (req, res) => {
     } );
 });
 
-app.put("/citincident-api/incidentupdate/:incidentid", (req, res) => {
-    const { incidentid } = req.params;
-    const { sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority } = req.body;
-    const sqlUpdate = "UPDATE incident SET sector=$1, incidentcategory=$2, incidentname=$3, incidentowner=$4, incidentdescription=$5, date=$6, currentaddress=$7, gps=$8, raisedtouser=$9, status=$10, tagss=$11, priority=$12 WHERE incidentid = $13";
-    const values = [sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, tagss, priority, incidentid];
+app.put('/citincident-api/incidentupdate/:incidentid', uploading.single('photo'), (req, res) => {
+    const { 
+        sector, 
+        incidentcategory, 
+        incidentname, 
+        incidentowner, 
+        incidentdescription, 
+        date, 
+        currentaddress, 
+        gps, 
+        raisedtouser, 
+        status, 
+        tagss, 
+        priority, 
+        remark 
+    } = req.body;
+
+    // Ensure tags are properly handled
+    // If tagss is a single string, split it into an array
+    const tagsArray = typeof tagss === 'string' ? tagss.split(',') : tagss;
+
+    // Remove duplicates using a Set and convert back to an array
+    const uniqueTagsArray = Array.from(new Set(tagsArray.map(tag => tag.trim()))); // Trim whitespace
+
+    // Convert the unique tags array into a PostgreSQL array format
+    const formattedTags = `{${uniqueTagsArray.join(',')}}`; // Converts to {tag1,tag2}
+
+    // Extract the filename from the uploaded file
+    const photo = req.file ? req.file.filename : null;
+
+    // Log the unique tags and the formatted version for debugging
+    console.log('Unique tags:', uniqueTagsArray);
+    console.log('Formatted tags for database:', formattedTags);
+
+    // Create the SQL UPDATE query
+    const sqlUpdate = `
+        UPDATE incident 
+        SET 
+            sector = $1, 
+            incidentcategory = $2, 
+            incidentname = $3, 
+            incidentowner = $4, 
+            incidentdescription = $5, 
+            date = $6, 
+            currentaddress = $7, 
+            gps = $8, 
+            raisedtouser = $9, 
+            status = $10, 
+            tagss = $11, 
+            priority = $12, 
+            remark = $13, 
+            photo = $14 
+        WHERE incidentid = $15
+    `;
+
+    // Prepare the values for the SQL query
+    const values = [sector, incidentcategory, incidentname, incidentowner, incidentdescription, date, currentaddress, gps, raisedtouser, status, formattedTags, priority, remark, photo, req.params.incidentid];
+
+    // Execute the query
     db.query(sqlUpdate, values, (error, result) => {
         if (error) {
-            console.error("Error updating resolution:", error);
-            return res.status(500).json({ error: "Internal server error" });
+            console.error("Error updating incident:", error);
+            res.status(500).json({ error: "Internal server error" });
+        } else {
+            res.status(200).json({ message: "Incident updated successfully" });
         }
-        res.status(200).json({ message: "Incident updated successfully" });
     });
 });
+
 app.get("/citincident-api/incidentget/:incidentid", async (req, res) => {
     try {
         const { incidentid } = req.params;

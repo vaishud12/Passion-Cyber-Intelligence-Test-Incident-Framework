@@ -56,40 +56,33 @@ console.log(email);
     const tagNames = tags.map(tag => tag.name);
   
     // Handle tag addition
-    const onAddition = useCallback(
-      (newTag) => {
+    const onAddition = useCallback((newTag) => {
         if (newTag && !tags.find((tag) => tag.name === newTag.name)) {
-          setTags((prevTags) => [...prevTags, newTag]);
+            setTags((prevTags) => [...prevTags, newTag]);
         }
-      },
-      [tags]
-    );
-  
-    // Handle tag deletion
+    }, [tags]);
+
     const onDelete = useCallback((tagIndex) => {
-      setTags((prevTags) => prevTags.filter((_, i) => i !== tagIndex));
+        setTags((prevTags) => prevTags.filter((_, i) => i !== tagIndex));
     }, []);
-  
-    // Handle input changes
+
     const onInput = useCallback((query) => {
-      setQuery(query);
+        setQuery(query);
     }, []);
-  
-    // Handle input key press to add tag
+
     const handleKeyDown = (e) => {
-      if (e.key === 'Enter' && query.trim()) {
-        e.preventDefault(); // Prevent default form submission or other behavior
-        onAddition({ id: tags.length + 1, name: query.trim() });
-        setQuery(''); // Clear input after adding
-      }
+        if (e.key === 'Enter' && query.trim()) {
+            e.preventDefault(); // Prevent default behavior
+            onAddition({ id: tags.length + 1, name: query.trim() }); // Add tag
+            setQuery(''); // Clear input
+        }
     };
-  
-    // Handle input blur event to create tag if input is not empty
+
     const handleBlur = () => {
-      if (query.trim()) {
-        onAddition({ id: tags.length + 1, name: query.trim() });
-        setQuery(''); // Clear input after adding
-      }
+        if (query.trim()) {
+            onAddition({ id: tags.length + 1, name: query.trim() }); // Add tag on blur
+            setQuery(''); // Clear input
+        }
     };
 
     
@@ -99,11 +92,17 @@ console.log(email);
     useEffect(() => {
         if (editItem && editItem.incidentid) {
             setState(editItem);
+            setTags(editItem.tags || []);
+            setRemark(editItem.remark || '');
         } else if (incidentid) {
             axios.get(API.GET_SPECIFIC_INCIDENT(incidentid))
                 .then(resp => {
                     console.log("Response:", resp.data);
-                    setState(resp.data[0]);
+                    const incidentData = resp.data[0]; // Define incidentData here
+
+                setState(incidentData);  // Set the entire state
+                setTags(incidentData.tags || []);  // Set tags from incidentData
+                setRemark(incidentData.remark || ''); 
                 })
                 .catch(error => console.error(error));
         }
@@ -324,7 +323,8 @@ console.log(email);
     
     
 const handlePhotoChange = (e) => {
-    setPhoto(e.target.files[0]);
+    const file = e.target.files[0]; // Get the selected file
+  setPhoto(file);
   };
 
   const handleRemarkChange = (plainText) => {
@@ -534,7 +534,7 @@ const handlePhotoChange = (e) => {
         type="text"
         id="gps"
         name="gps"
-        value={gps || ""}
+        value={gps || editItem?.gps || ""}  // Prefill with editItem GPS
         placeholder={t("addincident.enter_gps_coordinates")}
         onChange={handleInputChange}
       />
@@ -554,33 +554,33 @@ const handlePhotoChange = (e) => {
     {/* {message && <div style={{ color: 'green' }}className="message">{message}</div>} */}
 </div>
 <div>
-      <p>{t("addincident.select_or_add_tags")}.</p>
-      <div className="tag-input-container">
-        {tags.map((tag, index) => (
-          <span key={index} className="tag">
-            {tag.name}
-            <button
-              type="button"
-              onClick={() => onDelete(index)}
-              className="tag-remove-button"
-            >
-              ×
-            </button>
-          </span>
-        ))}
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => onInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
-          placeholder="Add new tag"
-          className="tag-input"
-        />
-      </div>
-      <p><b>{t("addincident.tag_names")}</b></p>
-      <pre><code>{JSON.stringify(tagNames, null, 2)}</code></pre>
-</div>             
+  <p>{t("addincident.select_or_add_tags")}.</p>
+  <div className="tag-input-container">
+    {tags.map((tag, index) => (
+      <span key={index} className="tag">
+        {tag.name}
+        <button
+          type="button"
+          onClick={() => onDelete(index)}
+          className="tag-remove-button"
+        >
+          ×
+        </button>
+      </span>
+    ))}
+    <input
+      type="text"
+      value={query}       
+      onChange={(e) => onInput(e.target.value)}
+      onKeyDown={handleKeyDown}
+      onBlur={handleBlur}
+      placeholder="Add new tag"
+      className="tag-input"
+    />
+  </div>
+  <p><b>{t("addincident.tag_names")}</b></p>
+  <pre><code>{JSON.stringify(tagNames, null, 2)}</code></pre>
+</div> 
                     <label htmlFor="status">{t("addincident.status")}</label>
                     <select
                         id="status"
@@ -602,7 +602,7 @@ const handlePhotoChange = (e) => {
             type="radio"
             name="priority"
             value="critical"
-            checked={priority === "critical"}
+            checked={priority === "critical" || editItem?.priority === "critical"}  // Prefill with editItem priority
             style={{ marginRight: '8px' }}
         />
        {t("addincident.critical")}  
@@ -612,7 +612,7 @@ const handlePhotoChange = (e) => {
             type="radio"
             name="priority"
             value="veryhigh"
-            checked={priority === "veryhigh"}
+            checked={priority === "veryhigh" || editItem?.priority === "veryhigh" }
             style={{ marginRight: '8px' }}
         />
        {t("addincident.very_high")}
@@ -622,7 +622,7 @@ const handlePhotoChange = (e) => {
             type="radio"
             name="priority"
             value="high"
-            checked={priority === "high"}
+            checked={priority === "high" || editItem?.priority === "high"}
             style={{ marginRight: '8px' }}
         />
         {t("addincident.high")}
@@ -632,7 +632,7 @@ const handlePhotoChange = (e) => {
             type="radio"
             name="priority"
             value="medium"
-            checked={priority === "medium"}
+            checked={priority === "medium" || editItem?.priority === "medium"}
             style={{ marginRight: '8px' }}
         />
         {t("addincident.medium")}
@@ -642,15 +642,29 @@ const handlePhotoChange = (e) => {
             type="radio"
             name="priority"
             value="low"
-            checked={priority === "low"}
+            checked={priority === "low" || editItem?.priority === "low"}
             style={{ marginRight: '8px' }}
         />
         {t("addincident.low")}
     </label>
 </div>
-<input type="file" name="photo" onChange={handlePhotoChange} />
+<div>
+  <label htmlFor="photo">Upload Photo</label>
+  <input type="file" name="photo" onChange={handlePhotoChange} />
+
+  {/* Display the selected file name */}
+  {photo && <p>Selected file: {photo.name}</p>}
+
+  {/* Display the prefilled image name if editing an existing incident */}
+  {editItem && editItem.photo && !photo && (
+    <p>Previously uploaded file: {editItem.photo}</p>
+  )}
+</div>
       {/* Rich Text Editor for Remark */}
-      <PlainTextQuillEditor onChange={handleRemarkChange} />
+      <PlainTextQuillEditor 
+  value={remark} // Prefill with editItem remark
+  onChange={handleRemarkChange} 
+/>
 
                     <input type="submit" value={editItem && editItem.incidentid ? "Update" : "Save"} />
                     {emailSent && <div style={{ color: 'green', marginTop: '10px' }}>Email sent successfully!</div>}

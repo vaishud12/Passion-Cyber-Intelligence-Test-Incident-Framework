@@ -50,27 +50,30 @@ const Admin = () => {
             const response = await axios.get(API.GET_INCIDENT);
             const incidents = response.data;
 
-            // Group incidents by user email
+            // Group incidents by incidentowner
             const groupedIncidents = incidents.reduce((acc, incident) => {
-                if (!acc[incident.email]) {
-                    acc[incident.email] = [];
+                const ownerEmail = incident.incidentowner; // Use incidentowner for grouping
+                if (!acc[ownerEmail]) {
+                    acc[ownerEmail] = [];
                 }
-                acc[incident.email].push(incident);
+                acc[ownerEmail].push(incident);
                 return acc;
             }, {});
 
-            const incidentsByUser = Object.entries(groupedIncidents).map(([email, incidents]) => ({
-                email,
+            // Convert grouped incidents into an array of objects
+            const incidentsByUser = Object.entries(groupedIncidents).map(([ownerEmail, incidents]) => ({
+                email: ownerEmail,
                 incidents,
             }));
-            setIncidentsByUser(incidentsByUser);
+
+            setIncidentsByUser(incidentsByUser); // Save grouped incidents to state
 
             // Check resolved status for each incident
-            for (const user of incidentsByUser) {
-                for (const incident of user.incidents) {
-                    await checkResolvedStatus(incident.incidentid); // Update resolved status if needed
-                }
-            }
+            await Promise.all(
+                incidentsByUser.flatMap(user =>
+                    user.incidents.map(incident => checkResolvedStatus(incident.incidentid))
+                )
+            ); // Update resolved status if needed
         } catch (err) {
             console.error('Error fetching incidents:', err);
             setError('Failed to fetch incidents.');
@@ -83,48 +86,60 @@ const Admin = () => {
 }, []);
 
 
-    const loadData = async () => {
-        try {
-            const response = await axios.get(API.GET_INCIDENT);
-            const incidents = response.data;
-    
-            // Group incidents by user email
-            const groupedIncidents = incidents.reduce((acc, incident) => {
-                if (!acc[incident.email]) {
-                    acc[incident.email] = [];
-                }
-                acc[incident.email].push(incident);
-                return acc;
-            }, {});
-    
-            setIncidentsByUser(Object.entries(groupedIncidents).map(([email, incidents]) => ({
-                email,
-                incidents,
-            })));
-            setLoading(false);
-        } catch (err) {
-            console.error('Error fetching incidents:', err);
-            setError('Failed to fetch incidents.');
-            setLoading(false);
-        }
-    };
-    const loadTags = async () => {
-        try {
-            const response = await axios.get(API.GET_TAGS);
-            console.log("Fetched tags:", response.data); // Debugging line
-            setTags(response.data.map(tagObj => tagObj.tagss)); // Ensure `tagss` is correct
-        } catch (error) {
-            console.error("Error fetching tags:", error);
-        }
-    };
 
-    
-    // Fetch data on component mount
-    useEffect(() => {
-        loadData();
-        loadTags();
-    }, []);
-    
+const loadData = async () => {
+    try {
+        const response = await axios.get(API.GET_INCIDENT);
+        const incidents = response.data;
+
+        // Group incidents by user email
+        const groupedIncidents = incidents.reduce((acc, incident) => {
+            const ownerEmail = incident.incidentowner; // Use the correct field for grouping
+            if (!acc[ownerEmail]) {
+                acc[ownerEmail] = [];
+            }
+            // Join the tags if they exist and are an array
+            const tagsString = (incident.tags || []).join(', '); // Safely join tags
+            
+            // Create a new object for the incident including the joined tags
+            const incidentWithTags = {
+                ...incident,
+                tags: tagsString // Replace the tags array with the joined string
+            };
+
+            acc[ownerEmail].push(incidentWithTags); // Push the incident with joined tags
+            return acc;
+        }, {});
+
+        setIncidentsByUser(Object.entries(groupedIncidents).map(([email, incidents]) => ({
+            email,
+            incidents,
+        })));
+
+        setLoading(false);
+    } catch (err) {
+        console.error('Error fetching incidents:', err);
+        setError('Failed to fetch incidents.');
+        setLoading(false);
+    }
+};
+
+const loadTags = async () => {
+    try {
+        const response = await axios.get(API.GET_TAGS);
+        console.log("Fetched tags:", response.data); // Debugging line
+        setTags(response.data.map(tagObj => tagObj.tagss)); // Ensure `tagss` is correct
+    } catch (error) {
+        console.error("Error fetching tags:", error);
+    }
+};
+
+// Fetch data on component mount
+useEffect(() => {
+    loadData();
+    loadTags();
+}, []);
+
     const checkResolvedStatus = async (incidentId) => {
         try {
             const response = await axios.get(`${API.CHECK_RESOLUTION_STATUS}/${incidentId}`);
@@ -365,13 +380,21 @@ const Admin = () => {
                             </tr>
                         </thead>
                         <tbody>
-                        {currentItems.map((user, userIndex) => (
-        user.incidents.map((incident, incidentIndex) => (
-            <tr key={`${userIndex}-${incidentIndex}`}>
-                <td>{(currentPage - 1) * itemsPerPage + incidentIndex + 1}</td> {/* Serial number */}
-                {incidentIndex === 0 && (
-                    <td rowSpan={user.incidents.length}><b>{incident.incidentowner}</b></td>
-                )}
+                        {incidentsByUser.map((user, userIndex) => {
+    const incidents = user.incidents;
+    
+    return incidents.map((incident, incidentIndex) => (
+        <tr key={`${userIndex}-${incidentIndex}`}>
+            {incidentIndex === 0 && ( // Show owner email and serial number only for the first incident of each owner
+                <>
+                    <td rowSpan={incidents.length}>
+                        {(currentPage - 1) * itemsPerPage + userIndex + 1} {/* Serial number */}
+                    </td>
+                    <td rowSpan={incidents.length}>
+                        <b>{incident.incidentowner}</b> {/* Use the owner's email */}
+                    </td>
+                </>
+            )}
                 <td>{incident.incidentid || 'N/A'}</td>
                 <td>{incident.sector || 'N/A'}</td>
                 <td>{incident.incidentcategory || 'N/A'}</td>
@@ -382,7 +405,7 @@ const Admin = () => {
                 <td>{incident.currentaddress || 'N/A'}</td>
                 <td>{incident.incidentowner || 'N/A'}</td>
                 <td>{incident.raisedtouser || 'N/A'}</td>
-                <td>{incident.tagss || 'N/A'}</td>
+                <td>{Array.isArray(incident.tagss) ? incident.tagss.join(', ') : 'No Tags'}</td>
                 <td>{incident.priority || 'N/A'}</td>
                 <td>{incident.status || 'N/A'}</td>
                 <td>{incident.remark || 'N/A'}</td>
@@ -428,7 +451,7 @@ const Admin = () => {
                 </td>
             </tr>
         ))
-    ))}
+    })}
                         </tbody>
                     </table>
                     </div>
